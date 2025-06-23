@@ -159,6 +159,7 @@ export default function AnimatedBackground() {
       animationId.current = requestAnimationFrame(animate)
     }
 
+    requestAnimationFrame(animate)
 
     return () => {
       window.removeEventListener("resize", resizeCanvas)
@@ -171,8 +172,7 @@ export default function AnimatedBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full -z-10"
-      style={{ backgroundColor: "#000000" }}
+      className="fixed inset-0 w-full h-full -z-10 animated-bg-canvas"
     />
   )
 }
