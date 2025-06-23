@@ -74,26 +74,24 @@ const AeonHomepage = () => {
 
       {/* Header */}
       <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrollY > 50 ? 'bg-black/90 backdrop-blur-lg border-b border-purple-500/20' : 'bg-transparent'}`}>
-        <div className="px-4 py-4 flex items-center justify-between">
+        <div className="px-3 py-3 flex items-center justify-between max-w-full">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-            aria-label="Open sidebar menu"
-            title="Open menu"
+            className="p-2 rounded-lg hover:bg-white/10 transition-colors flex-shrink-0"
           >
-            <Menu className="w-6 h-6" />
+            <Menu className="w-5 h-5" />
           </button>
-          
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
-              <span className="text-black font-bold text-lg">A</span>
+
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <div className="w-7 h-7 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
+              <span className="text-black font-bold text-sm">A</span>
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">AEON</span>
+            <span className="text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">AEON</span>
           </div>
-          
-          <div className="flex items-center space-x-2 bg-gradient-to-r from-purple-600/20 to-pink-600/20 px-3 py-2 rounded-full border border-purple-500/30">
-            <span className="text-yellow-400 font-bold text-sm">15</span>
-            <span className="text-xs">Credits</span>
+
+          <div className="flex items-center space-x-1 bg-gradient-to-r from-purple-600/20 to-pink-600/20 px-2 py-1 rounded-full border border-purple-500/30 flex-shrink-0">
+            <span className="text-yellow-400 font-bold text-xs">15</span>
+            <span className="text-xs hidden sm:inline">Credits</span>
           </div>
         </div>
       </header>
@@ -135,32 +133,32 @@ const AeonHomepage = () => {
           </div>
         </div>
         
-        <div className="relative text-center z-10 max-w-sm mx-auto">
-          <h1 className="text-4xl font-bold mb-4">
+        <div className="relative text-center z-10 max-w-xs mx-auto px-2">
+          <h1 className="text-3xl font-bold mb-4">
             <span className="bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500 bg-clip-text text-transparent">
               The AEON
             </span>
           </h1>
-          <p className="text-gray-300 text-lg mb-2">Advanced Efficient Optimized Network</p>
-          <p className="text-gray-400 text-sm mb-6 leading-relaxed px-4">
+          <p className="text-gray-300 text-base mb-2">Advanced Efficient Optimized Network</p>
+          <p className="text-gray-400 text-xs mb-6 leading-relaxed px-2">
             The high-performance AI video platform where cutting-edge technology drives exceptional business outcomes at enterprise scale.
           </p>
-          
-          <button className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg mb-6 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
+
+          <button className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-base mb-6 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
             ✨ Launch AI Campaign →
           </button>
-          
-          <div className="grid grid-cols-3 gap-3 text-center text-sm">
+
+          <div className="grid grid-cols-3 gap-2 text-center text-xs">
             <div>
-              <div className="text-yellow-400 font-bold text-lg">7+</div>
+              <div className="text-yellow-400 font-bold text-base">7+</div>
               <div className="text-gray-400 text-xs">AI Agents</div>
             </div>
             <div>
-              <div className="text-cyan-400 font-bold text-lg">5M+</div>
+              <div className="text-cyan-400 font-bold text-base">5M+</div>
               <div className="text-gray-400 text-xs">Videos Created</div>
             </div>
             <div>
-              <div className="text-purple-400 font-bold text-lg">4K</div>
+              <div className="text-purple-400 font-bold text-base">4K</div>
               <div className="text-gray-400 text-xs">Ultra HD Output</div>
             </div>
           </div>
@@ -170,9 +168,9 @@ const AeonHomepage = () => {
       {/* Video Demo Section */}
       <section className="px-4 py-12 bg-gradient-to-b from-purple-950/20 to-black">
         <div className="max-w-sm mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-4">See AEON in Action</h2>
-          <p className="text-gray-400 mb-6 text-sm">Watch how enterprise clients generate thousands of AI videos at scale</p>
-          
+          <h2 className="text-2xl font-bold mb-4">Platform Overview</h2>
+          <p className="text-gray-400 mb-6 text-sm">Discover the power of AI-driven content creation at enterprise scale</p>
+
           <div className="relative bg-gray-900 rounded-xl overflow-hidden border border-purple-500/20 mb-6">
             <div className="aspect-video relative">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-pink-600/20 flex items-center justify-center">
@@ -180,21 +178,21 @@ const AeonHomepage = () => {
                   <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mb-3 mx-auto backdrop-blur-sm">
                     <Play className="w-6 h-6 text-white ml-1" />
                   </div>
-                  <p className="text-xs text-gray-300">Your Video Here</p>
+                  <p className="text-xs text-gray-300">Platform Preview</p>
                 </div>
               </div>
-              
+
               <iframe
                 className="absolute inset-0 w-full h-full"
                 src="about:blank"
-                title="AEON Demo Video"
+                title="AEON Platform Overview"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-gray-900/50 p-3 rounded-lg border border-gray-700">
               <div className="text-lg font-bold text-cyan-400 mb-1">10x</div>
