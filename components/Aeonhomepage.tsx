@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Play, Star, Users, Clock, Zap } from 'lucide-react';
+import styles from './AeonHomepage.module.css';
 
 const AeonHomepage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const [userHasMembership] = useState(false); // Set to true when user has membership
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -35,12 +37,7 @@ const AeonHomepage = () => {
                 </div>
                 <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">AEON</span>
               </div>
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="p-2 rounded-lg hover:bg-white/10"
-                title="Close menu"
-                aria-label="Close sidebar menu"
-              >
+              <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 rounded-lg hover:bg-white/10" title="Close menu">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -59,106 +56,109 @@ const AeonHomepage = () => {
               ))}
             </div>
             
-            <div className="mt-8 p-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-lg border border-purple-500/30">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Credits</span>
-                <span className="text-yellow-400 font-bold">15</span>
+            {userHasMembership && (
+              <div className="mt-8 p-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-lg border border-purple-500/30">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Credits</span>
+                  <span className="text-yellow-400 font-bold">15</span>
+                </div>
+                <button type="button" className="w-full py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-lg font-medium text-sm">
+                  Upgrade Plan
+                </button>
               </div>
-              <button className="w-full py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-lg font-medium text-sm">
-                Upgrade Plan
-              </button>
-            </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Header */}
       <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrollY > 50 ? 'bg-black/90 backdrop-blur-lg border-b border-purple-500/20' : 'bg-transparent'}`}>
-        <div className="px-3 py-3 flex items-center justify-between max-w-full">
+        <div className="px-4 py-4 flex items-center justify-between">
           <button
+            type="button"
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors flex-shrink-0"
+            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+            aria-label="Open navigation menu"
+            title="Open navigation menu"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-6 h-6" />
           </button>
-
-          <div className="flex items-center space-x-2 flex-shrink-0">
-            <div className="w-7 h-7 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
-              <span className="text-black font-bold text-sm">A</span>
+          
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
+              <span className="text-black font-bold text-lg">A</span>
             </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">AEON</span>
+            <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">AEON</span>
           </div>
-
-          <div className="flex items-center space-x-1 bg-gradient-to-r from-purple-600/20 to-pink-600/20 px-2 py-1 rounded-full border border-purple-500/30 flex-shrink-0">
-            <span className="text-yellow-400 font-bold text-xs">15</span>
-            <span className="text-xs hidden sm:inline">Credits</span>
+          
+          <div className="flex items-center space-x-2">
+            {userHasMembership && (
+              <div className="flex items-center space-x-1 bg-gradient-to-r from-purple-600/20 to-pink-600/20 px-2 py-1 rounded-full border border-purple-500/30">
+                <span className="text-yellow-400 font-bold text-xs">15</span>
+                <span className="text-xs hidden sm:inline">Credits</span>
+              </div>
+            )}
+            <button type="button" className="px-3 py-1 bg-purple-600 rounded-lg text-xs font-medium">
+              Account
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section - RESTORED DYNAMIC VORTEX */}
       <section className="relative min-h-screen flex items-center justify-center px-4 pt-20">
+        {/* Dynamic Animated Vortex Background */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            {/* Concentric Circles - DYNAMIC ANIMATION RESTORED */}
             {[...Array(8)].map((_, i) => (
               <div
                 key={i}
-                className="absolute rounded-full border-2 animate-pulse"
-                style={{
-                  width: `${200 + i * 80}px`,
-                  height: `${200 + i * 80}px`,
-                  borderColor: i % 3 === 0 ? 'rgba(6, 182, 212, 0.4)' : i % 3 === 1 ? 'rgba(147, 51, 234, 0.4)' : 'rgba(236, 72, 153, 0.4)',
-                  animationDelay: `${i * 0.3}s`,
-                  animationDuration: '4s',
-                  left: '50%',
-                  top: '50%',
-                  transform: 'translate(-50%, -50%)'
-                }}
+                className={`${styles.concentricCircle} ${styles[`concentricCircle${i}` as keyof typeof styles]}`}
               />
             ))}
             
-            {[...Array(15)].map((_, i) => (
-              <div
-                key={`dot-${i}`}
-                className="absolute w-2 h-2 rounded-full animate-bounce"
-                style={{
-                  backgroundColor: i % 3 === 0 ? '#06b6d4' : i % 3 === 1 ? '#9333ea' : '#ec4899',
-                  left: `${15 + Math.random() * 70}%`,
-                  top: `${15 + Math.random() * 70}%`,
-                  animationDelay: `${Math.random() * 3}s`,
-                  animationDuration: `${2 + Math.random() * 2}s`
-                }}
-              />
-            ))}
+            {/* Floating Dots - DYNAMIC ANIMATION */}
+            {[...Array(15)].map((_, i) => {
+              const colorClass = i % 3 === 0 ? styles.floatingDotCyan : i % 3 === 1 ? styles.floatingDotPurple : styles.floatingDotPink;
+              const positionClass = styles[`floatingDot${i}` as keyof typeof styles];
+
+              return (
+                <div
+                  key={`dot-${i}`}
+                  className={`${styles.floatingDot} ${colorClass} ${positionClass}`}
+                />
+              );
+            })}
           </div>
         </div>
         
-        <div className="relative text-center z-10 max-w-xs mx-auto px-2">
-          <h1 className="text-3xl font-bold mb-4">
+        <div className="relative text-center z-10 max-w-sm mx-auto">
+          <h1 className="text-4xl font-bold mb-4">
             <span className="bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500 bg-clip-text text-transparent">
               The AEON
             </span>
           </h1>
-          <p className="text-gray-300 text-base mb-2">Advanced Efficient Optimized Network</p>
-          <p className="text-gray-400 text-xs mb-6 leading-relaxed px-2">
+          <p className="text-gray-300 text-lg mb-2">Advanced Efficient Optimized Network</p>
+          <p className="text-gray-400 text-sm mb-6 leading-relaxed px-4">
             The high-performance AI video platform where cutting-edge technology drives exceptional business outcomes at enterprise scale.
           </p>
-
-          <button className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-base mb-6 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
+          
+          <button type="button" className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg mb-6 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
             ✨ Launch AI Campaign →
           </button>
-
-          <div className="grid grid-cols-3 gap-2 text-center text-xs">
+          
+          <div className="grid grid-cols-3 gap-3 text-center text-sm">
             <div>
-              <div className="text-yellow-400 font-bold text-base">7+</div>
+              <div className="text-yellow-400 font-bold text-lg">7+</div>
               <div className="text-gray-400 text-xs">AI Agents</div>
             </div>
             <div>
-              <div className="text-cyan-400 font-bold text-base">5M+</div>
+              <div className="text-cyan-400 font-bold text-lg">5M+</div>
               <div className="text-gray-400 text-xs">Videos Created</div>
             </div>
             <div>
-              <div className="text-purple-400 font-bold text-base">4K</div>
+              <div className="text-purple-400 font-bold text-lg">4K</div>
               <div className="text-gray-400 text-xs">Ultra HD Output</div>
             </div>
           </div>
@@ -170,7 +170,7 @@ const AeonHomepage = () => {
         <div className="max-w-sm mx-auto text-center">
           <h2 className="text-2xl font-bold mb-4">Platform Overview</h2>
           <p className="text-gray-400 mb-6 text-sm">Discover the power of AI-driven content creation at enterprise scale</p>
-
+          
           <div className="relative bg-gray-900 rounded-xl overflow-hidden border border-purple-500/20 mb-6">
             <div className="aspect-video relative">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-pink-600/20 flex items-center justify-center">
@@ -181,18 +181,17 @@ const AeonHomepage = () => {
                   <p className="text-xs text-gray-300">Platform Preview</p>
                 </div>
               </div>
-
+              
               <iframe
-                className="absolute inset-0 w-full h-full"
+                className={`absolute inset-0 w-full h-full ${styles.iframe}`}
                 src="about:blank"
                 title="AEON Platform Overview"
-                frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
             </div>
           </div>
-
+          
           <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-gray-900/50 p-3 rounded-lg border border-gray-700">
               <div className="text-lg font-bold text-cyan-400 mb-1">10x</div>
@@ -219,17 +218,7 @@ const AeonHomepage = () => {
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className="absolute inset-0 rounded-full border-2 animate-spin"
-                  style={{
-                    borderColor: ['rgba(6, 182, 212, 0.5)', 'rgba(147, 51, 234, 0.5)', 'rgba(236, 72, 153, 0.5)', 'rgba(34, 197, 94, 0.5)'][i],
-                    animationDuration: `${6 + i * 2}s`,
-                    animationDirection: i % 2 === 0 ? 'normal' : 'reverse',
-                    width: `${70 + i * 25}%`,
-                    height: `${70 + i * 25}%`,
-                    left: '50%',
-                    top: '50%',
-                    transform: 'translate(-50%, -50%)'
-                  }}
+                  className={`${styles.spinningRing} ${styles[`spinningRing${i}` as keyof typeof styles]}`}
                 />
               ))}
               <div className="absolute inset-0 flex items-center justify-center">
@@ -269,10 +258,10 @@ const AeonHomepage = () => {
           <p className="text-gray-400 mb-6 text-sm">Join 50+ enterprise clients already using AEON to transform their video production.</p>
           
           <div className="space-y-3">
-            <button className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
+            <button type="button" className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
               Start Free Trial
             </button>
-            <button className="w-full py-3 border border-gray-600 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors">
+            <button type="button" className="w-full py-3 border border-gray-600 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors">
               Schedule Demo
             </button>
           </div>
