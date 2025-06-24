@@ -1,9 +1,10 @@
 "use client"
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import {
   Sidebar,
   SidebarContent,
@@ -16,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { Button } from '@/components/ui/button'
 import {
   Network,
   Video,
@@ -26,7 +28,8 @@ import {
   CreditCard,
   User,
   Rocket,
-  Gem
+  Gem,
+  LogOut
 } from 'lucide-react'
 
 const navigationItems = [
@@ -57,6 +60,19 @@ const navigationItems = [
 
 export default function AppSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const [credits, setCredits] = useState(15)
+  const supabase = createClientComponentClient()
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+      router.push('/')
+      router.refresh()
+    } catch (error) {
+      console.error('Error logging out:', error)
+    }
+  }
 
   return (
     <Sidebar className="border-r border-white/10 bg-black/50 backdrop-blur-xl">
@@ -116,14 +132,23 @@ export default function AppSidebar() {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="p-4 space-y-4">
         <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-cyan-600/20 border border-purple-500/30 rounded-xl backdrop-blur-xl">
           <Gem className="h-5 w-5 text-yellow-400" />
           <div className="flex-1">
             <p className="text-sm font-medium text-white">Credits</p>
-            <p className="text-xs text-neutral-400">15 remaining</p>
+            <p className="text-xs text-neutral-400">{credits} remaining</p>
           </div>
         </div>
+
+        <Button
+          onClick={handleLogout}
+          variant="outline"
+          className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
       </SidebarFooter>
     </Sidebar>
   )

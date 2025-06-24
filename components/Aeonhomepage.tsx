@@ -18,8 +18,7 @@ const AeonHomepage = () => {
     { name: 'Studio', href: '/studio', icon: Play },
     { name: 'Features', href: '#features', icon: Star },
     { name: 'Pricing', href: '#pricing', icon: Users },
-    { name: 'Account', href: '/account', icon: Clock },
-    { name: 'Launch Campaign', href: '/campaign', icon: Zap }
+    { name: 'Launch Campaign', href: '/launch-ai-campaign', icon: Zap }
   ];
 
   return (
@@ -95,8 +94,8 @@ const AeonHomepage = () => {
                 <span className="text-xs hidden sm:inline">Credits</span>
               </div>
             )}
-            <a href="/account" className="px-2 py-1 bg-purple-600 rounded-lg text-xs font-medium whitespace-nowrap">
-              Account
+            <a href="/login" className="px-2 py-1 bg-purple-600 rounded-lg text-xs font-medium whitespace-nowrap">
+              Sign In
             </a>
           </div>
         </div>

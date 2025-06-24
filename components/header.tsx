@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Button } from "@/components/ui/button"
-import { Gem, Network, Menu, X } from "lucide-react"
+import { Gem, Network, Menu, X, User } from "lucide-react"
 import Link from "next/link"
 import { useApi } from "@/lib/api"
 import { StartFreeTrialButton, ScheduleDemoButton } from "./action-button"
@@ -22,7 +23,10 @@ export default function Header() {
   const pathname = usePathname()
   const [credits, setCredits] = useState(0)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const { fetchCredits, getUser } = useApi()
+  const supabase = createClientComponentClient()
 
   // Only show header on home page
   if (pathname !== '/') {
@@ -30,17 +34,40 @@ export default function Header() {
   }
 
   useEffect(() => {
-    // Fetch user credits on component mount
+    // Check authentication status and fetch user data
     const loadUserData = async () => {
-      const userResult = await getUser()
-      if (userResult.data) {
-        const creditsResult = await fetchCredits(userResult.data.id)
-        if (creditsResult.data) {
-          setCredits(creditsResult.data)
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          setUser(session.user)
+          const userResult = await getUser()
+          if (userResult.data) {
+            const creditsResult = await fetchCredits(userResult.data.id)
+            if (creditsResult.data) {
+              setCredits(creditsResult.data)
+            }
+          }
         }
+      } catch (error) {
+        console.error('Error loading user data:', error)
+      } finally {
+        setLoading(false)
       }
     }
+
     loadUserData()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user)
+      } else {
+        setUser(null)
+        setCredits(0)
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   return (
@@ -79,15 +106,35 @@ export default function Header() {
 
         {/* Desktop Actions */}
         <div className="hidden lg:flex items-center gap-4">
-          <Link
-            href="/account"
-            className="flex items-center gap-3 text-lg font-medium bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-cyan-600/20 border border-purple-500/30 px-4 py-2 rounded-xl hover:from-purple-600/30 hover:via-pink-600/30 hover:to-cyan-600/30 transition-all duration-500 backdrop-blur-xl shadow-lg shadow-purple-500/10"
-          >
-            <Gem className="h-4 w-4 text-yellow-400" />
-            <span>{credits} Credits</span>
-          </Link>
-          <StartFreeTrialButton size="md" />
-          <ScheduleDemoButton size="md" />
+          {user ? (
+            <>
+              <Link
+                href="/account"
+                className="flex items-center gap-3 text-lg font-medium bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-cyan-600/20 border border-purple-500/30 px-4 py-2 rounded-xl hover:from-purple-600/30 hover:via-pink-600/30 hover:to-cyan-600/30 transition-all duration-500 backdrop-blur-xl shadow-lg shadow-purple-500/10"
+              >
+                <Gem className="h-4 w-4 text-yellow-400" />
+                <span>{credits} Credits</span>
+              </Link>
+              <Link
+                href="/studio"
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-xl font-medium transition-colors"
+              >
+                <User className="h-4 w-4" />
+                Dashboard
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="px-4 py-2 text-purple-400 hover:text-purple-300 font-medium transition-colors"
+              >
+                Sign In
+              </Link>
+              <StartFreeTrialButton size="md" />
+              <ScheduleDemoButton size="md" />
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -120,15 +167,35 @@ export default function Header() {
               </Link>
             ))}
             <div className="pt-4 space-y-3">
-              <Link
-                href="/account"
-                className="flex items-center gap-3 text-lg font-medium bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-cyan-600/20 border border-purple-500/30 px-4 py-3 rounded-xl"
-              >
-                <Gem className="h-4 w-4 text-yellow-400" />
-                <span>{credits} Credits</span>
-              </Link>
-              <StartFreeTrialButton size="md" className="w-full" />
-              <ScheduleDemoButton size="md" className="w-full" />
+              {user ? (
+                <>
+                  <Link
+                    href="/account"
+                    className="flex items-center gap-3 text-lg font-medium bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-cyan-600/20 border border-purple-500/30 px-4 py-3 rounded-xl"
+                  >
+                    <Gem className="h-4 w-4 text-yellow-400" />
+                    <span>{credits} Credits</span>
+                  </Link>
+                  <Link
+                    href="/studio"
+                    className="flex items-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 rounded-xl font-medium transition-colors w-full justify-center"
+                  >
+                    <User className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="block text-center px-4 py-3 text-purple-400 hover:text-purple-300 font-medium transition-colors border border-purple-500/30 rounded-xl"
+                  >
+                    Sign In
+                  </Link>
+                  <StartFreeTrialButton size="md" className="w-full" />
+                  <ScheduleDemoButton size="md" className="w-full" />
+                </>
+              )}
             </div>
           </div>
         </motion.div>
