@@ -11,8 +11,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const supabase = createClientComponentClient()
   const router = useRouter()
+  const supabase = createClientComponentClient()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,111 +25,94 @@ export default function LoginPage() {
         password,
       })
 
-      if (error) throw error
-      
-      router.push('/studio')
-      router.refresh()
-    } catch (error: any) {
-      setError(error.message)
+      if (error) {
+        setError(error.message)
+      } else {
+        router.push('/studio')
+        router.refresh()
+      }
+    } catch (err) {
+      setError('An unexpected error occurred')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className={`absolute rounded-full border-2 animate-pulse opacity-20 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 ${
-                i % 3 === 0 ? 'border-cyan-400/40' : i % 3 === 1 ? 'border-purple-600/40' : 'border-pink-500/40'
-              }`}
-              style={{
-                width: `${300 + i * 100}px`,
-                height: `${300 + i * 100}px`,
-                animationDelay: `${i * 0.3}s`,
-                animationDuration: '4s',
-              } as React.CSSProperties}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="relative z-10 max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="flex items-center justify-center space-x-2 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
-              <span className="text-black font-bold text-xl">A</span>
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">AEON</span>
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="max-w-md w-full mx-4">
+        <div className="bg-gray-900 rounded-2xl p-8 border border-gray-800">
+          {/* AEON Logo */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+              AEON
+            </h1>
+            <p className="text-gray-400 mt-2">Sign in to your account</p>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-gray-400">Sign in to access your AI video studio</p>
-        </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
+          {/* Error Message */}
           {error && (
-            <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-3">
+            <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 mb-6">
               <p className="text-red-400 text-sm">{error}</p>
             </div>
           )}
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-              placeholder="Enter your email"
-            />
-          </div>
+          {/* Login Form */}
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-3 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-              placeholder="Enter your password"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
-          >
-            {loading ? (
-              <div className="flex items-center justify-center space-x-2">
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                <span>Signing in...</span>
-              </div>
-            ) : (
-              'Sign In'
-            )}
-          </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
 
-          <div className="text-center">
-            <p className="text-gray-400 text-sm">
+          {/* Links */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-400">
               Don't have an account?{' '}
-              <Link href="/signup" className="text-purple-400 hover:text-purple-300 font-medium">
+              <Link href="/signup" className="text-orange-500 hover:text-orange-400">
                 Sign up
               </Link>
             </p>
           </div>
-        </form>
+
+          {/* Back to Home */}
+          <div className="mt-4 text-center">
+            <Link href="/" className="text-gray-500 hover:text-gray-400 text-sm">
+              ← Back to Home
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   )
