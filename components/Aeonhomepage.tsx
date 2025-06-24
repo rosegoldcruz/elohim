@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Play, Star, Users, Clock, Zap } from 'lucide-react';
-import styles from './AeonHomepage.module.css';
 
 const AeonHomepage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
-  const [userHasMembership] = useState(false); // Set to true when user has membership
+  const userHasMembership = false; // Credits hidden on homepage
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -37,7 +36,7 @@ const AeonHomepage = () => {
                 </div>
                 <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">AEON</span>
               </div>
-              <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 rounded-lg hover:bg-white/10" title="Close menu">
+              <button onClick={() => setSidebarOpen(false)} className="p-2 rounded-lg hover:bg-white/10">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -62,7 +61,7 @@ const AeonHomepage = () => {
                   <span className="text-sm font-medium">Credits</span>
                   <span className="text-yellow-400 font-bold">15</span>
                 </div>
-                <button type="button" className="w-full py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-lg font-medium text-sm">
+                <button className="w-full py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-lg font-medium text-sm">
                   Upgrade Plan
                 </button>
               </div>
@@ -75,11 +74,9 @@ const AeonHomepage = () => {
       <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrollY > 50 ? 'bg-black/90 backdrop-blur-lg border-b border-purple-500/20' : 'bg-transparent'}`}>
         <div className="px-4 py-4 flex items-center justify-between">
           <button
-            type="button"
             onClick={() => setSidebarOpen(true)}
             className="p-2 rounded-lg hover:bg-white/10 transition-colors"
             aria-label="Open navigation menu"
-            title="Open navigation menu"
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -98,9 +95,9 @@ const AeonHomepage = () => {
                 <span className="text-xs hidden sm:inline">Credits</span>
               </div>
             )}
-            <button type="button" className="px-3 py-1 bg-purple-600 rounded-lg text-xs font-medium">
+            <a href="/account" className="px-2 py-1 bg-purple-600 rounded-lg text-xs font-medium whitespace-nowrap">
               Account
-            </button>
+            </a>
           </div>
         </div>
       </header>
@@ -114,22 +111,34 @@ const AeonHomepage = () => {
             {[...Array(8)].map((_, i) => (
               <div
                 key={i}
-                className={`${styles.concentricCircle} ${styles[`concentricCircle${i}` as keyof typeof styles]}`}
+                className="absolute rounded-full border-2 animate-pulse"
+                style={{
+                  width: `${200 + i * 80}px`,
+                  height: `${200 + i * 80}px`,
+                  borderColor: i % 3 === 0 ? 'rgba(6, 182, 212, 0.4)' : i % 3 === 1 ? 'rgba(147, 51, 234, 0.4)' : 'rgba(236, 72, 153, 0.4)',
+                  animationDelay: `${i * 0.3}s`,
+                  animationDuration: '4s',
+                  left: '50%',
+                  top: '50%',
+                  transform: 'translate(-50%, -50%)'
+                }}
               />
             ))}
             
             {/* Floating Dots - DYNAMIC ANIMATION */}
-            {[...Array(15)].map((_, i) => {
-              const colorClass = i % 3 === 0 ? styles.floatingDotCyan : i % 3 === 1 ? styles.floatingDotPurple : styles.floatingDotPink;
-              const positionClass = styles[`floatingDot${i}` as keyof typeof styles];
-
-              return (
-                <div
-                  key={`dot-${i}`}
-                  className={`${styles.floatingDot} ${colorClass} ${positionClass}`}
-                />
-              );
-            })}
+            {[...Array(15)].map((_, i) => (
+              <div
+                key={`dot-${i}`}
+                className="absolute w-2 h-2 rounded-full animate-bounce"
+                style={{
+                  backgroundColor: i % 3 === 0 ? '#06b6d4' : i % 3 === 1 ? '#9333ea' : '#ec4899',
+                  left: `${15 + Math.random() * 70}%`,
+                  top: `${15 + Math.random() * 70}%`,
+                  animationDelay: `${Math.random() * 3}s`,
+                  animationDuration: `${2 + Math.random() * 2}s`
+                }}
+              />
+            ))}
           </div>
         </div>
         
@@ -144,7 +153,7 @@ const AeonHomepage = () => {
             The high-performance AI video platform where cutting-edge technology drives exceptional business outcomes at enterprise scale.
           </p>
           
-          <button type="button" className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg mb-6 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
+          <button className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg mb-6 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
             ✨ Launch AI Campaign →
           </button>
           
@@ -183,9 +192,10 @@ const AeonHomepage = () => {
               </div>
               
               <iframe
-                className={`absolute inset-0 w-full h-full ${styles.iframe}`}
-                src="about:blank"
+                className="absolute inset-0 w-full h-full"
+                src="https://vdns3.makewebvideo.com/data1/userfiles/public/ueztbbrqdfm6tkeruhh4njda/movie_tBujZZEppWU5GPYQ.mp4.1920x1080.mp4"
                 title="AEON Platform Overview"
+                frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
@@ -218,7 +228,17 @@ const AeonHomepage = () => {
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className={`${styles.spinningRing} ${styles[`spinningRing${i}` as keyof typeof styles]}`}
+                  className="absolute inset-0 rounded-full border-2 animate-spin"
+                  style={{
+                    borderColor: ['rgba(6, 182, 212, 0.5)', 'rgba(147, 51, 234, 0.5)', 'rgba(236, 72, 153, 0.5)', 'rgba(34, 197, 94, 0.5)'][i],
+                    animationDuration: `${6 + i * 2}s`,
+                    animationDirection: i % 2 === 0 ? 'normal' : 'reverse',
+                    width: `${70 + i * 25}%`,
+                    height: `${70 + i * 25}%`,
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)'
+                  }}
                 />
               ))}
               <div className="absolute inset-0 flex items-center justify-center">
@@ -258,10 +278,10 @@ const AeonHomepage = () => {
           <p className="text-gray-400 mb-6 text-sm">Join 50+ enterprise clients already using AEON to transform their video production.</p>
           
           <div className="space-y-3">
-            <button type="button" className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
+            <button className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
               Start Free Trial
             </button>
-            <button type="button" className="w-full py-3 border border-gray-600 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors">
+            <button className="w-full py-3 border border-gray-600 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors">
               Schedule Demo
             </button>
           </div>
