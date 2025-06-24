@@ -1,180 +1,111 @@
 'use client'
 
-import { useState } from 'react'
-import { Play, Upload, Settings, Download } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowRight, Play, Video, Zap, Crown, Target, Rocket, DollarSign, Check } from 'lucide-react'
 
-export default function StudioPage() {
-  const [prompt, setPrompt] = useState('')
-  const [title, setTitle] = useState('')
-  const [videoStyle, setVideoStyle] = useState('cinematic')
-  const [duration, setDuration] = useState(60)
-  const [scenes, setScenes] = useState(16)
-  const [isGenerating, setIsGenerating] = useState(false)
-
-  const handleGenerate = async () => {
-    setIsGenerating(true)
-    try {
-      const response = await fetch('/api/v1/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          prompt,
-          videoStyle,
-          targetDuration: duration,
-          totalScenes: scenes
-        })
-      })
-      const data = await response.json()
-      console.log('Project created:', data)
-    } catch (error) {
-      console.error('Generation failed:', error)
-    } finally {
-      setIsGenerating(false)
-    }
-  }
-
+export default function StudioMarketingPage() {
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">AEON Studio</h1>
-            <p className="text-gray-400">Create professional AI videos with multi-agent processing</p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Input Panel */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700">
-                <h2 className="text-xl font-semibold mb-4">Project Settings</h2>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
-                    <input
-                      type="text"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Enter project title..."
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Video Prompt</label>
-                    <textarea
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                      placeholder="Describe your video concept..."
-                      rows={4}
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 resize-none"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Style</label>
-                      <select
-                        value={videoStyle}
-                        onChange={(e) => setVideoStyle(e.target.value)}
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
-                      >
-                        <option value="cinematic">Cinematic</option>
-                        <option value="documentary">Documentary</option>
-                        <option value="anime">Anime</option>
-                        <option value="realistic">Realistic</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Duration (seconds)</label>
-                      <input
-                        type="number"
-                        value={duration}
-                        onChange={(e) => setDuration(parseInt(e.target.value))}
-                        min="15"
-                        max="300"
-                        className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Total Scenes: {scenes}</label>
-                    <input
-                      type="range"
-                      value={scenes}
-                      onChange={(e) => setScenes(parseInt(e.target.value))}
-                      min="4"
-                      max="32"
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={handleGenerate}
-                disabled={!prompt || !title || isGenerating}
-                className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+      {/* Single Clean Navigation */}
+      <nav className="bg-black/95 backdrop-blur-xl border-b border-yellow-500/30 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+              👑 AEON
+            </Link>
+            <div className="flex items-center space-x-6">
+              <Link href="/pricing" className="text-gray-300 hover:text-yellow-400 transition-colors">Pricing</Link>
+              <Link href="/login" className="text-gray-300 hover:text-yellow-400 transition-colors">Sign In</Link>
+              <Link 
+                href="/signup" 
+                className="bg-gradient-to-r from-yellow-500 to-yellow-600 px-6 py-2 rounded-lg font-bold hover:scale-105 transition-all"
               >
-                {isGenerating ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Generating...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center space-x-2">
-                    <Play className="w-5 h-5" />
-                    <span>Generate Video</span>
-                  </div>
-                )}
-              </button>
-            </div>
-
-            {/* Preview Panel */}
-            <div className="space-y-6">
-              <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700">
-                <h3 className="text-lg font-semibold mb-4">Preview</h3>
-                <div className="aspect-video bg-gray-800 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-600">
-                  <div className="text-center text-gray-400">
-                    <Upload className="w-8 h-8 mx-auto mb-2" />
-                    <p className="text-sm">Video preview will appear here</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700">
-                <h3 className="text-lg font-semibold mb-4">Generation Info</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Estimated Cost:</span>
-                    <span className="text-yellow-400">{scenes * 100} credits</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Processing Time:</span>
-                    <span className="text-gray-300">~{Math.ceil(scenes * 0.5)} min</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Output Quality:</span>
-                    <span className="text-green-400">4K Ultra HD</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex space-x-3">
-                <button className="flex-1 py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
-                  <Settings className="w-4 h-4 mx-auto" />
-                </button>
-                <button className="flex-1 py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
-                  <Download className="w-4 h-4 mx-auto" />
-                </button>
-              </div>
+                GET ACCESS NOW
+              </Link>
             </div>
           </div>
         </div>
-      </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="pt-20 pb-16 relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 via-black to-green-500/10"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-6 py-3 bg-yellow-500/20 border border-yellow-500/40 rounded-full text-yellow-400 text-lg font-bold mb-8">
+              <Video className="w-6 h-6 mr-3" />
+              The $10M Video Studio
+            </div>
+            
+            <h1 className="text-6xl md:text-8xl font-black leading-tight mb-8">
+              <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+                HOLLYWOOD
+              </span>
+              <br />
+              <span className="text-white">IN YOUR</span>
+              <br />
+              <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+                BROWSER
+              </span>
+            </h1>
+            
+            <p className="text-2xl text-gray-300 mb-12 max-w-4xl mx-auto">
+              Access the same AI video studio that creates <span className="text-yellow-400 font-bold">$100K+ monthly income</span> for thousands of creators. 
+              No cameras, no crew, no experience needed.
+            </p>
+
+            <div className="flex flex-col md:flex-row gap-6 justify-center mb-16">
+              <Link 
+                href="/signup"
+                className="bg-gradient-to-r from-yellow-500 to-yellow-600 px-12 py-6 rounded-2xl font-black text-2xl hover:scale-105 transition-all"
+              >
+                🎬 ENTER THE STUDIO
+              </Link>
+              <button className="border-2 border-yellow-500 px-8 py-6 rounded-2xl font-bold text-xl hover:bg-yellow-500/10 transition-all">
+                <Play className="w-6 h-6 mr-3 inline" />
+                Watch Demo
+              </button>
+            </div>
+          </div>
+
+          {/* Studio Features */}
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-gray-900/50 p-8 rounded-2xl border border-yellow-500/30 text-center">
+              <div className="text-6xl mb-6">🎭</div>
+              <h3 className="text-2xl font-bold text-yellow-400 mb-4">AI Director</h3>
+              <p className="text-gray-300">Automatically creates shot lists, angles, and scenes that convert viewers into customers.</p>
+            </div>
+
+            <div className="bg-gray-900/50 p-8 rounded-2xl border border-yellow-500/30 text-center">
+              <div className="text-6xl mb-6">🎨</div>
+              <h3 className="text-2xl font-bold text-yellow-400 mb-4">Visual Effects</h3>
+              <p className="text-gray-300">Hollywood-grade effects that make your videos look like million-dollar productions.</p>
+            </div>
+
+            <div className="bg-gray-900/50 p-8 rounded-2xl border border-yellow-500/30 text-center">
+              <div className="text-6xl mb-6">⚡</div>
+              <h3 className="text-2xl font-bold text-yellow-400 mb-4">Instant Render</h3>
+              <p className="text-gray-300">From idea to finished video in under 3 minutes. While others edit for hours, you're already viral.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing CTA */}
+      <section className="py-20 bg-gray-900/30">
+        <div className="max-w-4xl mx-auto text-center px-4">
+          <h2 className="text-4xl font-bold mb-8 text-yellow-400">Ready to Build Your Video Empire?</h2>
+          <p className="text-xl text-gray-300 mb-8">Join 50,000+ creators making $10K-$500K monthly with AEON Studio</p>
+          
+          <Link 
+            href="/signup"
+            className="bg-gradient-to-r from-yellow-500 to-yellow-600 px-12 py-6 rounded-2xl font-black text-2xl hover:scale-105 transition-all inline-flex items-center"
+          >
+            🚀 START YOUR EMPIRE
+            <ArrowRight className="w-8 h-8 ml-3" />
+          </Link>
+        </div>
+      </section>
     </div>
   )
 }
