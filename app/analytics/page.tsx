@@ -1,3 +1,8 @@
+"use client"
+
+import React from "react"
+import { motion } from "framer-motion"
+import MainLayout from "@/components/layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { DollarSign, Eye, Target, BarChart3 } from "lucide-react"
@@ -20,7 +25,13 @@ const topPerformers = [
 
 export default function AnalyticsPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <MainLayout>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="container mx-auto px-4 py-8"
+      >
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400 mb-4">
@@ -103,7 +114,7 @@ export default function AnalyticsPage() {
                 <div key={data.month} className="flex-1 flex flex-col items-center">
                   <div
                     className="w-full bg-gradient-to-t from-green-600 to-emerald-400 rounded-t-lg relative group cursor-pointer"
-                    style={{ height: `${(data.revenue / 600000) * 100}%` }}
+                    style={{ height: `${Math.min((data.revenue / 600000) * 100, 100)}%` } as React.CSSProperties}
                   >
                     <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity">
                       ${data.revenue.toLocaleString()}
@@ -160,6 +171,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </motion.div>
+    </MainLayout>
   )
 }

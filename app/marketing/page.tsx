@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
+import { motion } from "framer-motion"
+import MainLayout from "@/components/layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -40,7 +42,13 @@ export default function MarketingPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <MainLayout>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="container mx-auto px-4 py-8"
+      >
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-yellow-400 mb-4">
@@ -252,6 +260,7 @@ export default function MarketingPage() {
           </div>
         </div>
       )}
-    </div>
+      </motion.div>
+    </MainLayout>
   )
 }

@@ -1,11 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
+import { motion } from "framer-motion"
+import MainLayout from "@/components/layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Check, Zap, Crown, Rocket } from "lucide-react"
 import { toast } from "sonner"
+import { StartFreeTrialButton, ScheduleDemoButton } from "@/components/action-button"
 
 const plans = [
   {
@@ -67,7 +70,13 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16">
+    <MainLayout>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="container mx-auto px-4 py-16"
+      >
       {/* Header */}
       <div className="text-center mb-16">
         <h1 className="text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 mb-6">
@@ -81,6 +90,8 @@ export default function PricingPage() {
         <div className="flex items-center justify-center gap-4 mb-12">
           <span className={`text-lg font-medium ${!isAnnual ? "text-white" : "text-neutral-400"}`}>Monthly</span>
           <button
+            type="button"
+            title="Toggle billing period"
             onClick={() => setIsAnnual(!isAnnual)}
             className={`relative w-16 h-8 rounded-full transition-all duration-300 ${
               isAnnual ? "bg-gradient-to-r from-purple-600 to-cyan-600" : "bg-neutral-600"
@@ -197,16 +208,14 @@ export default function PricingPage() {
             <p className="text-xl text-neutral-400 mb-8 max-w-2xl mx-auto">
               Enterprise clients get dedicated support, custom integrations, and white-label solutions
             </p>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-2 border-purple-400/30 hover:border-purple-400/60 bg-black/30 backdrop-blur-xl px-12 py-4 text-lg font-semibold rounded-2xl hover:bg-purple-900/10 transition-all duration-500"
-            >
-              Contact Sales Team
-            </Button>
+            <div className="flex gap-4 justify-center">
+              <StartFreeTrialButton size="lg" />
+              <ScheduleDemoButton size="lg" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      </motion.div>
+    </MainLayout>
   )
 }

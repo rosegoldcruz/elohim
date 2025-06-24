@@ -111,34 +111,39 @@ const AeonHomepage = () => {
             {[...Array(8)].map((_, i) => (
               <div
                 key={i}
-                className="absolute rounded-full border-2 animate-pulse"
+                className={`absolute rounded-full border-2 animate-pulse left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 ${
+                  i % 3 === 0 ? 'border-cyan-400/40' : i % 3 === 1 ? 'border-purple-600/40' : 'border-pink-500/40'
+                }`}
                 style={{
                   width: `${200 + i * 80}px`,
                   height: `${200 + i * 80}px`,
-                  borderColor: i % 3 === 0 ? 'rgba(6, 182, 212, 0.4)' : i % 3 === 1 ? 'rgba(147, 51, 234, 0.4)' : 'rgba(236, 72, 153, 0.4)',
                   animationDelay: `${i * 0.3}s`,
                   animationDuration: '4s',
-                  left: '50%',
-                  top: '50%',
-                  transform: 'translate(-50%, -50%)'
-                }}
+                } as React.CSSProperties}
               />
             ))}
             
             {/* Floating Dots - DYNAMIC ANIMATION */}
-            {[...Array(15)].map((_, i) => (
-              <div
-                key={`dot-${i}`}
-                className="absolute w-2 h-2 rounded-full animate-bounce"
-                style={{
-                  backgroundColor: i % 3 === 0 ? '#06b6d4' : i % 3 === 1 ? '#9333ea' : '#ec4899',
-                  left: `${15 + Math.random() * 70}%`,
-                  top: `${15 + Math.random() * 70}%`,
-                  animationDelay: `${Math.random() * 3}s`,
-                  animationDuration: `${2 + Math.random() * 2}s`
-                }}
-              />
-            ))}
+            {[...Array(15)].map((_, i) => {
+              const colors = ['bg-cyan-400', 'bg-purple-600', 'bg-pink-500']
+              const leftPos = 15 + Math.random() * 70
+              const topPos = 15 + Math.random() * 70
+              const delay = Math.random() * 3
+              const duration = 2 + Math.random() * 2
+
+              return (
+                <div
+                  key={`dot-${i}`}
+                  className={`absolute w-2 h-2 rounded-full animate-bounce ${colors[i % 3]}`}
+                  style={{
+                    left: `${leftPos}%`,
+                    top: `${topPos}%`,
+                    animationDelay: `${delay}s`,
+                    animationDuration: `${duration}s`
+                  } as React.CSSProperties}
+                />
+              )
+            })}
           </div>
         </div>
         
@@ -153,7 +158,10 @@ const AeonHomepage = () => {
             The high-performance AI video platform where cutting-edge technology drives exceptional business outcomes at enterprise scale.
           </p>
           
-          <button className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg mb-6 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
+          <button
+            type="button"
+            className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg mb-6 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+          >
             ✨ Launch AI Campaign →
           </button>
           
@@ -192,10 +200,9 @@ const AeonHomepage = () => {
               </div>
               
               <iframe
-                className="absolute inset-0 w-full h-full"
+                className="absolute inset-0 w-full h-full border-0"
                 src="https://vdns3.makewebvideo.com/data1/userfiles/public/ueztbbrqdfm6tkeruhh4njda/movie_tBujZZEppWU5GPYQ.mp4.1920x1080.mp4"
                 title="AEON Platform Overview"
-                frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
@@ -225,22 +232,24 @@ const AeonHomepage = () => {
           
           <div className="relative mb-8">
             <div className="w-48 h-48 mx-auto relative">
-              {[...Array(4)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute inset-0 rounded-full border-2 animate-spin"
-                  style={{
-                    borderColor: ['rgba(6, 182, 212, 0.5)', 'rgba(147, 51, 234, 0.5)', 'rgba(236, 72, 153, 0.5)', 'rgba(34, 197, 94, 0.5)'][i],
-                    animationDuration: `${6 + i * 2}s`,
-                    animationDirection: i % 2 === 0 ? 'normal' : 'reverse',
-                    width: `${70 + i * 25}%`,
-                    height: `${70 + i * 25}%`,
-                    left: '50%',
-                    top: '50%',
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                />
-              ))}
+              {[...Array(4)].map((_, i) => {
+                const borderColors = ['border-cyan-400/50', 'border-purple-600/50', 'border-pink-500/50', 'border-green-500/50']
+                const duration = 6 + i * 2
+                const direction = i % 2 === 0 ? 'animate-spin' : 'animate-reverse-spin'
+                const size = 70 + i * 25
+
+                return (
+                  <div
+                    key={i}
+                    className={`absolute rounded-full border-2 ${borderColors[i]} left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 ${direction}`}
+                    style={{
+                      animationDuration: `${duration}s`,
+                      width: `${size}%`,
+                      height: `${size}%`,
+                    } as React.CSSProperties}
+                  />
+                )
+              })}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-purple-400 mb-1">99.9%</div>
@@ -278,10 +287,16 @@ const AeonHomepage = () => {
           <p className="text-gray-400 mb-6 text-sm">Join 50+ enterprise clients already using AEON to transform their video production.</p>
           
           <div className="space-y-3">
-            <button className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
+            <button
+              type="button"
+              className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-medium text-lg hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+            >
               Start Free Trial
             </button>
-            <button className="w-full py-3 border border-gray-600 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors">
+            <button
+              type="button"
+              className="w-full py-3 border border-gray-600 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors"
+            >
               Schedule Demo
             </button>
           </div>

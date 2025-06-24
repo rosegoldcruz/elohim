@@ -1,7 +1,6 @@
 import type React from "react"
 import "./globals.css"
 import { Inter } from "next/font/google"
-import Header from "@/components/header"
 import { Toaster } from "sonner"
 import AnimatedBackground from "@/components/animated-background"
 import PerformanceOptimizer from "@/components/performance-optimizer"
@@ -11,7 +10,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata = {
   title: "The AEON - Advanced Efficient Optimized Network",
   description: "High-performance AI video platform for exceptional business outcomes.",
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -25,8 +24,7 @@ export default function RootLayout({
         <PerformanceOptimizer />
         <div className="relative min-h-screen w-full">
           <AnimatedBackground />
-          <Header />
-          <main className="relative z-10 pt-24">{children}</main>
+          {children}
         </div>
         <Toaster position="top-right" theme="dark" />
       </body>

@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
+import { motion } from "framer-motion"
+import MainLayout from "@/components/layout"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -113,8 +115,14 @@ export default function StudioPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid lg:grid-cols-12 gap-8">
+    <MainLayout>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="container mx-auto px-4 py-8"
+      >
+        <div className="grid lg:grid-cols-12 gap-8">
         {/* Left Panel: Controls */}
         <div className="lg:col-span-3 space-y-6">
           <h2 className="text-2xl font-bold">Studio Controls</h2>
@@ -229,7 +237,11 @@ export default function StudioPage() {
                       </div>
                       {index < assembledClips.length - 1 && (
                         <div className="flex justify-center">
-                          <button className="p-1 rounded-full bg-neutral-700 hover:bg-purple-600 transition-colors">
+                          <button
+                            type="button"
+                            title="Add transition"
+                            className="p-1 rounded-full bg-neutral-700 hover:bg-purple-600 transition-colors"
+                          >
                             <Scissors className="h-4 w-4" />
                           </button>
                         </div>
@@ -262,7 +274,7 @@ export default function StudioPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </MainLayout>
   )
 }
