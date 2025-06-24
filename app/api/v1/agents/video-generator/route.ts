@@ -1,65 +1,45 @@
-// app/api/v1/agents/video-generator/route.ts - Video generation worker
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/database'
-import { videoFactory } from '@/lib/providers/video-generation'
+import { supabase } from '@/lib/database'
 
 export async function POST(request: NextRequest) {
-  const { jobId, sceneId, prompt, params } = await request.json()
-
   try {
-    // Update job status
-    await db.admin
-      .from('agent_jobs')
-      .update({ status: 'running', started_at: new Date().toISOString() })
-      .eq('id', jobId)
+    const body = await request.json()
+    const { prompt, userId } = body
 
-    // Get scene data
-    const { data: scene } = await db.admin
-      .from('scenes')
-      .select('project_id, scene_number, visual_description')
-      .eq('id', sceneId)
-      .single()
+    // Basic validation
+    if (!prompt) {
+      return NextResponse.json(
+        { error: 'Prompt is required' },
+        { status: 400 }
+      )
+    }
 
-    if (!scene) throw new Error('Scene not found')
+    // For now, return a success response
+    // Later we'll add actual video generation logic
+    const response = {
+      success: true,
+      message: 'Video generation request received',
+      data: {
+        prompt,
+        status: 'processing',
+        timestamp: new Date().toISOString()
+      }
+    }
 
-    // Generate video with provider fallback
-    const { provider, jobId: providerJobId } = await videoFactory.generateWithFallback(
-      prompt,
-      params,
-      ['replicate', 'minimax']
-    )
+    return NextResponse.json(response)
 
-    // Update scene with generation details
-    await db.admin
-      .from('scenes')
-      .update({
-        status: 'generating',
-        generation_provider: provider,
-        generation_params: { providerJobId, ...params }
-      })
-      .eq('id', sceneId)
-
-    // Complete job
-    await db.admin
-      .from('agent_jobs')
-      .update({
-        status: 'completed',
-        output_data: { provider, providerJobId },
-        completed_at: new Date().toISOString()
-      })
-      .eq('id', jobId)
-
-    return NextResponse.json({ success: true, provider, providerJobId })
   } catch (error) {
-    await db.admin
-      .from('agent_jobs')
-      .update({
-        status: 'failed',
-        error_message: error instanceof Error ? error.message : 'Unknown error',
-        completed_at: new Date().toISOString()
-      })
-      .eq('id', jobId)
-
-    return NextResponse.json({ error: 'Generation failed' }, { status: 500 })
+    console.error('Video generator error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
+}
+
+export async function GET() {
+  return NextResponse.json({
+    message: 'Video Generator API is running',
+    status: 'active'
+  })
 }
