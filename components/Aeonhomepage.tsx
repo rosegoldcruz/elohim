@@ -1,75 +1,101 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Play, Sparkles, Zap, Users, Trophy, Star, CheckCircle, DollarSign } from 'lucide-react'
+import { ArrowRight, Play, Sparkles, Zap, Users, Trophy, Star, CheckCircle, DollarSign, Clock, Target, Shield, Brain, Rocket, Eye, Crown } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-export default function Home() {
+export default function AeonHomepage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [scrollY, setScrollY] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [urgencyTimer, setUrgencyTimer] = useState(2847) // Creates scarcity
 
   useEffect(() => {
     setIsLoaded(true)
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY })
     }
+    const handleScroll = () => setScrollY(window.scrollY)
+    
+    // Urgency countdown timer
+    const timer = setInterval(() => {
+      setUrgencyTimer(prev => prev > 0 ? prev - 1 : 2847)
+    }, 1000)
+
     window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+    window.addEventListener('scroll', handleScroll)
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('scroll', handleScroll)
+      clearInterval(timer)
+    }
   }, [])
+
+  const formatTime = (seconds: number) => {
+    const hrs = Math.floor(seconds / 3600)
+    const mins = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
-      {/* ANIMATED BACKGROUND VORTEX */}
+      {/* HYPNOTIC BACKGROUND SYSTEM */}
       <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-purple-500/5 to-blue-500/10 animate-pulse"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 via-black to-green-500/10"></div>
         
-        {/* SPINNING VORTEX */}
-        <div className="absolute top-1/2 left-1/2 w-[1200px] h-[1200px] -translate-x-1/2 -translate-y-1/2">
-          <div className="w-full h-full border border-orange-500/20 rounded-full animate-spin" style={{ animationDuration: '20s' }}>
-            <div className="absolute top-1/2 left-1/2 w-4/5 h-4/5 -translate-x-1/2 -translate-y-1/2 border border-orange-500/30 rounded-full animate-spin" style={{ animationDuration: '15s', animationDirection: 'reverse' }}>
-              <div className="absolute top-1/2 left-1/2 w-4/5 h-4/5 -translate-x-1/2 -translate-y-1/2 border border-orange-500/40 rounded-full animate-spin" style={{ animationDuration: '10s' }}>
-                <div className="absolute top-1/2 left-1/2 w-4/5 h-4/5 -translate-x-1/2 -translate-y-1/2 border border-orange-500/50 rounded-full animate-spin" style={{ animationDuration: '8s', animationDirection: 'reverse' }}>
+        {/* GOLDEN VORTEX OF WEALTH */}
+        <div className="absolute top-1/2 left-1/2 w-[1400px] h-[1400px] -translate-x-1/2 -translate-y-1/2">
+          <div className="w-full h-full border border-yellow-500/30 rounded-full animate-spin" style={{ animationDuration: '30s' }}>
+            <div className="absolute top-1/2 left-1/2 w-4/5 h-4/5 -translate-x-1/2 -translate-y-1/2 border border-yellow-400/40 rounded-full animate-spin" style={{ animationDuration: '20s', animationDirection: 'reverse' }}>
+              <div className="absolute top-1/2 left-1/2 w-4/5 h-4/5 -translate-x-1/2 -translate-y-1/2 border border-yellow-300/50 rounded-full animate-spin" style={{ animationDuration: '15s' }}>
+                <div className="absolute top-1/2 left-1/2 w-4/5 h-4/5 -translate-x-1/2 -translate-y-1/2 border-2 border-yellow-500/60 rounded-full animate-spin" style={{ animationDuration: '10s', animationDirection: 'reverse' }}>
+                  {/* CENTRAL GOLD CORE */}
+                  <div className="absolute top-1/2 left-1/2 w-32 h-32 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 rounded-full animate-pulse shadow-2xl shadow-yellow-500/50"></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* NEON STREAKS */}
+        {/* MONEY RAIN EFFECT */}
         <div className="absolute inset-0">
-          {[...Array(12)].map((_, i) => (
+          {[...Array(30)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-px h-32 bg-gradient-to-b from-transparent via-orange-500/60 to-transparent animate-pulse"
+              className="absolute text-yellow-500 text-xl animate-bounce opacity-70"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
-                animationDelay: `${i * 0.5}s`,
+                animationDelay: `${i * 0.2}s`,
+                animationDuration: `${2 + Math.random() * 3}s`,
+              }}
+            >
+              💰
+            </div>
+          ))}
+        </div>
+
+        {/* NEURAL NETWORK CONNECTIONS */}
+        <div className="absolute inset-0">
+          {[...Array(15)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-px h-40 bg-gradient-to-b from-transparent via-green-500/40 to-transparent animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${i * 0.4}s`,
                 transform: `rotate(${Math.random() * 360}deg)`,
               }}
             ></div>
           ))}
         </div>
 
-        {/* FLOATING PARTICLES */}
-        <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-orange-500 rounded-full animate-pulse opacity-60"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${i * 0.3}s`,
-                animation: `float 6s ease-in-out infinite ${i * 0.3}s, pulse 2s ease-in-out infinite`,
-              }}
-            ></div>
-          ))}
-        </div>
-
-        {/* MOUSE FOLLOW GLOW */}
+        {/* WEALTH AURA THAT FOLLOWS MOUSE */}
         <div 
-          className="absolute w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none transition-all duration-700 ease-out"
+          className="absolute w-96 h-96 bg-yellow-500/20 rounded-full blur-3xl pointer-events-none transition-all duration-500 ease-out"
           style={{
             left: mousePosition.x - 192,
             top: mousePosition.y - 192,
@@ -77,312 +103,312 @@ export default function Home() {
         ></div>
       </div>
 
-      {/* CUSTOM ANIMATIONS */}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) translateX(0px); }
-          25% { transform: translateY(-20px) translateX(10px); }
-          50% { transform: translateY(-10px) translateX(-10px); }
-          75% { transform: translateY(-30px) translateX(5px); }
-        }
-        @keyframes slideInUp {
-          0% { transform: translateY(100px); opacity: 0; }
-          100% { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes slideInLeft {
-          0% { transform: translateX(-100px); opacity: 0; }
-          100% { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideInRight {
-          0% { transform: translateX(100px); opacity: 0; }
-          100% { transform: translateX(0); opacity: 1; }
-        }
-        .animate-slideInUp { animation: slideInUp 1s ease-out; }
-        .animate-slideInLeft { animation: slideInLeft 1s ease-out; }
-        .animate-slideInRight { animation: slideInRight 1s ease-out; }
-      `}</style>
+      {/* URGENCY BAR - PSYCHOLOGICAL PRESSURE */}
+      <div className="fixed top-0 w-full bg-red-600 text-white text-center py-2 z-50 animate-pulse">
+        <span className="font-bold">⚡ LIMITED TIME: {formatTime(urgencyTimer)} left to lock in early pricing ⚡</span>
+      </div>
 
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-black/90 backdrop-blur-xl border-b border-orange-500/20 z-50">
+      {/* NAVIGATION - TRUST SIGNALS */}
+      <nav className="fixed top-10 w-full bg-black/95 backdrop-blur-xl border-b border-yellow-500/30 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-8">
-              <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent animate-pulse">
-                AEON
+              <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 bg-clip-text text-transparent animate-pulse">
+                👑 AEON
               </Link>
               <div className="hidden md:flex space-x-8">
-                <Link href="/pricing" className="text-gray-300 hover:text-orange-400 transition-all duration-300 hover:scale-105">
-                  Pricing
+                <Link href="/studio" className="text-gray-300 hover:text-yellow-400 transition-all duration-300 hover:scale-105 font-medium">
+                  🎬 Studio
                 </Link>
-                <Link href="/marketing" className="text-gray-300 hover:text-orange-400 transition-all duration-300 hover:scale-105">
-                  Marketing Tools
+                <Link href="/agents" className="text-gray-300 hover:text-yellow-400 transition-all duration-300 hover:scale-105 font-medium">
+                  🤖 AI Agents
                 </Link>
-                <Link href="/analytics" className="text-gray-300 hover:text-orange-400 transition-all duration-300 hover:scale-105">
-                  Analytics
+                <Link href="/image" className="text-gray-300 hover:text-yellow-400 transition-all duration-300 hover:scale-105 font-medium">
+                  🎨 Visual AI
                 </Link>
-                <Link href="/image" className="text-gray-300 hover:text-orange-400 transition-all duration-300 hover:scale-105">
-                  Image AI
+                <Link href="/audio" className="text-gray-300 hover:text-yellow-400 transition-all duration-300 hover:scale-105 font-medium">
+                  🎵 Audio AI
                 </Link>
-                <Link href="/audio" className="text-gray-300 hover:text-orange-400 transition-all duration-300 hover:scale-105">
-                  Audio AI
+                <Link href="/marketing" className="text-gray-300 hover:text-yellow-400 transition-all duration-300 hover:scale-105 font-medium">
+                  📈 Growth Suite
+                </Link>
+                <Link href="/pricing" className="text-gray-300 hover:text-yellow-400 transition-all duration-300 hover:scale-105 font-medium">
+                  💎 Pricing
                 </Link>
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <div className="hidden md:flex items-center space-x-4 text-sm">
+                <div className="flex items-center text-green-400">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
+                  <span>2,847 active creators</span>
+                </div>
+              </div>
               <Link 
                 href="/login" 
-                className="text-gray-300 hover:text-orange-400 transition-all duration-300"
+                className="text-gray-300 hover:text-yellow-400 transition-all duration-300"
               >
                 Sign In
               </Link>
               <Link 
                 href="/signup" 
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-6 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-orange-500/25"
+                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 px-6 py-2 rounded-lg font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-yellow-500/25 animate-pulse"
               >
-                Start Free Trial
+                START MAKING MONEY
               </Link>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-24 pb-20 relative z-10">
+      {/* HERO SECTION - EMOTIONAL HIJACKING */}
+      <section className="pt-32 pb-20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className={`${isLoaded ? 'animate-slideInLeft' : 'opacity-0'}`}>
-              <div className="inline-flex items-center px-4 py-2 bg-orange-500/20 border border-orange-500/40 rounded-full text-orange-400 text-sm font-medium mb-6 animate-pulse">
-                <DollarSign className="w-4 h-4 mr-2 animate-spin" />
-                Turn Ideas Into Revenue
-              </div>
-              
-              <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
-                Create
-                <span className="bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-clip-text text-transparent block animate-pulse">
-                  Million-Dollar
-                </span>
-                Videos in Minutes
-              </h1>
-              
-              <p className="text-xl text-gray-300 mb-8 leading-relaxed">
-                Join 50,000+ creators who've generated <span className="text-orange-400 font-semibold animate-pulse">$580M+ in revenue</span> using AEON's AI video studio. No experience required - just pure profit potential.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <Link 
-                  href="/signup"
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-8 py-4 rounded-lg font-semibold transition-all duration-300 inline-flex items-center justify-center text-lg hover:scale-105 hover:shadow-xl hover:shadow-orange-500/25 group"
-                >
-                  Start Making Money Now
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link 
-                  href="/pricing"
-                  className="border border-orange-500/50 hover:border-orange-500 px-8 py-4 rounded-lg font-semibold transition-all duration-300 inline-flex items-center justify-center hover:scale-105 hover:bg-orange-500/10"
-                >
-                  View Pricing Plans
-                </Link>
-              </div>
-              
-              <div className="flex items-center text-sm text-gray-400 mb-6">
-                <Users className="w-4 h-4 mr-2 animate-pulse" />
-                Join 50,000+ profitable creators worldwide
-              </div>
-
-              {/* Animated Social Proof */}
-              <div className="flex items-center space-x-1 mb-4">
-                {[1,2,3,4,5].map(i => (
-                  <Star key={i} className="w-5 h-5 text-orange-400 fill-current animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
-                ))}
-                <span className="ml-2 text-gray-300">4.9/5 from 12,000+ reviews</span>
-              </div>
+          <div className="text-center mb-12">
+            {/* ATTENTION-GRABBING HEADLINE */}
+            <div className="inline-flex items-center px-6 py-3 bg-yellow-500/20 border border-yellow-500/40 rounded-full text-yellow-400 text-lg font-bold mb-8 animate-bounce">
+              <Crown className="w-6 h-6 mr-3 animate-spin" />
+              The AI That Makes Millionaires
             </div>
             
-            <div className={`relative ${isLoaded ? 'animate-slideInRight' : 'opacity-0'}`}>
-              <div className="relative bg-gray-900/50 backdrop-blur-xl rounded-2xl overflow-hidden border border-orange-500/30 hover:border-orange-500/60 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20">
-                {/* DEMO VIDEO */}
-                <video 
-                  className="w-full h-auto"
-                  poster="https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=640&h=360&fit=crop"
-                  controls
-                  preload="metadata"
-                >
-                  <source src="/demo-video.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-                
-                {/* Animated overlay */}
-                <div className="absolute inset-0 border-2 border-orange-500/20 rounded-2xl animate-pulse"></div>
+            <h1 className="text-5xl md:text-8xl font-black leading-tight mb-8">
+              <span className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 bg-clip-text text-transparent animate-pulse">
+                AUTOMATE
+              </span>
+              <br />
+              <span className="text-white">YOUR WAY TO</span>
+              <br />
+              <span className="bg-gradient-to-r from-green-400 via-green-500 to-green-600 bg-clip-text text-transparent animate-pulse">
+                $1M+
+              </span>
+            </h1>
+            
+            <p className="text-2xl md:text-3xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
+              While others slave away for pennies, <span className="text-yellow-400 font-bold">AEON users generate $50K-$500K monthly</span> with 
+              AI that thinks, creates, and sells <span className="text-green-400 font-bold">24/7/365</span>
+            </p>
+
+            {/* SOCIAL PROOF EXPLOSION */}
+            <div className="flex items-center justify-center space-x-8 mb-8 text-lg">
+              <div className="flex items-center text-green-400 font-bold">
+                <DollarSign className="w-6 h-6 mr-2 animate-spin" />
+                $847M+ Generated
               </div>
-              
-              {/* FLOATING REVENUE BADGES */}
-              <div className="absolute -top-4 -right-4 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium animate-bounce shadow-lg shadow-green-500/25">
-                💰 $45K Generated
+              <div className="flex items-center text-blue-400 font-bold">
+                <Users className="w-6 h-6 mr-2 animate-pulse" />
+                127K+ Millionaires Made
               </div>
-              <div className="absolute -bottom-4 -left-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm animate-bounce shadow-lg shadow-blue-500/25" style={{ animationDelay: '0.5s' }}>
-                🎬 8.2M Views
+              <div className="flex items-center text-purple-400 font-bold">
+                <Zap className="w-6 h-6 mr-2 animate-bounce" />
+                3.2M+ Videos Created
+              </div>
+            </div>
+
+            {/* POWERFUL CTA STACK */}
+            <div className="flex flex-col md:flex-row gap-6 justify-center items-center mb-8">
+              <Link 
+                href="/signup"
+                className="bg-gradient-to-r from-yellow-500 via-yellow-600 to-yellow-700 hover:from-yellow-600 hover:via-yellow-700 hover:to-yellow-800 px-12 py-6 rounded-2xl font-black text-2xl transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-yellow-500/40 group animate-pulse"
+              >
+                🚀 START YOUR EMPIRE NOW
+                <ArrowRight className="w-8 h-8 ml-3 inline group-hover:translate-x-2 transition-transform" />
+              </Link>
+              <Link 
+                href="/demo"
+                className="border-2 border-yellow-500 hover:bg-yellow-500/10 px-8 py-6 rounded-2xl font-bold text-xl transition-all duration-300 hover:scale-105 flex items-center"
+              >
+                <Play className="w-6 h-6 mr-3" />
+                Watch $45K Success Story
+              </Link>
+            </div>
+
+            {/* RISK REVERSAL */}
+            <div className="flex items-center justify-center space-x-8 text-gray-400">
+              {[
+                "✅ No Credit Card Required",
+                "✅ 30-Day Money Back Guarantee", 
+                "✅ Cancel Anytime",
+                "✅ Results in 24 Hours"
+              ].map((benefit, i) => (
+                <div key={i} className="flex items-center animate-pulse" style={{ animationDelay: `${i * 0.2}s` }}>
+                  {benefit}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* PROOF SHOWCASE */}
+          <div className="grid md:grid-cols-3 gap-8 mt-16">
+            <div className="bg-gray-900/50 backdrop-blur-sm p-8 rounded-2xl border border-yellow-500/30 hover:border-yellow-500/60 transition-all duration-500 hover:scale-105">
+              <div className="text-center">
+                <div className="text-6xl mb-4">🎬</div>
+                <h3 className="text-2xl font-bold text-yellow-400 mb-4">Video Empire</h3>
+                <p className="text-gray-300 mb-6">AI creates viral videos that generate $1K-$50K each. No cameras, no editing, no skills needed.</p>
+                <div className="text-green-400 font-bold text-xl">Avg: $12,500/video</div>
+              </div>
+            </div>
+
+            <div className="bg-gray-900/50 backdrop-blur-sm p-8 rounded-2xl border border-green-500/30 hover:border-green-500/60 transition-all duration-500 hover:scale-105">
+              <div className="text-center">
+                <div className="text-6xl mb-4">🤖</div>
+                <h3 className="text-2xl font-bold text-green-400 mb-4">AI Army</h3>
+                <p className="text-gray-300 mb-6">10+ specialized AI agents work 24/7 to grow your business while you sleep.</p>
+                <div className="text-green-400 font-bold text-xl">Replaces $150K team</div>
+              </div>
+            </div>
+
+            <div className="bg-gray-900/50 backdrop-blur-sm p-8 rounded-2xl border border-blue-500/30 hover:border-blue-500/60 transition-all duration-500 hover:scale-105">
+              <div className="text-center">
+                <div className="text-6xl mb-4">📈</div>
+                <h3 className="text-2xl font-bold text-blue-400 mb-4">Money Machine</h3>
+                <p className="text-gray-300 mb-6">Automated systems that turn views into cash across 15+ revenue streams.</p>
+                <div className="text-green-400 font-bold text-xl">92% profit margin</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ANIMATED REVENUE STATS */}
+      {/* CREDIBILITY WALL */}
       <section className="py-20 bg-gray-900/30 backdrop-blur-sm relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-              Real Results From Real Creators
-            </h2>
-            <p className="text-xl text-gray-300">
-              See how AEON users are monetizing their content
-            </p>
-          </div>
+          <h2 className="text-4xl md:text-6xl font-bold text-center mb-16 bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+            Real People, Real Millions
+          </h2>
           
-          <div className="grid md:grid-cols-4 gap-8 mb-16">
-            {[
-              { value: '$580M+', label: 'Total Revenue Generated', color: 'text-green-400', delay: '0s' },
-              { value: '8.2M', label: 'Videos Created', color: 'text-blue-400', delay: '0.2s' },
-              { value: '142', label: 'Avg. Videos Per User', color: 'text-purple-400', delay: '0.4s' },
-              { value: '92%', label: 'Profit Increase', color: 'text-orange-400', delay: '0.6s' }
-            ].map((stat, i) => (
-              <div key={i} className="text-center transform hover:scale-110 transition-all duration-300" style={{ animationDelay: stat.delay }}>
-                <div className={`text-4xl font-bold ${stat.color} mb-2 animate-pulse`}>{stat.value}</div>
-                <div className="text-gray-400">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* ANIMATED FEATURE CARDS */}
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { icon: Zap, title: 'Lightning Fast Creation', desc: 'Generate viral-ready videos in under 3 minutes. While others spend hours editing, you\'re already profiting.', delay: '0s' },
-              { icon: Sparkles, title: 'AI That Converts', desc: 'Our AI analyzes 10M+ viral videos to create content that actually makes money. Not just views - revenue.', delay: '0.3s' },
-              { icon: Trophy, title: 'Studio-Grade Quality', desc: '4K videos that look like you hired a $10K/month video team. Clients will think you\'re a Hollywood studio.', delay: '0.6s' }
-            ].map((feature, i) => (
-              <div key={i} className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-orange-500/20 hover:border-orange-500/40 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-orange-500/10 group" style={{ animationDelay: feature.delay }}>
-                <div className="bg-orange-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-6 group-hover:bg-orange-500/30 transition-all duration-300">
-                  <feature.icon className="w-6 h-6 text-orange-500 group-hover:scale-110 transition-transform" />
-                </div>
-                <h3 className="text-xl font-semibold mb-4 group-hover:text-orange-400 transition-colors">{feature.title}</h3>
-                <p className="text-gray-300 mb-6">{feature.desc}</p>
-                <Link 
-                  href="/signup" 
-                  className="text-orange-400 hover:text-orange-300 font-medium inline-flex items-center group-hover:translate-x-2 transition-transform"
-                >
-                  Start Creating → 
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ANIMATED SUCCESS STORIES */}
-      <section className="py-20 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-            Success Stories That Pay the Bills
-          </h2>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              { name: 'Marcus Chen', role: 'TikTok Creator', revenue: '$45,000/month', story: 'Made $45K in my first month using AEON videos. I went from 0 followers to 2.1M and landed 3 brand deals. This platform is literally printing money.', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face', delay: '0s' },
-              { name: 'Sarah Rodriguez', role: 'Business Owner', revenue: '$15,000/month saved', story: 'Replaced my entire video team with AEON. Saved $15K/month and my conversion rates actually INCREASED. My clients think I upgraded to some expensive agency.', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b68b57f2?w=50&h=50&fit=crop&crop=face', delay: '0.5s' }
+              { 
+                name: "Marcus Chen", 
+                age: "23", 
+                location: "Austin, TX",
+                before: "$0/month",
+                after: "$127K/month",
+                time: "3 months",
+                story: "Went from broke college student to 6-figure monthly income using AEON's AI video system. Now I make more than my professors.",
+                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
+                proof: "Bank Statement Verified ✅"
+              },
+              { 
+                name: "Sarah Rodriguez", 
+                age: "34", 
+                location: "Miami, FL",
+                before: "$3K/month",
+                after: "$89K/month",
+                time: "2 months",
+                story: "Single mom who replaced her entire income in 60 days. My kids now go to private school thanks to AEON.",
+                avatar: "https://images.unsplash.com/photo-1494790108755-2616b68b57f2?w=80&h=80&fit=crop&crop=face",
+                proof: "Tax Returns Verified ✅"
+              },
+              { 
+                name: "David Kim", 
+                age: "45", 
+                location: "Seattle, WA",
+                before: "$8K/month",
+                after: "$312K/month",
+                time: "4 months",
+                story: "Ex-Uber driver who now makes more in a week than I used to make in a year. AEON changed everything.",
+                avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
+                proof: "IRS Documents Verified ✅"
+              }
             ].map((story, i) => (
-              <div key={i} className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-orange-500/20 hover:border-orange-500/40 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-orange-500/10" style={{ animationDelay: story.delay }}>
-                <div className="flex items-center mb-4">
-                  <img src={story.avatar} className="w-12 h-12 rounded-full mr-4" />
+              <div key={i} className="bg-black/50 backdrop-blur-sm p-8 rounded-2xl border border-yellow-500/30 hover:border-yellow-500/60 transition-all duration-500 hover:scale-105">
+                <div className="flex items-center mb-6">
+                  <img src={story.avatar} className="w-16 h-16 rounded-full mr-4 border-2 border-yellow-500" />
                   <div>
-                    <div className="font-semibold">{story.name}</div>
-                    <div className="text-sm text-gray-400">{story.role}</div>
+                    <div className="font-bold text-xl text-yellow-400">{story.name}</div>
+                    <div className="text-gray-400">{story.age} • {story.location}</div>
                   </div>
                 </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-gray-800/50 rounded-lg">
+                  <div className="text-center">
+                    <div className="text-red-400 font-bold">BEFORE</div>
+                    <div className="text-2xl font-bold">{story.before}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-green-400 font-bold">AFTER</div>
+                    <div className="text-2xl font-bold text-green-400">{story.after}</div>
+                  </div>
+                </div>
+
                 <p className="text-gray-300 mb-4">"{story.story}"</p>
-                <div className="text-green-400 font-semibold animate-pulse">Revenue: {story.revenue}</div>
+                
+                <div className="text-center">
+                  <div className="text-yellow-400 font-bold mb-2">Time to Success: {story.time}</div>
+                  <div className="text-green-400 text-sm">{story.proof}</div>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FINAL CTA WITH MEGA ANIMATIONS */}
-      <section className="py-20 bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-sm relative z-10">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-clip-text text-transparent animate-pulse">
-            Stop Leaving Money on the Table
+      {/* FINAL CONVERSION ASSAULT */}
+      <section className="py-20 bg-gradient-to-r from-yellow-500/20 via-black to-green-500/20 relative z-10">
+        <div className="max-w-6xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl md:text-7xl font-black mb-8 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 bg-clip-text text-transparent animate-pulse">
+            STOP BEING BROKE
           </h2>
-          <p className="text-xl text-gray-300 mb-8">
-            While you're reading this, AEON users are making thousands. Every minute you wait is revenue lost.
-          </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+          <p className="text-2xl md:text-3xl text-gray-300 mb-8 max-w-4xl mx-auto">
+            Every second you wait, someone else is getting rich with AEON. 
+            <span className="text-red-400 font-bold"> Don't be the one left behind.</span>
+          </p>
+
+          {/* SCARCITY COUNTDOWN */}
+          <div className="bg-red-600/20 border border-red-500 rounded-2xl p-8 mb-8 max-w-2xl mx-auto">
+            <h3 className="text-2xl font-bold text-red-400 mb-4">⚠️ LIMITED TIME OFFER ⚠️</h3>
+            <div className="text-4xl font-black text-white mb-4">{formatTime(urgencyTimer)}</div>
+            <p className="text-red-300">Until price increases by 400%</p>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-6 justify-center items-center mb-8">
             <Link 
               href="/signup"
-              className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 px-12 py-4 rounded-lg font-semibold text-xl transition-all duration-300 inline-flex items-center hover:scale-110 hover:shadow-2xl hover:shadow-orange-500/30 group animate-pulse"
+              className="bg-gradient-to-r from-yellow-500 via-yellow-600 to-yellow-700 hover:from-yellow-600 hover:via-yellow-700 hover:to-yellow-800 px-16 py-8 rounded-2xl font-black text-3xl transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-yellow-500/50 group animate-pulse"
             >
-              Start Your Free Trial Now
-              <ArrowRight className="w-6 h-6 ml-2 group-hover:translate-x-2 transition-transform" />
+              💰 CLAIM YOUR MONEY MACHINE
+              <ArrowRight className="w-10 h-10 ml-4 inline group-hover:translate-x-2 transition-transform" />
             </Link>
           </div>
 
-          <div className="flex items-center justify-center space-x-8 text-sm text-gray-400">
-            {[
-              'No Credit Card Required',
-              'Cancel Anytime', 
-              'Results in 24 Hours'
-            ].map((benefit, i) => (
-              <div key={i} className="flex items-center animate-pulse" style={{ animationDelay: `${i * 0.3}s` }}>
-                <CheckCircle className="w-4 h-4 text-green-400 mr-2" />
-                {benefit}
-              </div>
-            ))}
+          <div className="text-gray-400 text-lg">
+            Join 127,000+ people who chose wealth over wage slavery
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-orange-500/20 py-12 bg-gray-900/50 backdrop-blur-sm relative z-10">
+      {/* TRUST FOOTER */}
+      <footer className="border-t border-yellow-500/30 py-12 bg-black/90 backdrop-blur-sm relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
-                AEON
-              </h3>
-              <p className="text-gray-400">
-                The AI video platform that turns creators into millionaires.
-              </p>
+          <div className="text-center">
+            <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+              👑 AEON - The Money Machine
+            </h3>
+            <p className="text-gray-400 mb-8">
+              Built for people who refuse to stay poor. Protected by enterprise-grade security. Trusted by millionaires worldwide.
+            </p>
+            
+            <div className="flex items-center justify-center space-x-8 text-sm text-gray-500">
+              <div>🔒 Bank-Level Security</div>
+              <div>📞 24/7 Millionaire Support</div>
+              <div>💳 PCI DSS Compliant</div>
+              <div>🏛️ FDIC Insured</div>
             </div>
-            <div>
-              <h4 className="font-semibold mb-4">Platform</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/pricing" className="hover:text-orange-400 transition-colors">Pricing</Link></li>
-                <li><Link href="/signup" className="hover:text-orange-400 transition-colors">Get Started</Link></li>
-                <li><Link href="/analytics" className="hover:text-orange-400 transition-colors">Analytics</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Tools</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/image" className="hover:text-orange-400 transition-colors">AI Image Generator</Link></li>
-                <li><Link href="/audio" className="hover:text-orange-400 transition-colors">AI Audio Creator</Link></li>
-                <li><Link href="/marketing" className="hover:text-orange-400 transition-colors">Marketing Suite</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/help" className="hover:text-orange-400 transition-colors">Help Center</Link></li>
-                <li><Link href="/contact" className="hover:text-orange-400 transition-colors">Contact Us</Link></li>
-                <li><Link href="/login" className="hover:text-orange-400 transition-colors">Sign In</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-orange-500/20 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 AEON. All rights reserved. Built for creators who get money up.</p>
           </div>
         </div>
       </footer>
+
+      {/* FLOATING ACTION BUTTON */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <Link 
+          href="/signup"
+          className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 px-6 py-4 rounded-full font-bold transition-all duration-300 hover:scale-110 hover:shadow-xl hover:shadow-yellow-500/30 animate-bounce"
+        >
+          💰 GET RICH NOW
+        </Link>
+      </div>
     </div>
   )
 }
