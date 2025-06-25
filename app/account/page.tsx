@@ -7,9 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { User, CreditCard, Settings, Download, Calendar, Gem } from "lucide-react"
+import { User, CreditCard, Settings, Download, Calendar, Gem, Gift, TrendingUp } from "lucide-react"
 import { useApi } from "@/lib/api"
 import { toast } from "sonner"
+import { DashboardCreditDisplay } from "@/components/ui/credit-display"
+import ReferralSystem from "@/components/referral-system"
+import CompetitiveComparison from "@/components/competitive-comparison"
 
 export default function AccountPage() {
   const [user, setUser] = useState({
@@ -234,6 +237,35 @@ export default function AccountPage() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Growth Systems Section */}
+          <div className="space-y-8 mt-12">
+            {/* Referral Program */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <Gift className="h-6 w-6 text-green-400" />
+                <h2 className="text-2xl font-bold">Referral Program</h2>
+              </div>
+              <ReferralSystem userId={user.id} />
+            </motion.div>
+
+            {/* Competitive Comparison */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <TrendingUp className="h-6 w-6 text-orange-400" />
+                <h2 className="text-2xl font-bold">Your Competitive Edge</h2>
+              </div>
+              <CompetitiveComparison userId={user.id} />
+            </motion.div>
           </div>
         </div>
       </motion.div>

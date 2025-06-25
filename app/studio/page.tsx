@@ -1,27 +1,86 @@
-'use client'
+export { default } from './conversion-page'
+  const [activeDemo, setActiveDemo] = useState(0)
+  const [liveViews, setLiveViews] = useState(2847293)
 
-import Link from 'next/link'
-import { ArrowRight, Play, Video, Zap, Crown, Target, Rocket, DollarSign, Check } from 'lucide-react'
+  const demoVideos = [
+    {
+      title: "Sarah's $2M Product Launch",
+      views: "2.3M views",
+      revenue: "$2.1M generated",
+      thumbnail: "🚀",
+      description: "Watch how Sarah turned a simple idea into viral content"
+    },
+    {
+      title: "Marcus's TikTok Empire",
+      views: "15.7M views",
+      revenue: "$500K generated",
+      thumbnail: "🎬",
+      description: "From 0 to 15M views in 30 days"
+    },
+    {
+      title: "Emma's Brand Revolution",
+      views: "5.2M views",
+      revenue: "$1.3M generated",
+      thumbnail: "💼",
+      description: "Complete brand transformation in minutes"
+    }
+  ]
 
-export default function StudioMarketingPage() {
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveDemo((prev) => (prev + 1) % demoVideos.length)
+      setLiveViews(prev => prev + Math.floor(Math.random() * 50) + 10)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [])
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Single Clean Navigation */}
-      <nav className="bg-black/95 backdrop-blur-xl border-b border-yellow-500/30 sticky top-0 z-50">
+    <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      {/* Background Animation */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-black to-pink-500/5"></div>
+
+        {/* Floating Video Icons */}
+        <div className="absolute inset-0">
+          {[...Array(15)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute text-purple-400/20 text-2xl"
+              animate={{
+                y: [0, -50, 0],
+                rotate: [0, 180, 360],
+                opacity: [0.2, 0.5, 0.2]
+              }}
+              transition={{
+                duration: 4 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2
+              }}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`
+              } as React.CSSProperties}
+            >
+              🎬
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="relative z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-              👑 AEON
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
+                <span className="text-black font-bold">A</span>
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">AEON</span>
             </Link>
-            <div className="flex items-center space-x-6">
-              <Link href="/pricing" className="text-gray-300 hover:text-yellow-400 transition-colors">Pricing</Link>
-              <Link href="/login" className="text-gray-300 hover:text-yellow-400 transition-colors">Sign In</Link>
-              <Link 
-                href="/signup" 
-                className="bg-gradient-to-r from-yellow-500 to-yellow-600 px-6 py-2 rounded-lg font-bold hover:scale-105 transition-all"
-              >
-                GET ACCESS NOW
-              </Link>
+
+            <div className="flex items-center space-x-4">
+              <SocialProof variant="counter" className="hidden md:block" />
+              <Link href="/login" className="text-gray-300 hover:text-white transition-colors">Sign In</Link>
+              <StartTrialButton size="sm" />
             </div>
           </div>
         </div>

@@ -1,31 +1,16 @@
-"use client"
+'use client'
 
-import React, { useState } from "react"
-import { motion } from "framer-motion"
-import MainLayout from "@/components/layout"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Target, Zap, Users, TrendingUp, Play, Download, BarChart3, Sparkles } from "lucide-react"
-import { toast } from "sonner"
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function MarketingPage() {
-  const [productUrl, setProductUrl] = useState("")
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [campaigns, setCampaigns] = useState<any[]>([])
+  const router = useRouter()
 
-  const handleGenerateCampaign = () => {
-    if (!productUrl) {
-      toast.error("Please enter a product URL")
-      return
-    }
-    setIsGenerating(true)
-    toast.info("TrendHunter → ScriptWriter → ScenePlanner → VideoGenerator pipeline started...")
+  useEffect(() => {
+    router.replace('/growth')
+  }, [router])
 
-    setTimeout(() => {
-      const newCampaigns = Array.from({ length: 12 }, (_, i) => ({
+  return null
         id: i + 1,
         title: `Campaign Variant ${i + 1}`,
         platform: ["TikTok", "Instagram", "YouTube"][i % 3],

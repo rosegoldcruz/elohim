@@ -1,26 +1,43 @@
-"use client"
+'use client'
 
-import React from "react"
-import { motion } from "framer-motion"
-import MainLayout from "@/components/layout"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { DollarSign, Eye, Target, BarChart3 } from "lucide-react"
+import { motion } from 'framer-motion'
+import { DollarSign, Eye, Target, BarChart3 } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import MainLayout from '@/components/layout'
 
+// Sample data for the analytics
 const revenueData = [
-  { month: "Jan", revenue: 125000, videos: 45, conversion: 3.2 },
-  { month: "Feb", revenue: 180000, videos: 62, conversion: 3.8 },
-  { month: "Mar", revenue: 245000, videos: 78, conversion: 4.1 },
-  { month: "Apr", revenue: 320000, videos: 95, conversion: 4.5 },
-  { month: "May", revenue: 425000, videos: 118, conversion: 4.8 },
-  { month: "Jun", revenue: 580000, videos: 142, conversion: 5.2 },
+  { month: 'Jan', revenue: 420000 },
+  { month: 'Feb', revenue: 450000 },
+  { month: 'Mar', revenue: 480000 },
+  { month: 'Apr', revenue: 520000 },
+  { month: 'May', revenue: 550000 },
+  { month: 'Jun', revenue: 580000 },
 ]
 
 const topPerformers = [
-  { title: "Skincare Routine Revolution", revenue: 45000, views: 2.1, ctr: 8.5, platform: "TikTok" },
-  { title: "Tech Gadget Unboxing", revenue: 38000, views: 1.8, ctr: 7.2, platform: "YouTube" },
-  { title: "Fashion Haul Spectacular", revenue: 32000, views: 1.5, ctr: 6.8, platform: "Instagram" },
-  { title: "Fitness Transformation", revenue: 28000, views: 1.2, ctr: 6.1, platform: "TikTok" },
+  {
+    title: 'AI Product Demo',
+    platform: 'YouTube',
+    revenue: 45000,
+    views: 2.1,
+    ctr: 8.5,
+  },
+  {
+    title: 'Brand Story Video',
+    platform: 'Instagram',
+    revenue: 38000,
+    views: 1.8,
+    ctr: 7.2,
+  },
+  {
+    title: 'Tutorial Series',
+    platform: 'TikTok',
+    revenue: 32000,
+    views: 1.5,
+    ctr: 6.8,
+  },
 ]
 
 export default function AnalyticsPage() {
@@ -110,7 +127,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="h-80 flex items-end justify-between gap-4">
-              {revenueData.map((data, index) => (
+              {revenueData.map((data) => (
                 <div key={data.month} className="flex-1 flex flex-col items-center">
                   <div
                     className="w-full bg-gradient-to-t from-green-600 to-emerald-400 rounded-t-lg relative group cursor-pointer"

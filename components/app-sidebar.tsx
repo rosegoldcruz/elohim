@@ -34,19 +34,19 @@ import {
 
 const navigationItems = [
   {
-    title: "Creation",
+    title: "Creator Tools",
     items: [
-      { title: "Studio", url: "/studio", icon: Video },
-      { title: "Image Generation", url: "/image", icon: Image },
-      { title: "Audio Generation", url: "/audio", icon: Music },
+      { title: "Video Studio", url: "/studio", icon: Video },
+      { title: "Image Creator", url: "/image", icon: Image },
+      { title: "Audio Studio", url: "/audio", icon: Music },
     ]
   },
   {
-    title: "Business",
+    title: "Business Tools",
     items: [
-      { title: "Marketing", url: "/marketing", icon: TrendingUp },
-      { title: "Analytics", url: "/analytics", icon: BarChart3 },
-      { title: "Launch AI Campaign", url: "/launch-ai-campaign", icon: Rocket },
+      { title: "AI Agents", url: "/agents", icon: Network },
+      { title: "Growth Engine", url: "/growth", icon: TrendingUp },
+      { title: "Launch Campaign", url: "/launch-ai-campaign", icon: Rocket },
     ]
   },
   {

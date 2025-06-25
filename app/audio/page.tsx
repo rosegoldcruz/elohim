@@ -1,20 +1,4 @@
-"use client"
-
-import React, { useState } from "react"
-import { motion } from "framer-motion"
-import MainLayout from "@/components/layout"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Music, Sparkles, Loader2, Play, Pause, Download, Volume2 } from "lucide-react"
-import { toast } from "sonner"
-import { generateAudioMock, AudioGenerationParams } from "@/lib/replicate"
-
-export default function AudioGenerationPage() {
+export { default } from './conversion-page'
   const [prompt, setPrompt] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedAudio, setGeneratedAudio] = useState<string | null>(null)

@@ -13,60 +13,114 @@ import { StartFreeTrialButton, ScheduleDemoButton } from "@/components/action-bu
 const plans = [
   {
     name: "Starter",
-    price: "$29",
-    credits: "25",
-    features: ["HD 1080p Quality", "5 Projects", "Basic Analytics", "Email Support", "Standard Processing"],
+    price: "$19.99",
+    credits: "2,000",
+    videosPerMonth: "20 complete videos",
+    features: [
+      "6 AI Directors Working Together",
+      "60-Second Complete Videos",
+      "Orchestra Mode: All Models for Price of 1",
+      "Auto-Captions & Transitions",
+      "Credits Never Expire",
+      "HD 1080p Quality"
+    ],
     popular: false,
     icon: Zap,
-    gradient: "from-blue-600 to-cyan-600",
-    borderGradient: "from-blue-500/50 to-cyan-500/50",
+    gradient: "from-purple-600 to-pink-600",
+    borderGradient: "from-purple-500/50 to-pink-500/50",
+    comparison: "vs Hailuo: $35 for 45 clips"
   },
   {
-    name: "Professional",
-    price: "$79",
-    credits: "100",
+    name: "Creator",
+    price: "$49.99",
+    credits: "6,000",
+    videosPerMonth: "60 complete videos",
     features: [
-      "4K Ultra HD Quality",
-      "Unlimited Projects",
-      "Advanced Analytics",
-      "Priority Support",
-      "Voice Cloning",
-      "Custom Avatars",
-      "API Access",
+      "Everything in Starter",
+      "AI Voiceover with ElevenLabs",
+      "Royalty-Free Music Library",
+      "Professional Color Grading",
+      "Rush Delivery Mode",
+      "Social Sharing Credits Back",
+      "Priority Queue Access"
     ],
     popular: true,
     icon: Crown,
-    gradient: "from-purple-600 via-pink-600 to-cyan-600",
-    borderGradient: "from-purple-500/50 via-pink-500/50 to-cyan-500/50",
+    gradient: "from-orange-500 via-pink-500 to-purple-600",
+    borderGradient: "from-orange-500/50 via-pink-500/50 to-purple-500/50",
+    comparison: "vs Hailuo: $105 for 135 clips"
   },
   {
-    name: "Enterprise",
-    price: "$199",
-    credits: "500",
+    name: "Studio",
+    price: "$99.99",
+    credits: "15,000",
+    videosPerMonth: "150 complete videos",
     features: [
-      "All Pro Features",
-      "White-label Solution",
-      "Dedicated Account Manager",
-      "Custom Integrations",
-      "SLA Guarantee",
-      "Advanced Security",
-      "Team Collaboration",
-      "Priority Rendering",
+      "Everything in Creator",
+      "White-Label Downloads",
+      "Custom Intro/Outro Branding",
+      "Advanced Video Analytics",
+      "Team Collaboration Tools",
+      "API Access for Automation",
+      "Dedicated Creative Support",
+      "Commercial Usage Rights"
     ],
     popular: false,
     icon: Rocket,
-    gradient: "from-orange-600 to-red-600",
-    borderGradient: "from-orange-500/50 to-red-500/50",
+    gradient: "from-yellow-500 via-orange-500 to-red-500",
+    borderGradient: "from-yellow-500/50 via-orange-500/50 to-red-500/50",
+    comparison: "vs Hailuo: $315 for 405 clips"
   },
 ]
 
 export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false)
 
-  const handleSubscribe = (planName: string) => {
-    toast.success(`Redirecting to ${planName} checkout...`, {
-      description: "Secure payment processing with Stripe",
-    })
+  const handleSubscribe = async (planName: string) => {
+    // Map plan names to Stripe price IDs (you'll need to create these in Stripe)
+    const priceIds = {
+      'Starter': 'price_starter', // Replace with actual Stripe price ID
+      'Creator': 'price_creator', // Replace with actual Stripe price ID
+      'Studio': 'price_studio'    // Replace with actual Stripe price ID
+    }
+
+    const priceId = priceIds[planName as keyof typeof priceIds]
+
+    if (!priceId) {
+      toast.error('Invalid plan selected')
+      return
+    }
+
+    try {
+      toast.info('Redirecting to secure checkout...', {
+        description: "Powered by Stripe",
+      })
+
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId,
+          successUrl: `${window.location.origin}/studio?success=true&plan=${planName}`,
+          cancelUrl: `${window.location.origin}/pricing?canceled=true`
+        }),
+      })
+
+      const { url, error } = await response.json()
+
+      if (error) {
+        toast.error('Failed to create checkout session')
+        return
+      }
+
+      // Redirect to Stripe checkout
+      window.location.href = url
+    } catch (error) {
+      console.error('Checkout error:', error)
+      toast.error('Something went wrong. Please try again.')
+    }
   }
 
   return (
@@ -79,12 +133,15 @@ export default function PricingPage() {
       >
       {/* Header */}
       <div className="text-center mb-16">
-        <h1 className="text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 mb-6">
-          Premium Plans
+        <h1 className="text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 mb-6">
+          Creative Superpower Plans
         </h1>
-        <p className="text-xl text-neutral-400 max-w-3xl mx-auto font-light mb-8">
-          Choose the perfect plan to scale your revenue with The AEON's premium AI video platform
+        <p className="text-xl text-neutral-400 max-w-3xl mx-auto font-light mb-4">
+          Turn any wild idea into cinematic reality with 6 AI Directors working together
         </p>
+        <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500/20 to-orange-500/20 border border-purple-500/40 rounded-full text-orange-400 text-lg font-bold mb-8">
+          🎬 Complete 60-Second Videos • Not Just Clips Like Others
+        </div>
 
         {/* Billing Toggle */}
         <div className="flex items-center justify-center gap-4 mb-12">
@@ -152,18 +209,25 @@ export default function PricingPage() {
                       </div>
                       {isAnnual && (
                         <div className="text-sm text-green-400 mt-2">
-                          Save ${(monthlyPrice - annualPrice) * 12}/year
+                          Save ${(monthlyPrice - annualPrice) * 12}/year + 25% Bonus Credits
                         </div>
                       )}
+                      <div className="text-sm text-orange-400 mt-2 font-semibold">
+                        {plan.comparison}
+                      </div>
                     </CardDescription>
                   </CardHeader>
 
                   <CardContent className="space-y-6 px-8 pb-8">
-                    <div className="text-center">
+                    <div className="text-center space-y-2">
                       <p className="text-lg">
                         <span className="font-bold text-white text-2xl">{plan.credits} credits</span>
                         <span className="text-neutral-400"> per month</span>
                       </p>
+                      <div className="bg-gradient-to-r from-purple-500/20 to-orange-500/20 border border-purple-500/30 rounded-lg p-3">
+                        <p className="text-orange-400 font-bold text-lg">{plan.videosPerMonth}</p>
+                        <p className="text-xs text-neutral-400">100 credits = 1 complete 60-second video</p>
+                      </div>
                     </div>
 
                     <ul className="space-y-4">
@@ -197,17 +261,21 @@ export default function PricingPage() {
         })}
       </div>
 
-      {/* Enterprise CTA */}
+      {/* Free Tier CTA */}
       <div className="text-center mt-20">
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-cyan-600/10 rounded-3xl blur-3xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-orange-600/10 to-pink-600/10 rounded-3xl blur-3xl"></div>
           <div className="relative bg-white/5 border border-white/10 rounded-3xl backdrop-blur-xl p-12">
-            <h3 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-300">
-              Need a Custom Solution?
+            <h3 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-orange-400">
+              Start Creating for FREE
             </h3>
-            <p className="text-xl text-neutral-400 mb-8 max-w-2xl mx-auto">
-              Enterprise clients get dedicated support, custom integrations, and white-label solutions
+            <p className="text-xl text-neutral-400 mb-4 max-w-2xl mx-auto">
+              Get 250 free credits monthly - that's 2-3 complete videos to test our creative superpower
             </p>
+            <div className="bg-gradient-to-r from-purple-500/20 to-orange-500/20 border border-purple-500/30 rounded-lg p-4 mb-8 max-w-md mx-auto">
+              <p className="text-orange-400 font-bold">🎬 Free Forever Tier</p>
+              <p className="text-sm text-neutral-300">250 credits monthly • Credits never expire • All 6 AI models</p>
+            </div>
             <div className="flex gap-4 justify-center">
               <StartFreeTrialButton size="lg" />
               <ScheduleDemoButton size="lg" />

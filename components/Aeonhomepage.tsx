@@ -1,38 +1,84 @@
 'use client'
 
+import React, { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowRight, Play, Sparkles, Zap, Users, Trophy, Star, CheckCircle, DollarSign, Clock, Target, Shield, Brain, Rocket, Eye, Crown } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ArrowRight, Play, Sparkles, Zap, Users, Trophy, Star, CheckCircle, DollarSign, Clock, Target, Shield, Brain, Rocket, Eye, Crown, TrendingUp, Award, Globe, Menu, X } from 'lucide-react'
+
+import SocialProof from './conversion/social-proof'
+import ROICalculator from './conversion/roi-calculator'
+import { StartTrialButton, WatchDemoButton, ClaimSpotButton, ScheduleCallButton } from './conversion/cta-button'
 
 export default function AeonHomepage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [currentTestimonial, setCurrentTestimonial] = useState(0)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [urgencyTimer, setUrgencyTimer] = useState(2847)
+  const [urgencyTimer, setUrgencyTimer] = useState(24 * 60 * 60) // 24 hours in seconds
+
+  // Format time function
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const secs = seconds % 60
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const navigationItems = [
+    { name: 'Studio', href: '/studio', icon: Play },
+    { name: 'Features', href: '#features', icon: Star },
+    { name: 'Pricing', href: '#pricing', icon: Users },
+    { name: 'Launch Campaign', href: '/launch-ai-campaign', icon: Zap }
+  ]
+
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      role: "E-commerce Founder",
+      content: "AEON turned my side hustle into $2M ARR in 18 months. The AI literally works while I sleep.",
+      revenue: "$2.1M ARR",
+      image: "👩‍💼"
+    },
+    {
+      name: "Marcus Chen",
+      role: "Content Creator",
+      content: "My videos went from 1K to 1M views overnight. AEON cracked the viral code.",
+      revenue: "10M+ views",
+      image: "🎬"
+    },
+    {
+      name: "Emma Rodriguez",
+      role: "Marketing Agency",
+      content: "We replaced our entire creative team with AEON. 10x faster, 90% cheaper.",
+      revenue: "$500K saved",
+      image: "💼"
+    }
+  ]
 
   useEffect(() => {
-    setIsLoaded(true)
+    const interval = setInterval(() => {
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length)
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [testimonials.length])
+
+  // Mouse tracking effect
+  useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY })
     }
-    
-    const timer = setInterval(() => {
-      setUrgencyTimer(prev => prev > 0 ? prev - 1 : 2847)
-    }, 1000)
 
     window.addEventListener('mousemove', handleMouseMove)
-    
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      clearInterval(timer)
-    }
+    return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
 
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600)
-    const mins = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
+  // Urgency timer countdown
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setUrgencyTimer((prev) => (prev > 0 ? prev - 1 : 0))
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
@@ -42,10 +88,10 @@ export default function AeonHomepage() {
         
         {/* GOLDEN VORTEX */}
         <div className="absolute top-1/2 left-1/2 w-[1400px] h-[1400px] -translate-x-1/2 -translate-y-1/2">
-          <div className="w-full h-full border border-yellow-500/30 rounded-full animate-spin" style={{ animationDuration: '30s' }}>
-            <div className="absolute top-1/2 left-1/2 w-4/5 h-4/5 -translate-x-1/2 -translate-y-1/2 border border-yellow-400/40 rounded-full animate-spin" style={{ animationDuration: '20s', animationDirection: 'reverse' }}>
-              <div className="absolute top-1/2 left-1/2 w-4/5 h-4/5 -translate-x-1/2 -translate-y-1/2 border border-yellow-300/50 rounded-full animate-spin" style={{ animationDuration: '15s' }}>
-                <div className="absolute top-1/2 left-1/2 w-4/5 h-4/5 -translate-x-1/2 -translate-y-1/2 border-2 border-yellow-500/60 rounded-full animate-spin" style={{ animationDuration: '10s', animationDirection: 'reverse' }}>
+          <div className="w-full h-full border border-yellow-500/30 rounded-full animate-spin" style={{ animationDuration: '30s' } as React.CSSProperties}>
+            <div className="absolute top-1/2 left-1/2 w-4/5 h-4/5 -translate-x-1/2 -translate-y-1/2 border border-yellow-400/40 rounded-full animate-spin" style={{ animationDuration: '20s', animationDirection: 'reverse' } as React.CSSProperties}>
+              <div className="absolute top-1/2 left-1/2 w-4/5 h-4/5 -translate-x-1/2 -translate-y-1/2 border border-yellow-300/50 rounded-full animate-spin" style={{ animationDuration: '15s' } as React.CSSProperties}>
+                <div className="absolute top-1/2 left-1/2 w-4/5 h-4/5 -translate-x-1/2 -translate-y-1/2 border-2 border-yellow-500/60 rounded-full animate-spin" style={{ animationDuration: '10s', animationDirection: 'reverse' } as React.CSSProperties}>
                   <div className="absolute top-1/2 left-1/2 w-32 h-32 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 rounded-full animate-pulse shadow-2xl shadow-yellow-500/50"></div>
                 </div>
               </div>
@@ -64,7 +110,7 @@ export default function AeonHomepage() {
                 top: `${Math.random() * 100}%`,
                 animationDelay: `${i * 0.2}s`,
                 animationDuration: `${2 + Math.random() * 3}s`,
-              }}
+              } as React.CSSProperties}
             >
               💰
             </div>
@@ -77,7 +123,7 @@ export default function AeonHomepage() {
           style={{
             left: mousePosition.x - 192,
             top: mousePosition.y - 192,
-          }}
+          } as React.CSSProperties}
         ></div>
       </div>
 
@@ -204,7 +250,7 @@ export default function AeonHomepage() {
                 "✅ Cancel Anytime",
                 "✅ Results in 24 Hours"
               ].map((benefit, i) => (
-                <div key={i} className="flex items-center animate-pulse" style={{ animationDelay: `${i * 0.2}s` }}>
+                <div key={i} className="flex items-center animate-pulse" style={{ animationDelay: `${i * 0.2}s` } as React.CSSProperties}>
                   {benefit}
                 </div>
               ))}
