@@ -1,4 +1,13 @@
-export { default } from './conversion-page'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { Video, Play, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
+import { SocialProof } from '@/components/ui/social-proof'
+import { StartTrialButton } from '@/components/ui/start-trial-button'
+
+export default function StudioPage() {
   const [activeDemo, setActiveDemo] = useState(0)
   const [liveViews, setLiveViews] = useState(2847293)
 

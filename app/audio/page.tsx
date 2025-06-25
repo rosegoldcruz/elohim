@@ -1,4 +1,34 @@
-export { default } from './conversion-page'
+'use client'
+
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { Music, Play, Pause, Download, Volume2, Sparkles, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Slider } from '@/components/ui/slider'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { toast } from 'sonner'
+import { MainLayout } from '@/components/layout/MainLayout'
+
+interface AudioGenerationParams {
+  prompt: string
+  duration: number
+  model_version: string
+}
+
+// Mock function for audio generation
+const generateAudioMock = async (params: AudioGenerationParams) => {
+  await new Promise(resolve => setTimeout(resolve, 3000))
+  return {
+    status: 'succeeded' as const,
+    output: ['https://example.com/mock-audio.wav'],
+    error: null
+  }
+}
+
+export default function AudioPage() {
   const [prompt, setPrompt] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedAudio, setGeneratedAudio] = useState<string | null>(null)
