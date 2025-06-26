@@ -1,0 +1,461 @@
+# Projects and deployments
+
+To get started with Vercel, it's helpful to understand projects and deployments:
+
+*   Projects: A [project](/docs/projects/overview) is the application that you have deployed to Vercel. You can have multiple projects connected to a single repository (for example, a [monorepo](/docs/monorepos)), and multiple [deployments](/docs/deployments) for each project. You can view all your projects on the [dashboard](/dashboard), and configure your settings through the [project dashboard](/docs/projects/project-dashboard).
+*   Deployments: A [deployment](/docs/deployments) is the result of a successful [build](/docs/deployments/builds#) of your project. A deployment is triggered when you import an existing project or template, or when you push a Git commit through your [connected integration](/docs/git) or use `vercel deploy` from the [CLI](/docs/cli). Every deployment [generates a URL automatically](/docs/deployments/generated-urls).
+
+### [More resources](#more-resources)
+
+To get started you'll create a new project by either deploying a template or importing and deploying an existing project:
+
+*   [Deploy a template](/docs/getting-started-with-vercel/template)
+*   [Import an existing project](/docs/getting-started-with-vercel/import)
+
+Last updated on May 23, 2025
+
+_____________________________________________________________________
+
+### NEXT DOC ###
+
+# Use a template
+
+### Using CLI?
+
+Clone the template to your local machine and use the following snippet to deploy the template with Vercel CLI:
+
+```
+vercel --cwd [path-to-project]
+```
+
+Accelerate your development on Vercel with [Templates](/templates). This guide will show you how to use templates to fast-track project setup, leverage popular frontend frameworks, and maximize Vercel's features.
+
+1.  ### [Find a template](#find-a-template)
+    
+    From [https://vercel.com/templates](/templates), select the template you’d like to deploy. You can use the filters to select a template based on use case, framework, and other requirements.
+    
+    Not sure which one to use? How about [exploring Next.js](https://vercel.com/templates/next.js/nextjs-boilerplate).
+    
+    ![Viewing the templates marketplace](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Ftemplates-light.png&w=3840&q=75)![Viewing the templates marketplace](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Ftemplates-dark.png&w=3840&q=75)
+    
+    Viewing the templates marketplace
+    
+2.  ### [Deploy the template to Vercel](#deploy-the-template-to-vercel)
+    
+    Once you've selected a template, Click Deploy on the template page to start the process.
+    
+    ![Deploying your chosen template](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fdeploying-template-light.png&w=1080&q=75)![Deploying your chosen template](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fdeploying-template-dark.png&w=1080&q=75)
+    
+    Deploying your chosen template
+    
+3.  ### [Connect your Git provider](#connect-your-git-provider)
+    
+    To ensure you can easily update your project after deploying it, Vercel will create a new repository with your chosen [Git provider](/docs/git). Every push to that Git repository will be deployed automatically.
+    
+    First, select the Git provider that you'd like to connect to. Once you’ve signed in, you’ll need to set the scope and repository name. At this point, Vercel will clone a copy of the source code into your Git account.
+    
+    ![Connecting your Git provider and creating a new repository](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fgit-provider-light.png&w=1920&q=75)![Connecting your Git provider and creating a new repository](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fgit-provider-dark.png&w=1920&q=75)
+    
+    Connecting your Git provider and creating a new repository
+    
+4.  ### [Project deployment](#project-deployment)
+    
+    Once the project has been cloned to your git provider, Vercel will automatically start deploying the project. This starts with [building your project](/docs/deployments/builds), then [assigning the domain](/docs/deployments/generated-urls), and finally celebrating your deployed project with confetti.
+    
+    ![Deploying a template](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fdeploy-template-light.png&w=1920&q=75)![Deploying a template](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fdeploy-template-dark.png&w=1920&q=75)
+    
+    Deploying a template
+    
+5.  ### [View your dashboard](#view-your-dashboard)
+    
+    At this point, you’ve created a production deployment, with its very own domain assigned. If you continue to your [dashboard](/dashboard), you can click on the domain to preview a live, accessible URL that is instantly available on the internet.
+    
+    ![Viewing your deployment information](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fprod-view-light.png%3Flightbox&w=3840&q=75)![Viewing your deployment information](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fprod-view-dark.png%3Flightbox&w=3840&q=75)
+    
+    Viewing your deployment information
+    
+    Zoom Image
+    
+    ![Viewing your deployment information](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fprod-view-light.png%3Flightbox&w=3840&q=75)![Viewing your deployment information](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fprod-view-dark.png%3Flightbox&w=3840&q=75)
+    
+    Viewing your deployment information
+    
+6.  ### [Clone the project to your machine](#clone-the-project-to-your-machine)
+    
+    Finally, you'll want to clone the source files to your local machine so that you can make some changes later. To do this from your dashboard, select the Git repository button and clone the repository.
+    
+
+Because you used a template, we’ve automatically included any additional environment set up as part of the template. You can customize your project by configuring environment variables and build options.
+
+  
+  
+
+Environment Variables are key-value pairs that can be defined in your project settings for each [Environment](/docs/environment-variables#environments). Teams can also use [shared environment variables](/docs/environment-variables/shared-environment-variables) that are linked between multiple projects.
+
+  
+  
+
+Vercel automatically configures builds settings based on your framework, but you can [customize the build](/docs/deployments/configure-a-build) in your project settings or within a [vercel.json](/docs/project-configuration) file.
+
+## [Next Steps](#next-steps)
+
+Next, learn how to assign a domain to your new deployment.
+
+[
+
+Add a domain
+
+](/docs/getting-started-with-vercel/domains)
+
+Last updated on March 6, 2025
+
+_____________________________________________________________________
+
+### NEXT DOC ###
+
+# Import an existing project
+
+### Using CLI?
+
+Use the following snippet to deploy your existing project with Vercel CLI:
+
+```
+vercel --cwd [path-to-project]
+```
+
+Your existing project can be any web project that outputs static HTML content (such as a website that contains HTML, CSS, and JavaScript). When you use any of Vercel's [supported frameworks](/docs/frameworks), we'll automatically detect and set the optimal build and deployment configurations for your framework.
+
+1.  ### [Connect to your Git provider](#connect-to-your-git-provider)
+    
+    On the [New Project](/new) page, under the Import Git Repository section, select the Git provider that you would like to import your project from.
+    
+    Follow the prompts to sign in to either your [GitHub](/docs/git/vercel-for-github), [GitLab](/docs/git/vercel-for-gitlab), or [BitBucket](/docs/git/vercel-for-bitbucket) account.
+    
+2.  ### [Import your repository](#import-your-repository)
+    
+    Find the repository in the list that you would like to import and select Import.
+    
+3.  ### [Optionally, configure any settings](#optionally-configure-any-settings)
+    
+    Vercel will automatically detect the framework and any necessary build settings. However, you can also configure the Project settings at this point including the [build and output settings](/docs/deployments/configure-a-build#build-and-development-settings) and [Environment Variables](/docs/environment-variables). These can also be set later.
+    
+    *   To update the [framework](/docs/deployments/configure-a-build#framework-preset), [build command](/docs/deployments/configure-a-build#build-command), [output directory](/docs/deployments/configure-a-build#output-directory), [install command](/docs/deployments/configure-a-build#install-command), or [development command](/docs/deployments/configure-a-build#development-command), expand the Build & Output Settings section and update as needed.
+    *   To set environment variables, expand the Environment Variables section and either paste or copy them in.
+    *   You can also configure additional properties by adding a [vercel.json](/docs/project-configuration) to your project. You can either do this now, before you deploy, or add it later and redeploy your project.
+4.  ### [Deploy your project](#deploy-your-project)
+    
+    Press the Deploy button. Vercel will create the Project and deploy it based on the chosen configurations.
+    
+5.  ### [Enjoy the confetti!](#enjoy-the-confetti!)
+    
+    To view your deployment, select the Project in the dashboard and then select the Domain. This page is now visible to anyone who has the URL.
+    
+    ![Accessing auto-generated domain](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fprod-view-light.png&w=3840&q=75)![Accessing auto-generated domain](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fprod-view-dark.png&w=3840&q=75)
+    
+    Accessing auto-generated domain
+    
+
+## [Next Steps](#next-steps)
+
+Next, learn how to assign a domain to your new deployment.
+
+[
+
+Add a domain
+
+](/docs/getting-started-with-vercel/domains)
+
+Last updated on March 4, 2025
+
+_____________________________________________________________________
+
+### NEXT DOC ###
+
+# Add a domain
+
+Assigning a custom domain to your project guarantees that visitors to your application will have a tailored experience that aligns with your brand.
+
+On Vercel, this domain can have any format of your choosing:
+
+*   `acme.com` ([apex domain](/docs/domains/working-with-domains#apex-domain))
+*   `blog.acme.com` ([subdomain](/docs/domains/working-with-domains#subdomain))
+*   `*.acme.com` ([wildcard domain](/docs/domains/working-with-domains#wildcard-domain))
+
+If you already own a domain, you can point it to Vercel, or transfer it over. If you don't own one yet, you can purchase a new one. For this tutorial, feel free to use that one domain you bought 11 months ago and haven’t got around to using yet!
+
+For more information on domains at Vercel, see [Domains overview](/docs/domains).
+
+### [Next steps](#next-steps)
+
+Now that your site is deployed, you can to personalize it by setting up a custom domain. With Vercel you can either buy a new domain or use an existing domain.
+
+*   [Buy a new domain](/docs/getting-started-with-vercel/buy-domain)
+*   [Use an existing domain](/docs/getting-started-with-vercel/use-existing)
+
+Last updated on May 23, 2025
+
+_____________________________________________________________________
+
+### NEXT DOC ###
+
+# Buy a domain
+
+### Using CLI?
+
+Use this snippet to purchase a new domain from Vercel:
+
+```
+vercel domains buy [domain]
+```
+
+Use Vercel to find and buy a domain that resonates with your brand, establishes credibility, and captures your visitors' attention.
+
+1.  ### [Find a domain](#find-a-domain)
+    
+    Go to [https://vercel.com/domains](/domains) and search for a domain that matches you or your brand. You could try "SuperDev"!
+    
+    ![Domains marketplace](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fdomain-view-light.png&w=1920&q=75)![Domains marketplace](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fdomain-view-dark.png&w=1920&q=75)
+    
+    Domains marketplace
+    
+    Depending on the TLD (top-level domain), you’ll see the purchase price. More popular TLDs will be more expensive.
+    
+2.  ### [Select your domain](#select-your-domain)
+    
+    Select an address, or continue searching until you find the perfect one. Once you’ve selected it, choose the account or team you wish to assign it to and select Confirm.
+    
+3.  ### [Enter payment details](#enter-payment-details)
+    
+    You'll need to enter credit card details to purchase the domain. These details are saved for [auto renewal](/docs/domains/renew-a-domain).
+    
+4.  #### [Confirm your purchase](#confirm-your-purchase)
+    
+    Once you are happy with your purchase, Vercel will ask if you are sure you want to buy the domain. Select Yes.
+    
+5.  ### [Assign your domain to a project](#assign-your-domain-to-a-project)
+    
+    From the dashboard, select your project and go to the Settings tab. From the Project Settings, go to Domains and enter the new domain that you just purchased. From the Add Domain dialog, select the recommended option, and select Add.
+    
+    ![Connecting your Git provider and creating a new repository](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fnew-domain-addition-light.png&w=3840&q=75)![Connecting your Git provider and creating a new repository](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fnew-domain-addition-dark.png&w=3840&q=75)
+    
+    Connecting your Git provider and creating a new repository
+    
+
+## [Next steps](#next-steps)
+
+Next, learn how to take advantage of Vercel's collaboration features as part of your developer workflow:
+
+[
+
+Use Vercel in your developer workflow
+
+](/docs/getting-started-with-vercel/collaborate)
+
+Last updated on March 4, 2025
+
+_____________________________________________________________________
+
+### NEXT DOC ###
+
+# Use an existing domain
+
+### Using CLI?
+
+Use this snippet to add a domain that you own to a Vercel project:
+
+```
+vercel domains add [domain] [project]
+```
+
+Already have a domain you love? Seamlessly integrate it with Vercel to leverage the platform's powerful features and infrastructure. Whether you're migrating an existing project or want to maintain your established online presence, you can use the steps below to add your custom domain.
+
+1.  ### [Go to your project's domains settings](#go-to-your-project's-domains-settings)
+    
+    Select your project and select the Settings tab. Then, select the Domains menu item.
+    
+2.  ### [Add your existing domain to your project](#add-your-existing-domain-to-your-project)
+    
+    From the Domains page, enter the domain you wish to add to the project.
+    
+    ![Connecting your Git provider and creating a new repository](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348178%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fnew-domain-addition-light.png%3Flightbox&w=3840&q=75)![Connecting your Git provider and creating a new repository](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348178%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fnew-domain-addition-dark.png%3Flightbox&w=3840&q=75)
+    
+    Connecting your Git provider and creating a new repository
+    
+    Zoom Image
+    
+    ![Connecting your Git provider and creating a new repository](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348178%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fnew-domain-addition-light.png%3Flightbox&w=3840&q=75)![Connecting your Git provider and creating a new repository](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348178%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fnew-domain-addition-dark.png%3Flightbox&w=3840&q=75)
+    
+    Connecting your Git provider and creating a new repository
+    
+    If you add an apex domain (e.g. `example.com`) to the project, Vercel will prompt you to add the `www`subdomain prefix, the apex domain, and [some basic redirection options](/docs/domains/deploying-and-redirecting).
+    
+    For more information on which redirect option to choose, see [Redirecting `www` domains](/docs/domains/deploying-and-redirecting#redirecting-www-domains).
+    
+3.  ### [Configure your DNS records](#configure-your-dns-records)
+    
+    Configure the DNS records of your domain with your registrar so it can be used with your Project. The dashboard will automatically display different methods for configuring it:
+    
+    ![Instructions on configuring an apex domain from the Project Domains page.](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1689795055%2Fdocs-assets%2Fstatic%2Fdocs%2Fconcepts%2Fprojects%2Fcustom-domains%2Fconfigure-apex-domain.png&w=1920&q=75)![Instructions on configuring an apex domain from the Project Domains page.](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1689795055%2Fdocs-assets%2Fstatic%2Fdocs%2Fconcepts%2Fprojects%2Fcustom-domains%2Fconfigure-apex-domain-dark.png&w=1920&q=75)
+    
+    Instructions on configuring an apex domain from the Project Domains page.
+    
+    *   If the domain is in use by another Vercel account, you will need to [verify access to the domain](/docs/domains/add-a-domain#verify-domain-access), with a TXT record
+    *   If you're using an [Apex domain](/docs/domains/add-a-domain#apex-domains) (e.g. example.com), you will need to configure it with an A record
+    *   If you're using a [Subdomain](/docs/domains/add-a-domain#subdomains) (e.g. docs.example.com), you will need to configure it with a CNAME record
+    
+    Both apex domains and subdomains can also be configured using the [Nameservers](/docs/domains/add-a-domain#vercel-nameservers) method. Wildcard domains must use the nameservers method for verification. For more information see [Add a custom domain](/docs/domains/add-a-domain).
+    
+
+## [Next steps](#next-steps)
+
+Next, learn how to take advantage of Vercel's collaboration features as part of your developer workflow:
+
+[
+
+Use Vercel in your developer workflow
+
+](/docs/getting-started-with-vercel/collaborate)
+
+Last updated on March 4, 2025
+
+_____________________________________________________________________
+
+### NEXT DOC ###
+
+# Collaborate on Vercel
+
+Collaboration is key in successful development projects, and Vercel offers robust features to enhance collaboration among developers. From seamless code collaboration to real-time previews with Comments, Vercel empowers your team to work together effortlessly.
+
+## [Make Changes](#make-changes)
+
+Now that your project is publicly available on your domain of choice, it’s time to begin making changes to it. With Vercel's automatic deployments, this won't require any extra effort. By default, when your Vercel project is connected to a Git repository, Vercel will deploy every commit that is pushed to the Git repository, regardless of which branch you're pushing it to.
+
+A Production environment is one built from the `main` or development branch of your Git repository. A preview environment is created when you deploy from any other branch.
+
+Vercel provides a [URL](/docs/deployments/generated-urls#url-with-git-branch) that reflects the latest pushes to that branch. You can find this either on your dashboard, or in a pull request, which you'll see in the next step
+
+This connection was established for you automatically, so all you have to do is push commits, and you will start receiving links to deployments right on your Git provider.
+
+## [Create a preview deployment](#create-a-preview-deployment)
+
+1.  ### [Make your changes](#make-your-changes)
+    
+    Create a new branch in your project and make some changes
+    
+2.  ### [Commit your changes](#commit-your-changes)
+    
+    Commit those changes and create a pull request. After a few seconds, Vercel picks up the changes and starts to build and deploy your project. You can see the status of the build through the bot comment made on your PR:
+    
+    ![Vercel for GitHub deploying a pull request automatically.](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1689795055%2Fdocs-assets%2Fstatic%2Fdocs%2Fconcepts%2Fdeployments%2Fgit%2Fgithub-comment-light.png&w=1920&q=75)![Vercel for GitHub deploying a pull request automatically.](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1689795055%2Fdocs-assets%2Fstatic%2Fdocs%2Fconcepts%2Fdeployments%2Fgit%2Fgithub-comment-dark.png&w=1920&q=75)
+    
+    Vercel for GitHub deploying a pull request automatically.
+    
+3.  ### [Inspect your deployment information](#inspect-your-deployment-information)
+    
+    Select Inspect to explore the build within your dashboard. You can see the build is within the preview environment and additional information about the deployment including: [build information](/docs/deployments/builds), a [deployment summary](/docs/deployments#resources-tab-and-deployment-summary), checks, and [domain assignment](/docs/domains). These happen for every deployment
+    
+    ![Vercel dashboard showing the preview deployment.](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1689795055%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fpreview-dashboard-light.png&w=3840&q=75)![Vercel dashboard showing the preview deployment.](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1689795055%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fpreview-dashboard-dark.png&w=3840&q=75)
+    
+    Vercel dashboard showing the preview deployment.
+    
+4.  ### [View your deployment URL](#view-your-deployment-url)
+    
+    Return to your pull request. At this point your build should be deployed and you can select Visit Preview. You can now see your changes and share this preview URL with others.
+    
+
+## [Commenting on previews](#commenting-on-previews)
+
+[Comments](/docs/comments) provide a way for your team [or friends](/docs/comments/how-comments-work#sharing) to give direct feedback on [preview deployments](/docs/deployments/environments#preview-environment-pre-production). Share with others by doing the following:
+
+1.  ### [Open your deployment](#open-your-deployment)
+    
+    Open the preview deployment that you’d like to share by selecting the Domain from the deployment information as shown in step 3 above. Alternatively, you can find it by selecting your project from the [dashboard](/dashboard), and selecting the most recent commit under Active Branches:
+    
+    ![Active branch section showing all non-production branches](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1689795055%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Factive-branches-light.png&w=3840&q=75)![Active branch section showing all non-production branches](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1689795055%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Factive-branches-dark.png&w=3840&q=75)
+    
+    Active branch section showing all non-production branches
+    
+2.  ### [Authenticate with your Vercel account](#authenticate-with-your-vercel-account)
+    
+    From the Comments toolbar at the bottom of the screen, select Log in to comment and sign in with your Vercel account.
+    
+3.  ### [Adjust the share settings](#adjust-the-share-settings)
+    
+    Select Share in the [Toolbar](/docs/vercel-toolbar) menu. Add the emails of people you would like to share the preview with. If you are previewing a specific commit, you may have the option to share the preview for your branch instead. This option allows you to share a preview that updates with the latest commit to the branch.
+    
+    To learn more, including other ways to share, see [Sharing Deployments](/docs/deployments/sharing-deployments).
+    
+4.  ### [Collaborator needs to sign-in](#collaborator-needs-to-sign-in)
+    
+    The person you are sharing the preview with needs to have a Vercel account. To do so, they'll need to select Log in to comment and then enter their email address.
+    
+5.  ### [Collaborator can comment](#collaborator-can-comment)
+    
+    Once the person you are sharing the preview with goes through the security options, they'll be ready to comment. You'll be notified of new comments through email, or when you visit the deployment.
+    
+
+For more information on using Comments, see [Using comments](/docs/comments/using-comments).
+
+[
+
+What's next?
+
+](/docs/getting-started-with-vercel/next-steps)
+
+Last updated on May 13, 2025
+
+_____________________________________________________________________
+
+### NEXT DOC ###
+
+# Next Steps
+
+Congratulations on getting started with Vercel!
+
+Now, let's explore what's next on your journey. At this point, you can either continue learning more about Vercel's many features, or you can dive straight in and get to work. The choice is yours!
+
+[
+
+Dive into my dashboard
+
+Manage your projects, domains, and more.
+
+![Your Dashboard](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fdashboard-light.png&w=3840&q=75)
+
+![Your Dashboard](/_next/image?url=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Fv1686348180%2Fdocs-assets%2Fstatic%2Fdocs%2Fgetting-started-with-vercel%2Fdashboard-dark.png&w=3840&q=75)
+
+](/dashboard)
+
+Alternatively, you can start learning about many of the products and features that Vercel provides:
+
+## [Infrastructure](#infrastructure)
+
+Learn about Vercel's Edge Network and implement scalable infrastructure in your app using Functions. Get started today by implementing a Vercel Function in your app:
+
+*   [Vercel functions quickstart](/docs/functions/quickstart)
+
+## [Storage](#storage)
+
+Vercel offers a suite of managed, serverless storage products that integrate with your frontend framework.
+
+Learn more about [which storage option is right for you](/docs/storage#choosing-a-storage-product) and get started with implementing them:
+
+*   [Vercel Blob](/docs/vercel-blob/server-upload)
+*   [Vercel Edge Config](/docs/edge-config/get-started)
+
+## [Observability](#observability)
+
+Vercel provides a suite of observability tools to allow you to monitor, analyze, and manage your site.
+
+*   [Monitoring](/docs/observability/monitoring)
+*   [Web Analytics](/docs/analytics/quickstart)
+*   [Speed Insights](/docs/speed-insights/quickstart)
+
+## [Security](#security)
+
+Vercel takes security seriously. It uses HTTPS by default for secure data transmission, regularly updates its platform to mitigate potential vulnerabilities, limits system access for increased safety, and offers built-in DDoS mitigation. This layered approach ensures robust protection for your sites and applications.
+
+*   [Security overview](/docs/security)
+*   [DDoS Mitigation](/docs/security/ddos-mitigation)
+
+Last updated on May 23, 2025
