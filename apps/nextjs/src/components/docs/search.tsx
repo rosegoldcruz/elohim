@@ -2,9 +2,9 @@
 
 import * as React from "react";
 
-import { cn } from "@saasfly/ui";
-import { Input } from "@saasfly/ui/input";
-import { toast } from "@saasfly/ui/use-toast";
+import { cn } from "@aeon/ui";
+import { Input } from "@aeon/ui/input";
+import { toast } from "@aeon/ui/use-toast";
 
 interface DocsSearchProps extends React.HTMLAttributes<HTMLFormElement> {
   lang: string;

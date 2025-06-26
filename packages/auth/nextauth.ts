@@ -1,6 +1,5 @@
 import { getServerSession, NextAuthOptions, User } from "next-auth";
 import { KyselyAdapter } from "@auth/kysely-adapter";
-import GitHubProvider from "next-auth/providers/github";
 import EmailProvider from "next-auth/providers/email";
 
 import { MagicLinkEmail, resend, siteConfig } from "@aeon/common";
@@ -40,11 +39,6 @@ export const authOptions: NextAuthOptions = {
   adapter: KyselyAdapter(db),
 
   providers: [
-    GitHubProvider({
-      clientId: env.GITHUB_CLIENT_ID,
-      clientSecret: env.GITHUB_CLIENT_SECRET,
-      httpOptions: { timeout: 15000 },
-    }),
     EmailProvider({
       sendVerificationRequest: async ({ identifier, url }) => {
         const user = await db

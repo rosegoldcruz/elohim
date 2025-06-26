@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { cn } from "@saasfly/ui";
-import * as Icons from "@saasfly/ui/icons";
+import { cn } from "@aeon/ui";
+import * as Icons from "@aeon/ui/icons";
 
 import type { SidebarNavItem } from "~/types";
 

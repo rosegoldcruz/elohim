@@ -2,11 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
-import type { User } from "@saasfly/auth";
+import type { User } from "@aeon/auth";
 import { useSelectedLayoutSegment } from "next/navigation";
 
-import { cn } from "@saasfly/ui";
-import { Button } from "@saasfly/ui/button";
+import { cn } from "@aeon/ui";
+import { Button } from "@aeon/ui/button";
 
 import { MainNav } from "./main-nav";
 import { LocaleChange } from "~/components/locale-change";

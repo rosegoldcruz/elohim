@@ -1,4 +1,4 @@
-import TextReveal from "@saasfly/ui/text-reveal";
+import TextReveal from "@aeon/ui/text-reveal";
 
 export function WordReveal() {
   return (

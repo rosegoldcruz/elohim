@@ -3,12 +3,12 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { User } from "@saasfly/auth";
+import type { User } from "@aeon/auth";
 import { useForm } from "react-hook-form";
 import type * as z from "zod";
 
-import { cn } from "@saasfly/ui";
-import { buttonVariants } from "@saasfly/ui/button";
+import { cn } from "@aeon/ui";
+import { buttonVariants } from "@aeon/ui/button";
 import {
   Card,
   CardContent,
@@ -16,11 +16,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@saasfly/ui/card";
-import * as Icons from "@saasfly/ui/icons";
-import { Input } from "@saasfly/ui/input";
-import { Label } from "@saasfly/ui/label";
-import { toast } from "@saasfly/ui/use-toast";
+} from "@aeon/ui/card";
+import * as Icons from "@aeon/ui/icons";
+import { Input } from "@aeon/ui/input";
+import { Label } from "@aeon/ui/label";
+import { toast } from "@aeon/ui/use-toast";
 
 import { userNameSchema } from "~/lib/validations/user";
 import { trpc } from "~/trpc/client";
