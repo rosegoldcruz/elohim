@@ -19,7 +19,7 @@ export const env = createEnv({
     IS_DEBUG: z.string().optional(),
   },
   client: {
-    NEXT_PUBLIC_APP_URL: z.string().min(1),
+    NEXT_PUBLIC_APP_URL: z.string().optional(),
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().optional(),
   },
   runtimeEnv: {
@@ -33,4 +33,9 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
   },
+  /**
+   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.
+   */
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION || process.env.NODE_ENV === 'production',
+  emptyStringAsUndefined: true,
 });

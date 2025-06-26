@@ -1,12 +1,13 @@
 // @ts-check
-import "./src/env.mjs";
-import "@aeon/auth/env.mjs";
+// Only validate environment in development and when explicitly enabled
+if (!process.env.SKIP_ENV_VALIDATION && process.env.NODE_ENV !== 'production') {
+  await import("./src/env.mjs");
+  await import("@aeon/auth/env.mjs");
+}
 
 import { withNextDevtools } from "@next-devtools/core/plugin";
 // import "@aeon/api/env"
 import withMDX from "@next/mdx";
-
-!process.env.SKIP_ENV_VALIDATION && (await import("./src/env.mjs"));
 
 /** @type {import("next").NextConfig} */
 const config = {

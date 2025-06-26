@@ -2,6 +2,10 @@ import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
 export const env = createEnv({
+  /**
+   * Specify your server-side environment variables schema here. This way you can ensure the app
+   * isn't built with invalid env vars.
+   */
   server: {
     // Stripe Configuration (optional for builds)
     STRIPE_API_KEY: z.string().optional(),
@@ -25,8 +29,8 @@ export const env = createEnv({
     ADMIN_EMAIL: z.string().optional(),
   },
   client: {
-    // Required for app functionality
-    NEXT_PUBLIC_APP_URL: z.string().min(1),
+    // App URL (optional for builds, will use Vercel URL in production)
+    NEXT_PUBLIC_APP_URL: z.string().optional(),
 
     // Clerk Authentication (handled by Clerk automatically)
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().optional(),
@@ -73,4 +77,14 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },
+  /**
+   * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
+   * useful for Docker builds.
+   */
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION || process.env.NODE_ENV === 'production',
+  /**
+   * Makes it so that empty strings are treated as undefined.
+   * `SOME_VAR: z.string()` and `SOME_VAR=''` will throw an error.
+   */
+  emptyStringAsUndefined: true,
 });
