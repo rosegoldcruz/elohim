@@ -1,5 +1,5 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@aeon/ui/card";
-import { Skeleton } from "@aeon/ui/skeleton";
+import { Card, CardContent, CardFooter, CardHeader } from "./card.js";
+import { Skeleton } from "./skeleton.js";
 
 export function CardSkeleton() {
   return (

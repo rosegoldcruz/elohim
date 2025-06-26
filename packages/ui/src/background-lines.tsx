@@ -3,7 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 
-import { cn } from "./utils/cn.js";
+import { cn } from "./utils/cn";
 
 export const BackgroundLines = ({
   children,

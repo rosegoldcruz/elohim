@@ -1,4 +1,4 @@
-import { cn } from "@aeon/ui";
+import { cn } from "./utils/cn";
 
 interface CalloutProps {
   icon?: string;

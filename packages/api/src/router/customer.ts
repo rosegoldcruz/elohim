@@ -1,8 +1,8 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { z } from "zod";
 
-import { getCurrentUser } from "@saasfly/auth";
-import { db, SubscriptionPlan } from "@saasfly/db";
+import { getCurrentUser } from "@aeon/auth";
+import { db, SubscriptionPlan } from "@aeon/db";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 

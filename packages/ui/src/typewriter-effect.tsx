@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, stagger, useAnimate, useInView } from "framer-motion";
 
-import { cn } from "./utils/cn.js";
+import { cn } from "./utils/cn";
 
 export const TypewriterEffectImpl = ({
   words,
