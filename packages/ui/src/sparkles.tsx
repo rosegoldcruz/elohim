@@ -6,7 +6,7 @@ import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 import { motion, useAnimation } from "framer-motion";
 
-import { cn } from "./utils/cn";
+import { cn } from "./utils/cn.js";
 
 interface ParticlesProps {
   id?: string;

@@ -1,8 +1,34 @@
 {
-  "extends": "@aeon/typescript-config/base.json",
   "compilerOptions": {
-    "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json"
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+    "rootDir": "./src",
+    "types": ["react", "react-dom", "next"]
   },
-  "include": ["*.ts", "src"],
-  "exclude": ["node_modules"]
+  "include": ["src"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/animated-tooltip.tsx",
+    "src/card-hover-effect.tsx",
+    "src/data-table.tsx",
+    "src/sparkles.tsx",
+    "src/text-generate-effect.tsx",
+    "src/typewriter-effect.tsx"
+  ]
 }

@@ -1,4 +1,4 @@
-import { cn } from "@saasfly/ui";
+import { cn } from "@aeon/ui";
 
 interface CalloutProps {
   icon?: string;
