@@ -4,14 +4,12 @@
   "version": "0.1.0",
   "typesVersions": {
     "*": {
-      "*": [
-        "src/*"
-      ]
+      "*": ["src/*"]
     }
   },
   "scripts": {
     "clean": "git clean -xdf .turbo node_modules",
-    "format": "prettier --check '**/*.{ts,tsx}' ",
+    "format": "prettier --check '**/*.{ts,tsx}'",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -52,9 +50,9 @@
     "lucide-react": "0.323.0",
     "tailwind-merge": "1.14.0",
     "zod": "3.22.4",
-    "@tsparticles/react" : "3.0.0",
+    "@tsparticles/react": "3.0.0",
     "@tsparticles/engine": "3.3.0",
-    "@tsparticles/slim":  "3.3.0",
+    "@tsparticles/slim": "3.3.0",
     "@react-three/fiber": "8.16.1",
     "@react-three/drei": "9.103.0",
     "three": "0.163.0",
@@ -97,6 +95,7 @@
     "./animated-tooltip": "./src/animated-tooltip.tsx",
     "./avatar": "./src/avatar.tsx",
     "./background-lines": "./src/background-lines.tsx",
+    "./badge": "./src/badge.tsx",
     "./button": "./src/button.tsx",
     "./calendar": "./src/calendar.tsx",
     "./callout": "./src/callout.tsx",
@@ -120,6 +119,7 @@
     "./marquee": "./src/marquee.tsx",
     "./meteors": "./src/meteors.tsx",
     "./popover": "./src/popover.tsx",
+    "./progress": "./src/progress.tsx",
     "./scroll-area": "./src/scroll-area.tsx",
     "./select": "./src/select.tsx",
     "./sheet": "./src/sheet.tsx",
