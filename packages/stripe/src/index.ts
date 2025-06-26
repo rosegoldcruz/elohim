@@ -8,7 +8,7 @@ export * from "./webhooks";
 
 export type { Stripe };
 
-export const stripe = new Stripe(env.STRIPE_API_KEY, {
+export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
   typescript: true,
 });
 

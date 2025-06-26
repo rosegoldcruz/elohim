@@ -7,7 +7,7 @@ export const env = createEnv({
     CLERK_SECRET_KEY: z.string().optional(),
 
     // Stripe Configuration (optional for builds)
-    STRIPE_API_KEY: z.string().optional(),
+    STRIPE_SECRET_KEY: z.string().optional(),
     STRIPE_WEBHOOK_SECRET: z.string().optional(),
 
     // Email Configuration (optional for builds)

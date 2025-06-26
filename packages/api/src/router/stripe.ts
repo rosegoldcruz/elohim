@@ -36,10 +36,15 @@ export type UserSubscriptionPlan = SubscriptionPlan &
   };
 export const stripeRouter = createTRPCRouter({
   createSession: protectedProcedure
-    .input(z.object({ planId: z.string() }))
+    .input(z.object({
+      planId: z.string(),
+      isFreeTrial: z.boolean().optional().default(false)
+    }))
     .mutation(async (opts) => {
       const userId = opts.ctx.userId! as string;
       const planId = opts.input.planId;
+      const isFreeTrial = opts.input.isFreeTrial;
+
       const customer = await db
         .selectFrom("Customer")
         .select(["id", "plan", "stripeCustomerId"])
@@ -70,16 +75,36 @@ export const stripeRouter = createTRPCRouter({
       }
       const email = user.email!;
 
-      const session = await stripe.checkout.sessions.create({
+      // Prepare session configuration
+      const sessionConfig: any = {
         mode: "subscription",
         payment_method_types: ["card"],
         customer_email: email,
         client_reference_id: userId,
-        subscription_data: { metadata: { userId } },
+        subscription_data: {
+          metadata: { userId },
+        },
         cancel_url: returnUrl,
         success_url: returnUrl,
         line_items: [{ price: planId, quantity: 1 }],
-      });
+      };
+
+      // Add free trial configuration if requested
+      if (isFreeTrial) {
+        sessionConfig.subscription_data.trial_period_days = 7;
+        sessionConfig.subscription_data.trial_settings = {
+          end_behavior: {
+            missing_payment_method: "cancel"
+          }
+        };
+        // For free trial, we'll use the PRO monthly price as the target after trial
+        sessionConfig.line_items = [{
+          price: env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID,
+          quantity: 1
+        }];
+      }
+
+      const session = await stripe.checkout.sessions.create(sessionConfig);
 
       if (!session.url) return { success: false as const };
       return { success: true as const, url: session.url };

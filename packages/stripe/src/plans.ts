@@ -14,6 +14,12 @@ export const PLANS: Record<
   [env.NEXT_PUBLIC_STRIPE_BUSINESS_MONTHLY_PRICE_ID]: SubscriptionPlan.BUSINESS,
   // @ts-ignore
   [env.NEXT_PUBLIC_STRIPE_BUSINESS_YEARLY_PRICE_ID]: SubscriptionPlan.BUSINESS,
+  // @ts-ignore
+  [env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID]: SubscriptionPlan.STUDIO,
+  // @ts-ignore
+  [env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID]: SubscriptionPlan.STUDIO,
+  // @ts-ignore
+  [env.NEXT_PUBLIC_STRIPE_FREE_TRIAL_PRICE_ID]: SubscriptionPlan.PRO, // Free trial converts to PRO
 };
 
 type PlanType = (typeof SubscriptionPlan)[keyof typeof SubscriptionPlan];

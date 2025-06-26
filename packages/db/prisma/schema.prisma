@@ -15,6 +15,7 @@ enum SubscriptionPlan {
   FREE
   PRO
   BUSINESS
+  STUDIO
 }
 
 model Customer {
