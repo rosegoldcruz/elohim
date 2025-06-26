@@ -6,6 +6,9 @@ import { DashboardHeader } from "~/components/header";
 import { DashboardShell } from "~/components/shell";
 import { UserNameForm } from "~/components/user-name-form";
 
+// Force dynamic rendering for authentication-dependent pages
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Settings",
   description: "Manage account and website settings.",

@@ -7,6 +7,9 @@ import { AeonDashboard } from "~/components/aeon-dashboard";
 import type { Locale } from "~/config/i18n-config";
 import { getDictionary } from "~/lib/get-dictionary";
 
+// Force dynamic rendering for authentication-dependent pages
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "AEON Dashboard - AI Video Generation Platform",
   description: "Advanced Efficient Optimized Network for AI-powered video creation",

@@ -1,9 +1,13 @@
 import type Stripe from "stripe";
 
-import { db } from "@aeon/db";
-
 import { stripe } from ".";
 import { getSubscriptionPlan } from "./plans";
+
+// Lazy-load database to avoid build-time connection issues
+function getDb() {
+  const { db } = require("@aeon/db");
+  return db;
+}
 
 export async function handleEvent(event: Stripe.DiscriminatedEvent) {
   console.log(`🔄 Processing Stripe webhook: ${event.type}`);
@@ -38,6 +42,7 @@ export async function handleEvent(event: Stripe.DiscriminatedEvent) {
     const plan = getSubscriptionPlan(priceId);
     console.log(`📋 Mapping price ${priceId} to plan ${plan}`);
 
+    const db = getDb();
     const customer = await db
       .selectFrom("Customer")
       .selectAll()
@@ -96,6 +101,7 @@ export async function handleEvent(event: Stripe.DiscriminatedEvent) {
     const plan = getSubscriptionPlan(priceId);
     console.log(`📋 Invoice payment succeeded - mapping price ${priceId} to plan ${plan}`);
 
+    const db = getDb();
     const customer = await db
       .selectFrom("Customer")
       .selectAll()
@@ -145,6 +151,7 @@ export async function handleEvent(event: Stripe.DiscriminatedEvent) {
     const plan = getSubscriptionPlan(priceId);
     console.log(`📋 Subscription updated - mapping price ${priceId} to plan ${plan}`);
 
+    const db = getDb();
     const customer = await db
       .selectFrom("Customer")
       .selectAll()

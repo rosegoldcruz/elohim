@@ -8,6 +8,9 @@ import {
 
 import { DashboardShell } from "~/components/shell";
 import type { Locale } from "~/config/i18n-config";
+
+// Force dynamic rendering for authentication-dependent pages
+export const dynamic = 'force-dynamic';
 import { getDictionary } from "~/lib/get-dictionary";
 import { trpc } from "~/trpc/server";
 import { SubscriptionForm } from "./subscription-form";
