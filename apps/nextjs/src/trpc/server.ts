@@ -3,7 +3,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { createTRPCProxyClient, loggerLink, TRPCClientError } from "@trpc/client";
 
-import { AppRouter } from "@saasfly/api";
+import { AppRouter } from "@aeon/api";
 
 import { transformer } from "./shared";
 import { observable } from "@trpc/server/observable";
@@ -76,4 +76,4 @@ export const trpc = createTRPCProxyClient<AppRouter>({
         }),
   ],
 });
-export {type RouterInputs, type RouterOutputs} from "@saasfly/api";
+export {type RouterInputs, type RouterOutputs} from "@aeon/api";

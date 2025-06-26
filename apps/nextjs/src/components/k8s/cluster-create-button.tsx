@@ -6,11 +6,11 @@ import * as React from "react";
 //navigate to new page
 import { useRouter } from "next/navigation";
 
-import { cn } from "@saasfly/ui";
+import { cn } from "@aeon/ui";
 //button self design
-import { buttonVariants, type ButtonProps } from "@saasfly/ui/button";
-import * as Icons from "@saasfly/ui/icons";
-import { toast } from "@saasfly/ui/use-toast";
+import { buttonVariants, type ButtonProps } from "@aeon/ui/button";
+import * as Icons from "@aeon/ui/icons";
+import { toast } from "@aeon/ui/use-toast";
 
 import { trpc } from "~/trpc/client";
 

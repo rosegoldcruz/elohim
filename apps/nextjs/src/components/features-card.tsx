@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@saasfly/ui";
-import { AnimatedList } from "@saasfly/ui/animated-list";
+import { cn } from "@aeon/ui";
+import { AnimatedList } from "@aeon/ui/animated-list";
 
 interface Item {
   name: string;

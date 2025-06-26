@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 
-import { cn } from "@saasfly/ui";
-import { buttonVariants } from "@saasfly/ui/button";
+import { cn } from "@aeon/ui";
+import { buttonVariants } from "@aeon/ui/button";
 
 export function SubscriptionForm(props: {
   hasSubscription: boolean;

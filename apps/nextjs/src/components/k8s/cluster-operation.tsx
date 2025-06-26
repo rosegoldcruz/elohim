@@ -13,16 +13,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@saasfly/ui/alert-dialog";
+} from "@aeon/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@saasfly/ui/dropdown-menu";
-import * as Icons from "@saasfly/ui/icons";
-import { toast } from "@saasfly/ui/use-toast";
+} from "@aeon/ui/dropdown-menu";
+import * as Icons from "@aeon/ui/icons";
+import { toast } from "@aeon/ui/use-toast";
 
 import { trpc } from "~/trpc/client";
 import type { Cluster } from "~/types/k8s";

@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@saasfly/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@aeon/ui/card";
 
 import { DashboardShell } from "~/components/shell";
 

@@ -10,9 +10,9 @@ import Image from "next/image";
 import Link from "next/link";
 import Balancer from "react-wrap-balancer";
 
-import { cn } from "@saasfly/ui";
-import { buttonVariants } from "@saasfly/ui/button";
-import * as Icons from "@saasfly/ui/icons";
+import { cn } from "@aeon/ui";
+import { buttonVariants } from "@aeon/ui/button";
+import * as Icons from "@aeon/ui/icons";
 
 import { env } from "~/env.mjs";
 import { absoluteUrl, formatDate } from "~/lib/utils";

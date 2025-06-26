@@ -5,10 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 
-import { cn } from "@saasfly/ui";
-import { CardBody, CardContainer, CardItem } from "@saasfly/ui/3d-card";
-import { buttonVariants } from "@saasfly/ui/button";
-import * as Icons from "@saasfly/ui/icons";
+import { cn } from "@aeon/ui";
+import { CardBody, CardContainer, CardItem } from "@aeon/ui/3d-card";
+import { buttonVariants } from "@aeon/ui/button";
+import * as Icons from "@aeon/ui/icons";
 
 export default function LoginPage() {
   // const [isLoading, setIsLoading] = React.useState<boolean>(false);

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { getCurrentUser } from "@saasfly/auth";
+import { getCurrentUser } from "@aeon/auth";
 
 import { MainNav } from "~/components/main-nav";
 import { DashboardNav } from "~/components/nav";

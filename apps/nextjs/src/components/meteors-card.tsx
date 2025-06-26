@@ -1,4 +1,4 @@
-import { Meteors } from "@saasfly/ui/meteors";
+import { Meteors } from "@aeon/ui/meteors";
 
 import type { Meteor } from "~/types/meteors";
 

@@ -4,7 +4,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@saasfly/ui/card";
+} from "@aeon/ui/card";
 
 import { DashboardShell } from "~/components/shell";
 import type { Locale } from "~/config/i18n-config";

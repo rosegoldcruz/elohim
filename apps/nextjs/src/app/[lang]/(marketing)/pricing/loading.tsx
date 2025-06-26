@@ -1,4 +1,4 @@
-import { Skeleton } from "@saasfly/ui/skeleton";
+import { Skeleton } from "@aeon/ui/skeleton";
 
 export default function Loading() {
   return (

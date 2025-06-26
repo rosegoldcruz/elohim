@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
-import type { User } from "@saasfly/auth";
+import type { User } from "@aeon/auth";
 
-import { authOptions, getCurrentUser } from "@saasfly/auth";
-import { db } from "@saasfly/db";
+import { authOptions, getCurrentUser } from "@aeon/auth";
+import { db } from "@aeon/db";
 
 import { ClusterConfig } from "~/components/k8s/cluster-config";
 import type { Cluster } from "~/types/k8s";
