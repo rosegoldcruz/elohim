@@ -1,16 +1,8 @@
 {
   "version": 2,
   "name": "aeon-ai-video-platform",
-  "functions": {
-    "app/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  },
-  "routes": [
-    {
-      "src": "/api/backend/(.*)",
-      "dest": "https://your-backend-url.railway.app/$1"
-    }
+  "builds": [
+    { "src": "next.config.mjs", "use": "@vercel/next" }
   ],
   "env": {
     "NEXT_PUBLIC_APP_URL": "@next_public_app_url",
@@ -26,24 +18,5 @@
     "REPLICATE_API_TOKEN": "@replicate_api_token",
     "ELEVENLABS_API_KEY": "@elevenlabs_api_key",
     "VERCEL_BLOB_READ_WRITE_TOKEN": "@vercel_blob_read_write_token"
-  },
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        }
-      ]
-    }
-  ]
+  }
 }

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    layers: true,
+    // layers: true, ← ❌ Removed: not valid in Next.js 15.2.4
   },
   eslint: {
     ignoreDuringBuilds: true,
