@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, AlertCircle, Loader2, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
-export default function VerifyPage() {
+function VerifyPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
@@ -152,5 +152,23 @@ export default function VerifyPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+        <Card className="bg-white/10 backdrop-blur-lg border-white/20 w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <Loader2 className="w-12 h-12 text-purple-400 animate-spin mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-white mb-2">Loading...</h2>
+            <p className="text-gray-300">Please wait...</p>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <VerifyPageContent />
+    </Suspense>
   )
 }

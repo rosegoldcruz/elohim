@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,7 +19,7 @@ interface OrderStatus {
   estimated_completion: string
 }
 
-export default function InstantSuccessPage() {
+function InstantSuccessPageContent() {
   const searchParams = useSearchParams()
   const sessionId = searchParams.get('session_id')
   const [orderStatus, setOrderStatus] = useState<OrderStatus | null>(null)
@@ -277,5 +277,22 @@ export default function InstantSuccessPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function InstantSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <Card className="bg-white/10 backdrop-blur-lg border-white/20 w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-white">Loading...</p>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <InstantSuccessPageContent />
+    </Suspense>
   )
 }

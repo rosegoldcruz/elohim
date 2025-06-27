@@ -25,12 +25,15 @@ interface VideoModel {
 
 export class VideoGenerationService {
   private models: VideoModel[] = []
+  private modelsLoaded = false
 
   constructor() {
-    this.loadModels()
+    // Don't load models in constructor to avoid build-time calls
   }
 
   private async loadModels() {
+    if (this.modelsLoaded) return
+
     const { data: models, error } = await supabaseAdmin
       .from('video_models')
       .select('*')
@@ -43,10 +46,14 @@ export class VideoGenerationService {
     }
 
     this.models = models
+    this.modelsLoaded = true
   }
 
   async processVideoJob(jobId: string) {
     console.log(`Processing video job: ${jobId}`)
+
+    // Ensure models are loaded
+    await this.loadModels()
 
     try {
       // Get job details
@@ -236,6 +243,9 @@ export class VideoGenerationService {
   }
 
   private async generateSceneWithFallback(sceneId: string, prompt: string, duration: number) {
+    // Ensure models are loaded
+    await this.loadModels()
+
     const maxRetries = this.models.length
     let lastError: Error | null = null
 
@@ -331,8 +341,15 @@ export class VideoGenerationService {
   }
 }
 
-// Export singleton instance
-export const videoGenerationService = new VideoGenerationService()
+// Lazy-loaded singleton instance
+let videoGenerationServiceInstance: VideoGenerationService | null = null
+
+function getVideoGenerationService(): VideoGenerationService {
+  if (!videoGenerationServiceInstance) {
+    videoGenerationServiceInstance = new VideoGenerationService()
+  }
+  return videoGenerationServiceInstance
+}
 
 // Helper function to queue video generation job
 export async function queueVideoGeneration(jobId: string) {
@@ -341,7 +358,8 @@ export async function queueVideoGeneration(jobId: string) {
     // For now, we'll process immediately in the background
     setTimeout(async () => {
       try {
-        await videoGenerationService.processVideoJob(jobId)
+        const service = getVideoGenerationService()
+        await service.processVideoJob(jobId)
       } catch (error) {
         console.error('Background video generation failed:', error)
       }
