@@ -1,15 +1,36 @@
-# AEON AI Video Generation Platform
+# AEON - AI Video Generation SaaS Platform
 
-🎬 **AEON** is a cinematic intelligence engine that transforms ideas into professional AI-generated videos using a 6-model ensemble approach.
+![AEON Platform](./docs/aeon-banner.jpg)
+
+**AEON** is a production-ready AI video generation SaaS platform built with a modular 7-agent architecture. Transform any topic into professional videos with automated script generation, multi-model AI video creation, and intelligent post-processing.
+
+> Based on the MIT-licensed [ai-video-generator](https://github.com/davide97l/ai-video-generator) by davide97l, restructured for enterprise SaaS deployment.
 
 ## 🚀 Features
 
-- **6-Model AI Ensemble**: RunwayML, Pika, Stable Video, Luma, Minimax, Kling
-- **Complete Video Generation**: 60-second videos (not just clips)
-- **Credit-Based System**: 100 credits = 1 complete video
-- **Multi-Tier Pricing**: $19.99/$49.99/$99.99 plans
-- **Real-time Processing**: Supabase + Redis orchestration
-- **Professional Quality**: Cinematic output for creators
+### 🤖 7-Agent Architecture
+- **ScriptWriter Agent**: GPT-4 powered scene generation from topics
+- **VisualGen Agent**: Parallel processing across 6 Replicate models (Runway, Pika, Stable, Luma, Minimax, Kling)
+- **Editor Agent**: FFmpeg-based video assembly with transitions, music, and captions
+- **Scheduler Agent**: Async task queue management and job status tracking
+- **Payments Agent**: Stripe integration for subscriptions and one-time purchases
+- **Auth Agent**: Supabase magic link authentication
+- **Dashboard Agent**: User analytics and admin insights
+
+### 💰 SaaS Features
+- **Credit-based billing** (100 credits = 60s video)
+- **Subscription tiers**: Starter ($19/mo), Pro ($49/mo), Business ($99/mo)
+- **One-time purchases**: $29.95 for instant video generation
+- **Magic link authentication** (passwordless)
+- **Real-time job tracking** and status updates
+- **Admin dashboard** with MRR, churn, and queue analytics
+
+### 🎬 Video Generation
+- **Multi-model ensemble**: 6 AI models for maximum quality
+- **Intelligent fallback**: Automatic model switching on failures
+- **Professional post-processing**: Transitions, background music, captions
+- **Multiple formats**: 60s, 120s videos in 1080p/4K
+- **Instant delivery**: Vercel Blob storage with public download links
 
 ## 🧠 Docker LLM Runner
 
