@@ -1,12 +1,11 @@
 {
   "version": 2,
   "name": "aeon-ai-video-platform",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
     }
-  ],
+  },
   "routes": [
     {
       "src": "/api/backend/(.*)",
@@ -27,11 +26,6 @@
     "REPLICATE_API_TOKEN": "@replicate_api_token",
     "ELEVENLABS_API_KEY": "@elevenlabs_api_key",
     "VERCEL_BLOB_READ_WRITE_TOKEN": "@vercel_blob_read_write_token"
-  },
-  "functions": {
-    "app/api/**/*.ts": {
-      "maxDuration": 30
-    }
   },
   "headers": [
     {

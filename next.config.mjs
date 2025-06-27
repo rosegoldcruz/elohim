@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
-/** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    layers: true,
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -16,7 +18,6 @@ const nextConfig = {
       ...config.experiments,
       syncWebAssembly: false,
       asyncWebAssembly: false,
-      layers: false,
       topLevelAwait: false,
     };
     return config;
