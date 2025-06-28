@@ -24,12 +24,12 @@ export const STRIPE_PLANS = {
   CREATOR: {
     name: 'AEON CREATOR',
     monthly: {
-      priceId: env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID,
+      priceId: env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID || 'price_creator_monthly',
       credits: 3000,
       price: 59.99,
     },
     yearly: {
-      priceId: env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID,
+      priceId: env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID || 'price_creator_yearly',
       credits: 36000,
       price: 588,
     },
@@ -37,12 +37,12 @@ export const STRIPE_PLANS = {
   STUDIO: {
     name: 'AEON STUDIO',
     monthly: {
-      priceId: env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID,
+      priceId: env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID || 'price_studio_monthly',
       credits: 8000,
       price: 149.99,
     },
     yearly: {
-      priceId: env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID,
+      priceId: env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID || 'price_studio_yearly',
       credits: 96000,
       price: 1440,
     },

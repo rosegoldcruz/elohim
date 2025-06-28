@@ -30,10 +30,10 @@ export async function GET(request: NextRequest) {
     const priceIdMap: Record<string, string> = {
       'pro_monthly': process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID!,
       'pro_yearly': process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID!,
-      'creator_monthly': process.env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID!,
-      'creator_yearly': process.env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID!,
-      'studio_monthly': process.env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID!,
-      'studio_yearly': process.env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID!,
+      'creator_monthly': process.env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID || 'price_creator_monthly',
+      'creator_yearly': process.env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID || 'price_creator_yearly',
+      'studio_monthly': process.env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID || 'price_studio_monthly',
+      'studio_yearly': process.env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID || 'price_studio_yearly',
     }
 
     // For free trial, always use AEON PRO Monthly price ID
@@ -131,10 +131,10 @@ export async function POST(request: NextRequest) {
     const priceIdMap: Record<string, string> = {
       'pro_monthly': process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID!,
       'pro_yearly': process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID!,
-      'creator_monthly': process.env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID!,
-      'creator_yearly': process.env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID!,
-      'studio_monthly': process.env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID!,
-      'studio_yearly': process.env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID!,
+      'creator_monthly': process.env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID || 'price_creator_monthly',
+      'creator_yearly': process.env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID || 'price_creator_yearly',
+      'studio_monthly': process.env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID || 'price_studio_monthly',
+      'studio_yearly': process.env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID || 'price_studio_yearly',
     }
 
     // For free trial, always use AEON PRO Monthly price ID

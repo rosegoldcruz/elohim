@@ -24,11 +24,11 @@ export const SUPABASE_CONFIG = {
   jwtSecret: env.SUPABASE_JWT_SECRET,
 } as const
 
-// Authentication Configuration
+// Authentication Configuration (using Supabase)
 export const AUTH_CONFIG = {
-  clerk: {
-    publishableKey: env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-    secretKey: env.CLERK_SECRET_KEY,
+  supabase: {
+    url: env.NEXT_PUBLIC_SUPABASE_URL,
+    anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
 } as const
 
@@ -44,12 +44,12 @@ export const PAYMENT_CONFIG = {
         yearly: env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID,
       },
       creator: {
-        monthly: env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID,
-        yearly: env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID,
+        monthly: env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID || 'price_creator_monthly',
+        yearly: env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID || 'price_creator_yearly',
       },
       studio: {
-        monthly: env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID,
-        yearly: env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID,
+        monthly: env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID || 'price_studio_monthly',
+        yearly: env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID || 'price_studio_yearly',
       },
     },
   },

@@ -53,7 +53,6 @@ All environment variables are configured in `.env.local`. The project includes:
 ### ✅ Core Services
 - **Supabase**: Database, Auth, Real-time sync
 - **Stripe**: Payment processing and subscriptions
-- **Clerk**: Authentication (alternative to Supabase Auth)
 
 ### ✅ AI Services
 - **OpenAI**: GPT-4 for script generation

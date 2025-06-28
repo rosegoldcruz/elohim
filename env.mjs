@@ -26,25 +26,9 @@ export const env = createEnv({
     REPLICATE_API_TOKEN: z.string().min(1),
     ELEVENLABS_API_KEY: z.string().min(1),
     
-    // EmailJS
-    EMAILJS_SERVICE_ID: z.string().min(1),
-    EMAILJS_TEMPLATE_ID: z.string().min(1),
-    
-    // Dash0 Telemetry
-    DASH0_AUTH_TOKEN: z.string().min(1),
-    OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url(),
-    DASH0_LOG_DRAIN_ENDPOINT: z.string().url(),
-    DASH0_DATASET: z.string().min(1),
-    OTEL_EXPORTER_OTLP_COMPRESSION: z.string().min(1),
-    AUTHORIZATION: z.string().optional(),
-    
-    // Elohim specific Dash0
-    elohim_OTEL_EXPORTER_OTLP_HEADERS: z.string().min(1),
-    elohim_DASH0_DATASET: z.string().min(1),
-    elohim_OTEL_EXPORTER_OTLP_COMPRESSION: z.string().min(1),
-    elohim_DASH0_AUTH_TOKEN: z.string().min(1),
-    elohim_DASH0_LOG_DRAIN_ENDPOINT: z.string().url(),
-    elohim_OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url(),
+    // EmailJS (optional)
+    EMAILJS_SERVICE_ID: z.string().min(1).optional(),
+    EMAILJS_TEMPLATE_ID: z.string().min(1).optional(),
     
     // App Config
     APP_ENV: z.enum(["development", "production", "test"]).default("development"),
@@ -71,10 +55,10 @@ export const env = createEnv({
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_API: z.string().min(1),
     NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID: z.string().min(1),
     NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID: z.string().min(1),
-    NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID: z.string().min(1),
-    NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID: z.string().min(1),
-    NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID: z.string().min(1),
-    NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID: z.string().min(1),
+    NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID: z.string().min(1).optional(),
+    NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID: z.string().min(1).optional(),
+    NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID: z.string().min(1).optional(),
+    NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID: z.string().min(1).optional(),
   },
 
   /**
