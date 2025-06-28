@@ -9,7 +9,18 @@
     "lint": "next lint",
     "start": "next start",
     "test:setup": "node scripts/test-setup.js",
-    "test:llm": "node llm-runner.js"
+    "test:llm": "node llm-runner.js",
+    "docker:dev": "bash scripts/docker-dev.sh",
+    "docker:dev:win": "scripts/docker-dev.bat",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker-compose down -v && docker system prune -f"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3",
