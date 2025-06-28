@@ -10,13 +10,17 @@
     "start": "next start",
     "test:setup": "node scripts/test-setup.js",
     "test:llm": "node llm-runner.js",
+    "test:docharvester": "node scripts/test-docharvester.js",
     "docker:dev": "bash scripts/docker-dev.sh",
-    "docker:dev:win": "scripts/docker-dev.bat",
+    "docker:dev:win": "scripts\\docker-dev.bat",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
-    "docker:clean": "docker-compose down -v && docker system prune -f"
+    "docker:clean": "docker-compose down -v && docker system prune -f",
+    "docharvester:up": "docker-compose -f docker-compose.root.yml up --build -d",
+    "docharvester:down": "docker-compose -f docker-compose.root.yml down",
+    "docharvester:logs": "docker-compose -f docker-compose.root.yml logs -f"
   },
   "engines": {
     "node": ">=20.0.0",

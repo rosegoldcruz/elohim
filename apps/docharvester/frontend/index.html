@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocHarvester - Universal Documentation Extractor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #1e293b;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        input[type="url"], input[type="text"], textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="url"]:focus, input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        textarea {
+            min-height: 150px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            resize: vertical;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0;
+        }
+
+        input[type="number"] {
+            width: 80px;
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #e2e8f0;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .progress-container {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .results {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .result-url {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .result-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-error {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .result-content {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .discovered-urls {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+        }
+
+        .url-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .url-item:hover {
+            background: #f8fafc;
+        }
+
+        .url-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .url-item label {
+            font-size: 13px;
+            color: #374151;
+            cursor: pointer;
+            word-break: break-all;
+            margin: 0;
+        }
+
+        .export-section {
+            border-top: 2px solid #e2e8f0;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .discovered-urls-container {
+            display: none;
+        }
+
+        .progress-hidden {
+            display: none !important;
+        }
+
+        .results-hidden {
+            display: none !important;
+        }
+
+        .site-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .site-example {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .site-example:hover {
+            border-color: #6366f1;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+        }
+
+        .site-example h4 {
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+
+        .site-example p {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌾 DocHarvester</h1>
+            <p>Extract and process documentation from ANY website for your LLM agents</p>
+        </div>
+
+        <div class="main-content">
+            <div class="tabs">
+                <button type="button" class="tab active" data-tab="discover">🔍 Auto Discover</button>
+                <button type="button" class="tab" data-tab="manual">✏️ Manual URLs</button>
+                <button type="button" class="tab" data-tab="process">⚙️ Process & Export</button>
+            </div>
+
+            <!-- Auto Discovery Tab -->
+            <div class="tab-content active" id="discover-tab">
+                <div class="section">
+                    <h2>🔍 Auto-Discover Documentation</h2>
+                    <div class="input-group">
+                        <label for="baseUrl">Base Documentation URL:</label>
+                        <input type="url" id="baseUrl" placeholder="https://docs.stripe.com">
+                    </div>
+
+                    <div class="site-examples">
+                        <div class="site-example" data-url="https://docs.stripe.com">
+                            <h4>🏦 Stripe Docs</h4>
+                            <p>Payment processing documentation</p>
+                        </div>
+                        <div class="site-example" data-url="https://docs.python.org">
+                            <h4>🐍 Python Docs</h4>
+                            <p>Python language reference</p>
+                        </div>
+                        <div class="site-example" data-url="https://react.dev">
+                            <h4>⚛️ React Docs</h4>
+                            <p>React framework documentation</p>
+                        </div>
+                        <div class="site-example" data-url="https://docs.docker.com">
+                            <h4>🐳 Docker Docs</h4>
+                            <p>Container platform docs</p>
+                        </div>
+                        <div class="site-example" data-url="https://nextjs.org/docs">
+                            <h4>⚡ Next.js Docs</h4>
+                            <p>React framework documentation</p>
+                        </div>
+                        <div class="site-example" data-url="https://docs.anthropic.com">
+                            <h4>🤖 Anthropic Docs</h4>
+                            <p>Claude API documentation</p>
+                        </div>
+                    </div>
+
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="maxDepth">Max Depth:</label>
+                            <input type="number" id="maxDepth" value="2" min="1" max="5">
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="useJS">
+                            <label for="useJS">Enable JavaScript (for modern sites)</label>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="discoverUrls">🔍 Discover URLs</button>
+                    </div>
+
+                    <div id="discoveredUrls" class="discovered-urls-container">
+                        <h3>📋 Discovered URLs</h3>
+                        <div class="controls">
+                            <button type="button" class="btn btn-secondary" id="selectAll">✅ Select All</button>
+                            <button type="button" class="btn btn-secondary" id="selectNone">❌ Select None</button>
+                            <button type="button" class="btn btn-success" id="fetchSelected">🚀 Fetch Selected</button>
+                        </div>
+                        <div class="discovered-urls" id="urlsList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manual URLs Tab -->
+            <div class="tab-content" id="manual-tab">
+                <div class="section">
+                    <h2>✏️ Manual URL Entry</h2>
+                    <div class="input-group">
+                        <label for="urlList">Enter URLs (one per line):</label>
+                        <textarea id="urlList" placeholder="https://docs.stripe.com/api
+https://docs.stripe.com/payments
+https://docs.stripe.com/billing
+..."></textarea>
+                    </div>
+
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="delay">Delay (ms):</label>
+                            <input type="number" id="delay" value="1000" min="500" max="5000">
+                        </div>
+                        <div class="control-group">
+                            <label for="maxRetries">Max retries:</label>
+                            <input type="number" id="maxRetries" value="3" min="1" max="10">
+                        </div>
+                        <div class="control-group">
+                            <label for="batchSize">Batch size:</label>
+                            <input type="number" id="batchSize" value="5" min="1" max="20">
+                        </div>
+                        <button type="button" class="btn btn-primary" id="startFetch">🚀 Start Fetching</button>
+                        <button type="button" class="btn btn-secondary" id="stopFetch" disabled>⏹️ Stop</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Process & Export Tab -->
+            <div class="tab-content" id="process-tab">
+                <div class="section">
+                    <h2>⚙️ Process for LLM Use</h2>
+                    <p>Convert your fetched documentation into LLM-ready formats with embeddings and search capabilities.</p>
+
+                    <div class="controls">
+                        <button type="button" class="btn btn-primary" id="processForLLM">🧠 Process for LLM</button>
+                        <button type="button" class="btn btn-secondary" id="generateEmbeddings">🔗 Generate Embeddings</button>
+                    </div>
+
+                    <div class="export-section">
+                        <h3>📥 Export Results</h3>
+                        <div class="export-buttons">
+                            <button type="button" class="btn btn-secondary" id="exportJSON">📄 Export as JSON</button>
+                            <button type="button" class="btn btn-secondary" id="exportMarkdown">📝 Export as Markdown</button>
+                            <button type="button" class="btn btn-secondary" id="exportText">📋 Export as Text</button>
+                            <button type="button" class="btn btn-secondary" id="exportCSV">📊 Export as CSV</button>
+                            <button type="button" class="btn btn-secondary" id="exportTraining">🎯 Export for Training</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-container progress-hidden" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="status">
+                    <span id="progressText">Initializing...</span>
+                    <span id="progressStats">0/0</span>
+                </div>
+            </div>
+
+            <div class="results results-hidden" id="results">
+                <div id="resultsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class DocHarvester {
+            constructor() {
+                this.results = [];
+                this.discoveredUrls = [];
+                this.isRunning = false;
+                this.shouldStop = false;
+                this.apiBase = '/api/docharvester';
+
+                this.initializeElements();
+                this.setupEventListeners();
+            }
+
+            initializeElements() {
+                // Tab elements
+                this.tabs = document.querySelectorAll('.tab');
+                this.tabContents = document.querySelectorAll('.tab-content');
+
+                // Discovery elements
+                this.baseUrlInput = document.getElementById('baseUrl');
+                this.maxDepthInput = document.getElementById('maxDepth');
+                this.useJSCheckbox = document.getElementById('useJS');
+                this.discoverBtn = document.getElementById('discoverUrls');
+                this.discoveredUrlsContainer = document.getElementById('discoveredUrls');
+                this.urlsList = document.getElementById('urlsList');
+                this.selectAllBtn = document.getElementById('selectAll');
+                this.selectNoneBtn = document.getElementById('selectNone');
+                this.fetchSelectedBtn = document.getElementById('fetchSelected');
+
+                // Manual elements
+                this.urlListTextarea = document.getElementById('urlList');
+                this.delayInput = document.getElementById('delay');
+                this.maxRetriesInput = document.getElementById('maxRetries');
+                this.batchSizeInput = document.getElementById('batchSize');
+                this.startBtn = document.getElementById('startFetch');
+                this.stopBtn = document.getElementById('stopFetch');
+
+                // Processing elements
+                this.processBtn = document.getElementById('processForLLM');
+                this.embeddingsBtn = document.getElementById('generateEmbeddings');
+
+                // Progress elements
+                this.progressContainer = document.getElementById('progressContainer');
+                this.progressFill = document.getElementById('progressFill');
+                this.progressText = document.getElementById('progressText');
+                this.progressStats = document.getElementById('progressStats');
+                this.results = document.getElementById('results');
+                this.resultsList = document.getElementById('resultsList');
+            }
+
+            setupEventListeners() {
+                // Tab switching
+                this.tabs.forEach(tab => {
+                    tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
+                });
+
+                // Site examples
+                document.querySelectorAll('.site-example').forEach(example => {
+                    example.addEventListener('click', () => {
+                        this.baseUrlInput.value = example.dataset.url;
+                    });
+                });
+
+                // Discovery
+                this.discoverBtn.addEventListener('click', () => this.discoverUrls());
+                this.selectAllBtn.addEventListener('click', () => this.selectAllUrls());
+                this.selectNoneBtn.addEventListener('click', () => this.selectNoUrls());
+                this.fetchSelectedBtn.addEventListener('click', () => this.fetchSelectedUrls());
+
+                // Manual fetching
+                this.startBtn.addEventListener('click', () => this.startManualFetching());
+                this.stopBtn.addEventListener('click', () => this.stopFetching());
+
+                // Processing
+                this.processBtn.addEventListener('click', () => this.processForLLM());
+                this.embeddingsBtn.addEventListener('click', () => this.generateEmbeddings());
+
+                // Export buttons
+                document.getElementById('exportJSON').addEventListener('click', () => this.exportResults('json'));
+                document.getElementById('exportMarkdown').addEventListener('click', () => this.exportResults('markdown'));
+                document.getElementById('exportText').addEventListener('click', () => this.exportResults('text'));
+                document.getElementById('exportCSV').addEventListener('click', () => this.exportResults('csv'));
+                document.getElementById('exportTraining').addEventListener('click', () => this.exportResults('training'));
+            }
+
+            switchTab(tabName) {
+                this.tabs.forEach(tab => tab.classList.remove('active'));
+                this.tabContents.forEach(content => content.classList.remove('active'));
+
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            }
+
+            async discoverUrls() {
+                const baseUrl = this.baseUrlInput.value.trim();
+                if (!baseUrl) {
+                    alert('Please enter a base URL');
+                    return;
+                }
+
+                this.discoverBtn.disabled = true;
+                this.updateProgressText('Discovering documentation URLs...');
+                this.showProgress();
+
+                try {
+                    const response = await fetch(`${this.apiBase}/discover`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            base_url: baseUrl,
+                            max_depth: parseInt(this.maxDepthInput.value)
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    this.discoveredUrls = data.urls;
+                    this.displayDiscoveredUrls();
+
+                    this.updateProgressText(`Discovered ${data.count} URLs`);
+
+                } catch (error) {
+                    console.error('Discovery failed:', error);
+                    alert(`Failed to discover URLs: ${error.message}`);
+                    this.hideProgress();
+                } finally {
+                    this.discoverBtn.disabled = false;
+                }
+            }
+
+            displayDiscoveredUrls() {
+                this.urlsList.innerHTML = '';
+
+                this.discoveredUrls.forEach((url, index) => {
+                    const urlItem = document.createElement('div');
+                    urlItem.className = 'url-item';
+                    urlItem.innerHTML = `
+                        <input type="checkbox" id="url-${index}" checked>
+                        <label for="url-${index}">${url}</label>
+                    `;
+                    this.urlsList.appendChild(urlItem);
+                });
+
+                this.discoveredUrlsContainer.classList.remove('discovered-urls-container');
+                this.hideProgress();
+            }
+
+            selectAllUrls() {
+                this.urlsList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                    cb.checked = true;
+                });
+            }
+
+            selectNoUrls() {
+                this.urlsList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                    cb.checked = false;
+                });
+            }
+
+            async fetchSelectedUrls() {
+                const selectedUrls = [];
+                this.urlsList.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+                    const label = cb.nextElementSibling;
+                    selectedUrls.push(label.textContent);
+                });
+
+                if (selectedUrls.length === 0) {
+                    alert('Please select at least one URL');
+                    return;
+                }
+
+                await this.fetchUrls(selectedUrls);
+            }
+
+            async startManualFetching() {
+                const urls = this.getCleanUrls();
+                if (urls.length === 0) {
+                    alert('Please enter at least one valid URL');
+                    return;
+                }
+
+                await this.fetchUrls(urls);
+            }
+
+            async fetchUrls(urls) {
+                this.isRunning = true;
+                this.shouldStop = false;
+                this.results = [];
+
+                this.updateUI(true);
+                this.showProgress();
+                this.showResults();
+
+                const delay = parseInt(this.delayInput.value);
+                const maxRetries = parseInt(this.maxRetriesInput.value);
+                const batchSize = parseInt(this.batchSizeInput.value);
+                const useJS = this.useJSCheckbox.checked;
+
+                for (let i = 0; i < urls.length; i += batchSize) {
+                    if (this.shouldStop) break;
+
+                    const batch = urls.slice(i, i + batchSize);
+                    const promises = batch.map(url => this.fetchSingleDocument(url, maxRetries, useJS));
+
+                    await Promise.allSettled(promises);
+
+                    this.updateProgress(Math.min(i + batchSize, urls.length), urls.length);
+
+                    if (i + batchSize < urls.length && !this.shouldStop) {
+                        await this.sleep(delay);
+                    }
+                }
+
+                this.updateUI(false);
+                this.updateProgressText(`Completed! Fetched ${this.results.length} documents`);
+            }
+
+            async fetchSingleDocument(url, maxRetries, useJS) {
+                for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                    if (this.shouldStop) return;
+
+                    try {
+                        this.updateProgressText(`Fetching: ${this.getDisplayUrl(url)} (attempt ${attempt})`);
+
+                        const response = await fetch(`${this.apiBase}/fetch`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url, use_js: useJS })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        this.results.push({
+                            url,
+                            status: 'success',
+                            content: data.content,
+                            title: data.title,
+                            timestamp: new Date().toISOString(),
+                            size: data.size
+                        });
+
+                        this.addResultToUI(url, 'success', data.content, data.title);
+                        return;
+
+                    } catch (error) {
+                        console.error(`Attempt ${attempt} failed for ${url}:`, error);
+
+                        if (attempt === maxRetries) {
+                            this.results.push({
+                                url,
+                                status: 'error',
+                                error: error.message,
+                                timestamp: new Date().toISOString()
+                            });
+
+                            this.addResultToUI(url, 'error', null, null, error.message);
+                        } else {
+                            await this.sleep(1000 * attempt);
+                        }
+                    }
+                }
+            }
+
+            getCleanUrls() {
+                const text = this.urlListTextarea.value.trim();
+                if (!text) return [];
+
+                return text.split('\n')
+                    .map(url => url.trim())
+                    .filter(url => url && url.startsWith('http'))
+                    .filter((url, index, arr) => arr.indexOf(url) === index);
+            }
+
+            getDisplayUrl(url) {
+                try {
+                    const urlObj = new URL(url);
+                    return urlObj.pathname.substring(1) || urlObj.hostname;
+                } catch {
+                    return url;
+                }
+            }
+
+            async processForLLM() {
+                if (this.results.length === 0) {
+                    alert('No documents to process. Please fetch some documents first.');
+                    return;
+                }
+
+                this.processBtn.disabled = true;
+                this.updateProgressText('Processing documents for LLM use...');
+                this.showProgress();
+
+                try {
+                    const response = await fetch(`${this.apiBase}/process`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ documents: this.results })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    this.updateProgressText(`✅ Created ${data.chunks_created} LLM-ready chunks`);
+                    alert(`Successfully processed! Created ${data.chunks_created} chunks.`);
+
+                } catch (error) {
+                    console.error('Processing failed:', error);
+                    alert(`Failed to process documents: ${error.message}`);
+                } finally {
+                    this.processBtn.disabled = false;
+                    this.hideProgress();
+                }
+            }
+
+            async generateEmbeddings() {
+                alert('Embeddings generation requires the Python script. Please run the generate_embeddings.py script from your output directory.');
+            }
+
+            exportResults(format) {
+                if (this.results.length === 0) {
+                    alert('No results to export');
+                    return;
+                }
+
+                let content = '';
+                let filename = '';
+                let mimeType = '';
+
+                switch (format) {
+                    case 'json':
+                        content = JSON.stringify(this.results, null, 2);
+                        filename = 'docharvester_export.json';
+                        mimeType = 'application/json';
+                        break;
+
+                    case 'markdown':
+                        content = this.generateMarkdown();
+                        filename = 'docharvester_export.md';
+                        mimeType = 'text/markdown';
+                        break;
+
+                    case 'text':
+                        content = this.generateText();
+                        filename = 'docharvester_export.txt';
+                        mimeType = 'text/plain';
+                        break;
+
+                    case 'csv':
+                        content = this.generateCSV();
+                        filename = 'docharvester_export.csv';
+                        mimeType = 'text/csv';
+                        break;
+
+                    case 'training':
+                        content = this.generateTrainingData();
+                        filename = 'docharvester_training.jsonl';
+                        mimeType = 'application/jsonl';
+                        break;
+                }
+
+                this.downloadFile(content, filename, mimeType);
+            }
+
+            generateMarkdown() {
+                let md = '# DocHarvester Export\n\n';
+                md += `Generated on: ${new Date().toISOString()}\n\n`;
+                md += `Total documents: ${this.results.length}\n\n`;
+
+                this.results.forEach((result, index) => {
+                    md += `## ${index + 1}. ${result.title || 'Document'}\n\n`;
+                    md += `**URL:** ${result.url}\n\n`;
+                    md += `**Status:** ${result.status}\n\n`;
+
+                    if (result.status === 'success' && result.content) {
+                        md += `${result.content}\n\n`;
+                    } else if (result.error) {
+                        md += `**Error:** ${result.error}\n\n`;
+                    }
+
+                    md += '---\n\n';
+                });
+
+                return md;
+            }
+
+            generateText() {
+                let text = 'DOCHARVESTER EXPORT\n';
+                text += '='.repeat(50) + '\n\n';
+                text += `Generated: ${new Date().toISOString()}\n`;
+                text += `Documents: ${this.results.length}\n\n`;
+
+                this.results.forEach((result, index) => {
+                    text += `${index + 1}. ${result.title || 'Document'}\n`;
+                    text += `URL: ${result.url}\n`;
+                    text += `Status: ${result.status}\n`;
+
+                    if (result.status === 'success' && result.content) {
+                        text += `Content:\n${result.content}\n`;
+                    } else if (result.error) {
+                        text += `Error: ${result.error}\n`;
+                    }
+
+                    text += '\n' + '='.repeat(50) + '\n\n';
+                });
+
+                return text;
+            }
+
+            generateCSV() {
+                const headers = ['URL', 'Title', 'Status', 'Size', 'Timestamp', 'Error'];
+                let csv = headers.join(',') + '\n';
+
+                this.results.forEach(result => {
+                    const row = [
+                        `"${result.url}"`,
+                        `"${result.title || ''}"`,
+                        result.status,
+                        result.size || 0,
+                        result.timestamp,
+                        `"${result.error || ''}"`
+                    ];
+                    csv += row.join(',') + '\n';
+                });
+
+                return csv;
+            }
+
+            generateTrainingData() {
+                let jsonl = '';
+
+                this.results.forEach(result => {
+                    if (result.status === 'success' && result.content) {
+                        const trainingItem = {
+                            text: `# ${result.title}\n\n${result.content}`,
+                            metadata: {
+                                url: result.url,
+                                title: result.title,
+                                timestamp: result.timestamp,
+                                size: result.size
+                            }
+                        };
+                        jsonl += JSON.stringify(trainingItem) + '\n';
+                    }
+                });
+
+                return jsonl;
+            }
+
+            downloadFile(content, filename, mimeType) {
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            updateProgress(current, total) {
+                const percentage = (current / total) * 100;
+                this.progressFill.style.width = percentage + '%';
+                this.progressStats.textContent = `${current}/${total}`;
+            }
+
+            updateProgressText(text) {
+                this.progressText.textContent = text;
+            }
+
+            addResultToUI(url, status, content, title, error = null) {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+
+                const statusClass = status === 'success' ? 'status-success' : 'status-error';
+                const statusText = status === 'success' ? 'Success' : 'Error';
+
+                resultItem.innerHTML = `
+                    <div class="result-header">
+                        <div class="result-url">${this.getDisplayUrl(url)}</div>
+                        <div class="result-status ${statusClass}">${statusText}</div>
+                    </div>
+                    <div class="result-content">
+                        ${status === 'success'
+                            ? `📄 ${title} (${content ? content.length : 0} characters)`
+                            : `❌ ${error}`
+                        }
+                    </div>
+                `;
+
+                this.resultsList.appendChild(resultItem);
+            }
+
+            updateUI(isRunning) {
+                this.startBtn.disabled = isRunning;
+                this.fetchSelectedBtn.disabled = isRunning;
+                this.discoverBtn.disabled = isRunning;
+                this.stopBtn.disabled = !isRunning;
+                this.isRunning = isRunning;
+            }
+
+            stopFetching() {
+                this.shouldStop = true;
+                this.updateUI(false);
+                this.updateProgressText('Stopping...');
+            }
+
+            showProgress() {
+                this.progressContainer.classList.remove('progress-hidden');
+                this.updateProgress(0, 1);
+            }
+
+            hideProgress() {
+                this.progressContainer.classList.add('progress-hidden');
+            }
+
+            showResults() {
+                this.results.classList.remove('results-hidden');
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialize DocHarvester
+        document.addEventListener('DOMContentLoaded', () => {
+            new DocHarvester();
+        });
+    </script>
+</body>
+</html>

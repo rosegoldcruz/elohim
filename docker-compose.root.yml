@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # Main AEON Next.js application
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - docharvester-backend
+      - docharvester-frontend
+    networks:
+      - app-network
+    environment:
+      - DOCHARVESTER_BACKEND_URL=http://docharvester-backend:5000
+      - DOCHARVESTER_FRONTEND_URL=http://docharvester-frontend:80
+      - NODE_ENV=production
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  # DocHarvester frontend service
+  docharvester-frontend:
+    build: ./apps/docharvester/frontend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # DocHarvester backend service
+  docharvester-backend:
+    build: ./apps/docharvester/backend
+    volumes:
+      - ./apps/docharvester/data:/app/data
+    networks:
+      - app-network
+    environment:
+      - FLASK_ENV=production
+      - PYTHONPATH=/app
+    restart: unless-stopped
+
+  # Redis for AEON platform (if needed)
+  redis:
+    image: redis:7-alpine
+    networks:
+      - app-network
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  # PostgreSQL database (if needed)
+  postgres:
+    image: postgres:15-alpine
+    networks:
+      - app-network
+    environment:
+      - POSTGRES_DB=aeon
+      - POSTGRES_USER=aeon
+      - POSTGRES_PASSWORD=aeon_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+  postgres_data:

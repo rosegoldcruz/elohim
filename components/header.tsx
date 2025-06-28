@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/audio", label: "Audio" },
   { href: "/marketing", label: "Marketing" },
   { href: "/analytics", label: "Analytics" },
+  { href: "/docs", label: "Docs" },
   { href: "/pricing", label: "Pricing" },
 ]
 

@@ -32,6 +32,14 @@
 - **Multiple formats**: 60s, 120s videos in 1080p/4K
 - **Instant delivery**: Vercel Blob storage with public download links
 
+### 🌾 DocHarvester Integration
+- **Universal documentation extraction** from ANY website
+- **Auto-discovery** of documentation pages with intelligent crawling
+- **LLM-ready processing** with chunking and metadata extraction
+- **Multiple export formats**: JSON, Markdown, Text, CSV, Training data
+- **Seamless integration** within AEON platform at `/docs/docharvester`
+- **Batch processing** with retry logic and error handling
+
 ## 🧠 Docker LLM Runner
 
 This project includes a Docker-based LLM runner that automatically processes AI tasks and uploads results to Vercel Blob storage with Supabase logging.
@@ -115,3 +123,36 @@ docker run --rm -e SUPABASE_URL="..." -e SUPABASE_SERVICE_ROLE="..." llm-runner
 ### 🎯 Integration with AEON
 
 This Docker runner is designed to integrate with AEON's agent orchestration system, providing scalable AI processing capabilities for video generation workflows.
+
+## 🌾 DocHarvester Deployment
+
+DocHarvester is fully integrated into the AEON platform. To deploy with DocHarvester:
+
+```bash
+# Deploy AEON with DocHarvester
+pnpm run docharvester:up
+
+# Test the integration
+pnpm run test:docharvester
+
+# Access points:
+# - Main platform: http://localhost:3000
+# - Documentation: http://localhost:3000/docs
+# - DocHarvester: http://localhost:3000/docs/docharvester
+```
+
+For detailed deployment instructions, see [DOCHARVESTER_DEPLOYMENT.md](./DOCHARVESTER_DEPLOYMENT.md).
+
+## 🐳 Docker Development Environment
+
+For running the full AEON development environment with Docker:
+
+```bash
+# Linux/macOS
+pnpm run docker:dev
+
+# Windows
+pnpm run docker:dev:win
+```
+
+> **Note for Windows developers**: Use the `docker:dev:win` command to ensure proper path handling in the Docker development environment.
