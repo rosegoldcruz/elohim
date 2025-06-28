@@ -207,7 +207,7 @@ export class MagicLinkAuth {
         email,
         full_name: email.split('@')[0],
         credits: 0,
-        subscription_tier: 'free_trial',
+        subscription_tier: 'free',
         subscription_status: 'inactive',
       })
       .select()

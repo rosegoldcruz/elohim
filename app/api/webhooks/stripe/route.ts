@@ -285,7 +285,7 @@ async function handleSubscriptionCanceled(subscription: any) {
     .from('users')
     .update({
       subscription_status: 'canceled',
-      subscription_tier: 'free_trial',
+      subscription_tier: 'free',
       updated_at: new Date().toISOString(),
     })
     .eq('id', user.id)

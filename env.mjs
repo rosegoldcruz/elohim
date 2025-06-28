@@ -71,11 +71,10 @@ export const env = createEnv({
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_API: z.string().min(1),
     NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID: z.string().min(1),
     NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID: z.string().min(1),
-    NEXT_PUBLIC_STRIPE_BUSINESS_MONTHLY_PRICE_ID: z.string().min(1),
-    NEXT_PUBLIC_STRIPE_BUSINESS_YEARLY_PRICE_ID: z.string().min(1),
+    NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID: z.string().min(1),
+    NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID: z.string().min(1),
     NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID: z.string().min(1),
     NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID: z.string().min(1),
-    NEXT_PUBLIC_STRIPE_FREE_TRIAL_PRICE_ID: z.string().min(1),
   },
 
   /**

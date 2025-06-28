@@ -8,49 +8,43 @@ export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
 
 // Stripe pricing configuration
 export const STRIPE_PLANS = {
-  FREE_TRIAL: {
-    name: 'Free Trial',
-    priceId: env.NEXT_PUBLIC_STRIPE_FREE_TRIAL_PRICE_ID,
-    credits: 100,
-    price: 0,
-  },
   PRO: {
-    name: 'Pro',
+    name: 'AEON PRO',
     monthly: {
       priceId: env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID,
       credits: 1000,
-      price: 19.99,
+      price: 29.99,
     },
     yearly: {
       priceId: env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID,
       credits: 12000,
-      price: 199.99,
+      price: 288,
     },
   },
-  BUSINESS: {
-    name: 'Creator',
+  CREATOR: {
+    name: 'AEON CREATOR',
     monthly: {
-      priceId: env.NEXT_PUBLIC_STRIPE_BUSINESS_MONTHLY_PRICE_ID,
-      credits: 2500,
-      price: 49.99,
+      priceId: env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID,
+      credits: 3000,
+      price: 59.99,
     },
     yearly: {
-      priceId: env.NEXT_PUBLIC_STRIPE_BUSINESS_YEARLY_PRICE_ID,
-      credits: 30000,
-      price: 499.99,
+      priceId: env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID,
+      credits: 36000,
+      price: 588,
     },
   },
   STUDIO: {
-    name: 'Studio',
+    name: 'AEON STUDIO',
     monthly: {
       priceId: env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID,
-      credits: 5000,
-      price: 99.99,
+      credits: 8000,
+      price: 149.99,
     },
     yearly: {
       priceId: env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID,
-      credits: 60000,
-      price: 999.99,
+      credits: 96000,
+      price: 1440,
     },
   },
 } as const
@@ -61,15 +55,9 @@ export type StripePlanConfig = typeof STRIPE_PLANS[StripePlan]
 // Helper function to get plan by price ID
 export function getPlanByPriceId(priceId: string) {
   for (const [planKey, planConfig] of Object.entries(STRIPE_PLANS)) {
-    if (planKey === 'FREE_TRIAL') {
-      if (planConfig.priceId === priceId) {
-        return { key: planKey as StripePlan, config: planConfig }
-      }
-    } else {
-      const config = planConfig as any
-      if (config.monthly?.priceId === priceId || config.yearly?.priceId === priceId) {
-        return { key: planKey as StripePlan, config: planConfig }
-      }
+    const config = planConfig as any
+    if (config.monthly?.priceId === priceId || config.yearly?.priceId === priceId) {
+      return { key: planKey as StripePlan, config: planConfig }
     }
   }
   return null

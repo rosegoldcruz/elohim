@@ -39,14 +39,13 @@ export const PAYMENT_CONFIG = {
     publishableKey: env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_API,
     webhookSecret: env.STRIPE_WEBHOOK_SECRET,
     plans: {
-      freeTrial: env.NEXT_PUBLIC_STRIPE_FREE_TRIAL_PRICE_ID,
       pro: {
         monthly: env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID,
         yearly: env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID,
       },
-      business: {
-        monthly: env.NEXT_PUBLIC_STRIPE_BUSINESS_MONTHLY_PRICE_ID,
-        yearly: env.NEXT_PUBLIC_STRIPE_BUSINESS_YEARLY_PRICE_ID,
+      creator: {
+        monthly: env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID,
+        yearly: env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID,
       },
       studio: {
         monthly: env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID,

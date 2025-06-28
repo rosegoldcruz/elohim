@@ -9,59 +9,88 @@ import { toast } from "sonner"
 
 const plans = [
   {
-    name: "Starter",
-    price: "$29",
-    credits: "25",
-    features: ["HD 1080p Quality", "5 Projects", "Basic Analytics", "Email Support", "Standard Processing"],
-    popular: false,
-    icon: Zap,
-    gradient: "from-blue-600 to-cyan-600",
-    borderGradient: "from-blue-500/50 to-cyan-500/50",
-  },
-  {
-    name: "Professional",
-    price: "$79",
-    credits: "100",
+    name: "AEON PRO",
+    price: "$29.99",
+    yearlyPrice: "$288",
+    credits: "1,000",
     features: [
-      "4K Ultra HD Quality",
-      "Unlimited Projects",
-      "Advanced Analytics",
-      "Priority Support",
-      "Voice Cloning",
-      "Custom Avatars",
-      "API Access",
+      "HD 1080p Quality",
+      "1,000 credits/month",
+      "Basic Analytics",
+      "Email Support",
+      "Standard Processing",
+      "Commercial License"
     ],
     popular: true,
     icon: Crown,
     gradient: "from-purple-600 via-pink-600 to-cyan-600",
     borderGradient: "from-purple-500/50 via-pink-500/50 to-cyan-500/50",
+    priceIds: {
+      monthly: "NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID",
+      yearly: "NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID"
+    }
   },
   {
-    name: "Enterprise",
-    price: "$199",
-    credits: "500",
+    name: "AEON CREATOR",
+    price: "$59.99",
+    yearlyPrice: "$588",
+    credits: "3,000",
     features: [
-      "All Pro Features",
+      "4K Ultra HD Quality",
+      "3,000 credits/month",
+      "Advanced Analytics",
+      "Priority Support",
+      "Voice Cloning",
+      "Custom Avatars",
+      "API Access",
+      "Commercial License"
+    ],
+    popular: false,
+    icon: Zap,
+    gradient: "from-blue-600 to-cyan-600",
+    borderGradient: "from-blue-500/50 to-cyan-500/50",
+    priceIds: {
+      monthly: "NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID",
+      yearly: "NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID"
+    }
+  },
+  {
+    name: "AEON STUDIO",
+    price: "$149.99",
+    yearlyPrice: "$1,440",
+    credits: "8,000",
+    features: [
+      "All Creator Features",
+      "8,000 credits/month",
       "White-label Solution",
       "Dedicated Account Manager",
       "Custom Integrations",
       "SLA Guarantee",
       "Advanced Security",
       "Team Collaboration",
-      "Priority Rendering",
+      "Priority Rendering"
     ],
     popular: false,
     icon: Rocket,
     gradient: "from-orange-600 to-red-600",
     borderGradient: "from-orange-500/50 to-red-500/50",
+    priceIds: {
+      monthly: "NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID",
+      yearly: "NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID"
+    }
   },
 ]
 
 export default function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false)
 
-  const handleSubscribe = (planName: string) => {
-    toast.success(`Redirecting to ${planName} checkout...`, {
+  const handleSubscribe = (plan: typeof plans[0]) => {
+    const priceId = isAnnual ? plan.priceIds.yearly : plan.priceIds.monthly
+
+    // Redirect to Stripe checkout with the correct price ID
+    window.location.href = `/api/checkout/subscription?price_id=${priceId}&plan=${plan.name.toLowerCase().replace(' ', '_')}`
+
+    toast.success(`Redirecting to ${plan.name} checkout...`, {
       description: "Secure payment processing with Stripe",
     })
   }
@@ -104,9 +133,10 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 max-w-7xl mx-auto">
         {plans.map((plan) => {
           const IconComponent = plan.icon
-          const monthlyPrice = Number.parseInt(plan.price.replace("$", ""))
-          const annualPrice = Math.floor(monthlyPrice * 0.8)
-          const displayPrice = isAnnual ? annualPrice : monthlyPrice
+          const monthlyPrice = Number.parseFloat(plan.price.replace("$", ""))
+          const yearlyPrice = Number.parseFloat(plan.yearlyPrice.replace("$", ""))
+          const displayPrice = isAnnual ? yearlyPrice : monthlyPrice
+          const monthlySavings = isAnnual ? Math.round((monthlyPrice * 12 - yearlyPrice) / 12 * 100) / 100 : 0
 
           return (
             <div key={plan.name} className="group relative">
@@ -139,12 +169,12 @@ export default function PricingPage() {
                     <CardTitle className="text-3xl font-bold mb-2">{plan.name}</CardTitle>
                     <CardDescription className="text-center mb-6">
                       <div className="flex items-baseline justify-center gap-2">
-                        <span className="text-5xl font-black text-white">${displayPrice}</span>
-                        <span className="text-neutral-400 text-lg">/month</span>
+                        <span className="text-5xl font-black text-white">${isAnnual ? yearlyPrice : displayPrice}</span>
+                        <span className="text-neutral-400 text-lg">/{isAnnual ? 'year' : 'month'}</span>
                       </div>
                       {isAnnual && (
                         <div className="text-sm text-green-400 mt-2">
-                          Save ${(monthlyPrice - annualPrice) * 12}/year
+                          Save ${monthlySavings}/month (${Math.round((monthlyPrice * 12 - yearlyPrice) * 100) / 100}/year)
                         </div>
                       )}
                     </CardDescription>
@@ -174,7 +204,7 @@ export default function PricingPage() {
                     <div className="relative group">
                       <div className={`absolute inset-0 bg-gradient-to-r ${plan.gradient} rounded-2xl blur-lg group-hover:blur-xl transition-all duration-500 opacity-0 group-hover:opacity-75`}></div>
                       <Button
-                        onClick={() => handleSubscribe(plan.name)}
+                        onClick={() => handleSubscribe(plan)}
                         className={`relative w-full py-4 text-lg font-semibold rounded-2xl shadow-xl transition-all duration-500 transform hover:scale-105 bg-gradient-to-r ${plan.gradient} hover:shadow-2xl ${
                           plan.popular ? "shadow-purple-500/30" : ""
                         }`}
