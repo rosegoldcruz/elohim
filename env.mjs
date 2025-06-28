@@ -14,8 +14,7 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     POSTGRES_URL: z.string().url(),
     
-    // Authentication
-    CLERK_SECRET_KEY: z.string().min(1),
+    // Authentication (Supabase handles this)
     
     // Stripe
     STRIPE_SECRET_KEY: z.string().min(1),
@@ -66,8 +65,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
     
-    // Clerk Public
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
+    // Authentication handled by Supabase
     
     // Stripe Public
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_API: z.string().min(1),
@@ -91,7 +89,7 @@ export const env = createEnv({
     SUPABASE_JWT_SECRET: process.env.SUPABASE_JWT_SECRET,
     DATABASE_URL: process.env.DATABASE_URL,
     POSTGRES_URL: process.env.POSTGRES_URL,
-    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
@@ -120,7 +118,7 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_API: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_API,
     NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID,
     NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID,
