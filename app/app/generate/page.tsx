@@ -20,10 +20,12 @@ export default function GeneratePage() {
         <p className="text-neutral-400">Create stunning AI-powered videos from your ideas</p>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Main Generation Panel */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="bg-white/5 border-white/10 backdrop-blur-md">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-cyan-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-50 group-hover:opacity-75"></div>
+            <Card className="relative bg-white/5 border border-purple-400/30 hover:border-purple-400/50 backdrop-blur-md transition-all duration-300 rounded-2xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-purple-400" />
@@ -38,7 +40,7 @@ export default function GeneratePage() {
                 className="bg-white/5 border-white/20 min-h-[120px] resize-none"
               />
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Video Style</label>
                   <Select>
@@ -81,29 +83,35 @@ export default function GeneratePage() {
                 </Button>
               </div>
 
-              <Button
-                className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white font-semibold py-3"
-                disabled={isGenerating || !prompt}
-              >
-                {isGenerating ? (
-                  <>
-                    <Zap className="mr-2 h-5 w-5 animate-spin" />
-                    Generating Video...
-                  </>
-                ) : (
-                  <>
-                    <Play className="mr-2 h-5 w-5" />
-                    Generate Video (5 Credits)
-                  </>
-                )}
-              </Button>
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-xl blur-lg group-hover:blur-xl transition-all duration-300 opacity-75 group-hover:opacity-100"></div>
+                <Button
+                  className="relative w-full bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 hover:from-purple-600 hover:via-pink-600 hover:to-cyan-600 text-white font-semibold py-3 border-0"
+                  disabled={isGenerating || !prompt}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Zap className="mr-2 h-5 w-5 animate-spin" />
+                      Generating Video...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="mr-2 h-5 w-5" />
+                      Generate Video (5 Credits)
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
+          </div>
         </div>
 
         {/* Settings Panel */}
         <div className="space-y-6">
-          <Card className="bg-white/5 border-white/10 backdrop-blur-md">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-50 group-hover:opacity-75"></div>
+            <Card className="relative bg-white/5 border border-cyan-400/30 hover:border-cyan-400/50 backdrop-blur-md transition-all duration-300 rounded-2xl">
             <CardHeader>
               <CardTitle>Generation Settings</CardTitle>
             </CardHeader>
@@ -152,8 +160,11 @@ export default function GeneratePage() {
               </div>
             </CardContent>
           </Card>
+          </div>
 
-          <Card className="bg-white/5 border-white/10 backdrop-blur-md">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-purple-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-50 group-hover:opacity-75"></div>
+            <Card className="relative bg-white/5 border border-pink-400/30 hover:border-pink-400/50 backdrop-blur-md transition-all duration-300 rounded-2xl">
             <CardHeader>
               <CardTitle>Credit Usage</CardTitle>
             </CardHeader>
@@ -179,6 +190,7 @@ export default function GeneratePage() {
               </div>
             </CardContent>
           </Card>
+          </div>
         </div>
       </div>
     </div>

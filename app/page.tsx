@@ -6,7 +6,7 @@ import Link from "next/link"
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-black">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-20">
         <div className="text-center mb-16">
@@ -17,7 +17,7 @@ export default function HomePage() {
 
           <h1 className="text-6xl md:text-8xl font-bold text-white mb-8 leading-tight">
             Transform Ideas Into
-            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
               {' '}Cinematic Videos
             </span>
           </h1>
@@ -28,40 +28,49 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <Button
-              asChild
-              size="lg"
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-8 py-4 text-lg"
-            >
-              <Link href="/instant">
-                Generate Video Now - $29.95
-                <Play className="w-5 h-5 ml-2" />
-              </Link>
-            </Button>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-xl blur-lg group-hover:blur-xl transition-all duration-300 opacity-75 group-hover:opacity-100"></div>
+              <Button
+                asChild
+                size="lg"
+                className="relative bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 hover:from-purple-600 hover:via-pink-600 hover:to-cyan-600 text-white font-semibold px-8 py-4 text-lg border-0"
+              >
+                <Link href="/instant">
+                  Generate Video Now - $29.95
+                  <Play className="w-5 h-5 ml-2" />
+                </Link>
+              </Button>
+            </div>
 
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="border-white/20 text-white hover:bg-white/10 px-8 py-4 text-lg"
-            >
-              <Link href="/script">
-                Try Script Generator
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-            </Button>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/50 via-pink-500/50 to-cyan-500/50 rounded-xl blur-lg group-hover:blur-xl transition-all duration-300 opacity-0 group-hover:opacity-75"></div>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="relative border-2 border-purple-400/30 hover:border-purple-400/60 bg-black/50 backdrop-blur-xl text-white hover:bg-purple-900/20 px-8 py-4 text-lg transition-all duration-300"
+              >
+                <Link href="/script">
+                  Try Script Generator
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Link>
+              </Button>
+            </div>
 
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="border-white/20 text-white hover:bg-white/10 px-8 py-4 text-lg"
-            >
-              <Link href="/pricing">
-                View Pricing Plans
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
-            </Button>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/50 via-blue-500/50 to-purple-500/50 rounded-xl blur-lg group-hover:blur-xl transition-all duration-300 opacity-0 group-hover:opacity-75"></div>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="relative border-2 border-cyan-400/30 hover:border-cyan-400/60 bg-black/50 backdrop-blur-xl text-white hover:bg-cyan-900/20 px-8 py-4 text-lg transition-all duration-300"
+              >
+                <Link href="/pricing">
+                  View Pricing Plans
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
 

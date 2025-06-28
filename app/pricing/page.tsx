@@ -67,21 +67,24 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16">
-      {/* Header */}
-      <div className="text-center mb-16">
-        <h1 className="text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 mb-6">
-          Premium Plans
-        </h1>
-        <p className="text-xl text-neutral-400 max-w-3xl mx-auto font-light mb-8">
-          Choose the perfect plan to scale your revenue with The AEON's premium AI video platform
-        </p>
+    <div className="min-h-screen bg-black">
+      <div className="container mx-auto px-4 py-16">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 mb-6">
+            Premium Plans
+          </h1>
+          <p className="text-xl text-neutral-400 max-w-3xl mx-auto font-light mb-8">
+            Choose the perfect plan to scale your revenue with The AEON's premium AI video platform
+          </p>
 
         {/* Billing Toggle */}
         <div className="flex items-center justify-center gap-4 mb-12">
           <span className={`text-lg font-medium ${!isAnnual ? "text-white" : "text-neutral-400"}`}>Monthly</span>
           <button
+            type="button"
             onClick={() => setIsAnnual(!isAnnual)}
+            aria-label={`Switch to ${isAnnual ? 'monthly' : 'annual'} billing`}
             className={`relative w-16 h-8 rounded-full transition-all duration-300 ${
               isAnnual ? "bg-gradient-to-r from-purple-600 to-cyan-600" : "bg-neutral-600"
             }`}
@@ -97,8 +100,8 @@ export default function PricingPage() {
         </div>
       </div>
 
-      {/* Pricing Cards */}
-      <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {/* Pricing Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 max-w-7xl mx-auto">
         {plans.map((plan) => {
           const IconComponent = plan.icon
           const monthlyPrice = Number.parseInt(plan.price.replace("$", ""))
@@ -168,16 +171,17 @@ export default function PricingPage() {
                       ))}
                     </ul>
 
-                    <Button
-                      onClick={() => handleSubscribe(plan.name)}
-                      className={`w-full py-4 text-lg font-semibold rounded-2xl shadow-xl transition-all duration-500 transform hover:scale-105 ${
-                        plan.popular
-                          ? `bg-gradient-to-r ${plan.gradient} hover:shadow-2xl shadow-purple-500/30`
-                          : `bg-gradient-to-r ${plan.gradient} hover:shadow-xl`
-                      }`}
-                    >
-                      Choose {plan.name}
-                    </Button>
+                    <div className="relative group">
+                      <div className={`absolute inset-0 bg-gradient-to-r ${plan.gradient} rounded-2xl blur-lg group-hover:blur-xl transition-all duration-500 opacity-0 group-hover:opacity-75`}></div>
+                      <Button
+                        onClick={() => handleSubscribe(plan.name)}
+                        className={`relative w-full py-4 text-lg font-semibold rounded-2xl shadow-xl transition-all duration-500 transform hover:scale-105 bg-gradient-to-r ${plan.gradient} hover:shadow-2xl ${
+                          plan.popular ? "shadow-purple-500/30" : ""
+                        }`}
+                      >
+                        Choose {plan.name}
+                      </Button>
+                    </div>
                   </CardContent>
                 </div>
               </Card>
@@ -204,6 +208,7 @@ export default function PricingPage() {
             >
               Contact Sales Team
             </Button>
+          </div>
           </div>
         </div>
       </div>

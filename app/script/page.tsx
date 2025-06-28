@@ -128,7 +128,7 @@ export default function ScriptGeneratorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-black">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
@@ -138,20 +138,22 @@ export default function ScriptGeneratorPage() {
           </Badge>
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
             Generate
-            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
               {' '}Cinematic Scripts
             </span>
           </h1>
           <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
-            Transform your ideas into professional scene-by-scene scripts. 
+            Transform your ideas into professional scene-by-scene scripts.
             Perfect for video creators, filmmakers, and content producers.
           </p>
         </div>
 
         {/* Main Content */}
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           {/* Script Generator Form */}
-          <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-cyan-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-50 group-hover:opacity-75"></div>
+            <Card className="relative bg-white/10 backdrop-blur-lg border border-purple-400/30 hover:border-purple-400/50 transition-all duration-300 rounded-3xl">
             <CardHeader>
               <CardTitle className="text-2xl text-white flex items-center gap-2">
                 <Wand2 className="w-6 h-6" />
@@ -218,64 +220,77 @@ export default function ScriptGeneratorPage() {
                   </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-6 text-lg"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Generating Script...
-                    </>
-                  ) : (
-                    <>
-                      Generate Script
-                      <Sparkles className="w-5 h-5 ml-2" />
-                    </>
-                  )}
-                </Button>
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-xl blur-lg group-hover:blur-xl transition-all duration-300 opacity-75 group-hover:opacity-100"></div>
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="relative w-full bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 hover:from-purple-600 hover:via-pink-600 hover:to-cyan-600 text-white font-semibold py-6 text-lg border-0"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Generating Script...
+                      </>
+                    ) : (
+                      <>
+                        Generate Script
+                        <Sparkles className="w-5 h-5 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
+          </div>
 
           {/* Features & Benefits */}
           <div className="space-y-6">
-            <Card className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-lg border-purple-400/30">
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white mb-2">🎬 Professional Scripts</div>
-                  <div className="text-purple-200 font-semibold">AI-Generated Scene Breakdowns</div>
-                  <div className="text-sm text-gray-300 mt-2">
-                    Get detailed, cinematic scene descriptions ready for video production
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-50 group-hover:opacity-75"></div>
+              <Card className="relative bg-black/50 backdrop-blur-lg border border-purple-400/30 hover:border-purple-400/50 transition-all duration-300 rounded-2xl">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-white mb-2">🎬 Professional Scripts</div>
+                    <div className="text-purple-200 font-semibold">AI-Generated Scene Breakdowns</div>
+                    <div className="text-sm text-gray-300 mt-2">
+                      Get detailed, cinematic scene descriptions ready for video production
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
 
-            <Card className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 backdrop-blur-lg border-blue-400/30">
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white mb-2">⚡ Instant Results</div>
-                  <div className="text-blue-200 font-semibold">Seconds, Not Hours</div>
-                  <div className="text-sm text-gray-300 mt-2">
-                    Generate professional scripts in under 30 seconds
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-50 group-hover:opacity-75"></div>
+              <Card className="relative bg-black/50 backdrop-blur-lg border border-cyan-400/30 hover:border-cyan-400/50 transition-all duration-300 rounded-2xl">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-white mb-2">⚡ Instant Results</div>
+                    <div className="text-cyan-200 font-semibold">Seconds, Not Hours</div>
+                    <div className="text-sm text-gray-300 mt-2">
+                      Generate professional scripts in under 30 seconds
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
 
-            <Card className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-lg border-green-400/30">
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white mb-2">🎯 Perfect for Video</div>
-                  <div className="text-green-200 font-semibold">AI Video Generation Ready</div>
-                  <div className="text-sm text-gray-300 mt-2">
-                    Scripts optimized for AI video generation platforms
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-purple-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-50 group-hover:opacity-75"></div>
+              <Card className="relative bg-black/50 backdrop-blur-lg border border-pink-400/30 hover:border-pink-400/50 transition-all duration-300 rounded-2xl">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-white mb-2">🎯 Perfect for Video</div>
+                    <div className="text-pink-200 font-semibold">AI Video Generation Ready</div>
+                    <div className="text-sm text-gray-300 mt-2">
+                      Scripts optimized for AI video generation platforms
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
 
