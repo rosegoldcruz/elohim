@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,7 +10,7 @@ import { Loader2, Sparkles, Check, Crown } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
-export default function SignupPage() {
+function SignupForm() {
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const searchParams = useSearchParams()
@@ -34,7 +34,7 @@ export default function SignupPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          price_id: 'NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID', // Will be overridden for trial
+          price_id: 'aeon_pro_monthly', // Will be overridden for trial in the API
           plan: 'aeon_pro',
           trial: isTrial,
           email: email,
@@ -183,5 +183,20 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-white">Loading...</p>
+        </div>
+      </div>
+    }>
+      <SignupForm />
+    </Suspense>
   )
 }

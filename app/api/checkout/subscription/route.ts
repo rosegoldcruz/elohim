@@ -26,8 +26,20 @@ export async function GET(request: NextRequest) {
       email,
     })
 
+    // Map price IDs to environment variables
+    const priceIdMap: Record<string, string> = {
+      'pro_monthly': process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID!,
+      'pro_yearly': process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID!,
+      'creator_monthly': process.env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID!,
+      'creator_yearly': process.env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID!,
+      'studio_monthly': process.env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID!,
+      'studio_yearly': process.env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID!,
+    }
+
     // For free trial, always use AEON PRO Monthly price ID
-    const finalPriceId = trial ? env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID : validatedData.price_id
+    const finalPriceId = trial
+      ? process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID!
+      : priceIdMap[validatedData.price_id] || validatedData.price_id
 
     // Create or get Stripe customer
     let customer
@@ -115,8 +127,20 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = SubscriptionCheckoutSchema.parse(body)
 
+    // Map price IDs to environment variables
+    const priceIdMap: Record<string, string> = {
+      'pro_monthly': process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID!,
+      'pro_yearly': process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID!,
+      'creator_monthly': process.env.NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID!,
+      'creator_yearly': process.env.NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID!,
+      'studio_monthly': process.env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID!,
+      'studio_yearly': process.env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID!,
+    }
+
     // For free trial, always use AEON PRO Monthly price ID
-    const finalPriceId = validatedData.trial ? env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID : validatedData.price_id
+    const finalPriceId = validatedData.trial
+      ? process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID!
+      : priceIdMap[validatedData.price_id] || validatedData.price_id
 
     // Create or get Stripe customer
     let customer

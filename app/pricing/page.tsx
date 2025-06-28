@@ -26,8 +26,8 @@ const plans = [
     gradient: "from-purple-600 via-pink-600 to-cyan-600",
     borderGradient: "from-purple-500/50 via-pink-500/50 to-cyan-500/50",
     priceIds: {
-      monthly: "NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID",
-      yearly: "NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID"
+      monthly: "pro_monthly",
+      yearly: "pro_yearly"
     }
   },
   {
@@ -50,8 +50,8 @@ const plans = [
     gradient: "from-blue-600 to-cyan-600",
     borderGradient: "from-blue-500/50 to-cyan-500/50",
     priceIds: {
-      monthly: "NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID",
-      yearly: "NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID"
+      monthly: "creator_monthly",
+      yearly: "creator_yearly"
     }
   },
   {
@@ -75,8 +75,8 @@ const plans = [
     gradient: "from-orange-600 to-red-600",
     borderGradient: "from-orange-500/50 to-red-500/50",
     priceIds: {
-      monthly: "NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID",
-      yearly: "NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID"
+      monthly: "studio_monthly",
+      yearly: "studio_yearly"
     }
   },
 ]
