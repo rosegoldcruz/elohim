@@ -28,13 +28,8 @@ cd aeon-platform
 
 ### 2. Install Dependencies
 ```bash
-# Frontend dependencies
-npm install
-
-# Backend dependencies
-cd api
-pip install -r requirements.txt
-cd ..
+# Install all dependencies
+pnpm install
 ```
 
 ### 3. Environment Setup
@@ -59,38 +54,20 @@ supabase link --project-ref your-project-ref
 supabase db push
 ```
 
-### 5. Start Development Servers
+### 5. Start Development Server
 ```bash
-# Terminal 1: Backend (FastAPI)
-cd api
-uvicorn main:app --reload --port 8000
-
-# Terminal 2: Frontend (Next.js)
-npm run dev
+# Start Next.js development server
+pnpm dev
 ```
 
 Visit:
 - **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
+- **API Routes**: http://localhost:3000/api/*
 
 ## 📁 Project Structure
 
 ```
 aeon-platform/
-├── api/                          # FastAPI Backend
-│   ├── agent_scriptwriter.py     # Agent 1: Scene generation
-│   ├── agent_visualgen.py        # Agent 2: Video creation
-│   ├── agent_editor.py           # Agent 3: Video assembly
-│   ├── agent_scheduler.py        # Agent 4: Job management
-│   ├── agent_payments.py         # Agent 5: Stripe integration
-│   ├── agent_auth.py             # Agent 6: Authentication
-│   ├── agent_dashboard.py        # Agent 7: Analytics
-│   ├── models.py                 # Pydantic models
-│   ├── database.py               # Supabase integration
-│   ├── main.py                   # FastAPI application
-│   ├── requirements.txt          # Python dependencies
-│   └── Dockerfile                # Backend container
 ├── app/                          # Next.js Frontend
 │   ├── page.tsx                  # Landing page
 │   ├── instant/                  # Video generation
@@ -101,8 +78,6 @@ aeon-platform/
 ├── lib/                          # Utilities
 ├── supabase/                     # Database
 │   └── schema.sql                # Database schema
-├── ffmpeg_worker.py              # Video processing
-├── docker-compose.yml            # Local development
 ├── .env.example                  # Environment template
 └── README.md                     # Project documentation
 ```
@@ -148,50 +123,35 @@ black .
 flake8 .
 ```
 
-## 🧪 Testing the 7-Agent System
+## 🧪 Testing the Cloud-Native System
 
-### 1. Test ScriptWriter Agent
+### 1. Test Frontend Development
 ```bash
-curl -X POST "http://localhost:8000/scriptwriter/generate" \
+# Start development server
+pnpm dev
+
+# Access the platform
+open http://localhost:3000
+```
+
+### 2. Test API Routes
+```bash
+# Test health endpoint
+curl http://localhost:3000/api/health
+
+# Test Replicate integration
+curl -X POST http://localhost:3000/api/generate \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "A peaceful sunset over mountains",
-    "duration": 60,
-    "scene_count": 6
-  }'
-```
-
-### 2. Test VisualGen Agent
-```bash
-curl -X POST "http://localhost:8000/visualgen/generate" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "scenes": ["Scene 1 prompt", "Scene 2 prompt"],
-    "video_id": "test-video-id"
-  }'
-```
-
-### 3. Test Full Pipeline
-```bash
-curl -X POST "http://localhost:8000/generate" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "prompt": "A serene mountain landscape at sunset",
     "duration": 60
   }'
 ```
 
 ## 🗄️ Database Development
 
-### Local Database (Optional)
-```bash
-# Start local PostgreSQL with Docker
-docker-compose up postgres -d
-
-# Connect to local database
-psql postgresql://postgres:postgres@localhost:5432/aeon
-```
+### Cloud Database (Recommended)
+Use Supabase for cloud database hosting with automatic backups and scaling.
 
 ### Supabase Development
 ```bash

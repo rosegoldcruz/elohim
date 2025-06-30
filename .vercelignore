@@ -1,8 +1,4 @@
-# Ignore Python API directory for Next.js deployment
-api/
-agents/
-*.py
-requirements.txt
+# Ignore development files for Next.js deployment
 
 # Ignore development files
 .env.local

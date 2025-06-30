@@ -1,5 +1,0 @@
-@echo off
-SETLOCAL
-SET COMPOSE_CONVERT_WINDOWS_PATHS=1
-docker-compose up --build
-ENDLOCAL

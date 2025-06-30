@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable standalone output for Docker
-  output: 'standalone',
   experimental: {
     // layers: true, ← ❌ Removed: not valid in Next.js 15.2.4
   },

@@ -4,6 +4,8 @@
 
 **AEON** is a production-ready AI video generation SaaS platform built with a modular 7-agent architecture. Transform any topic into professional videos with automated script generation, multi-model AI video creation, and intelligent post-processing.
 
+> **🌟 Cloud-Native Platform**: AEON runs entirely on cloud services with no Docker or local container dependencies. Powered by Vercel + Replicate + Supabase for maximum scalability and reliability.
+
 > Based on the MIT-licensed [ai-video-generator](https://github.com/davide97l/ai-video-generator) by davide97l, restructured for enterprise SaaS deployment.
 
 ## 🚀 Features
@@ -40,15 +42,15 @@
 - **Seamless integration** within AEON platform at `/docs/docharvester`
 - **Batch processing** with retry logic and error handling
 
-## 🧠 Docker LLM Runner
+## 🧠 Cloud-Native AI Processing
 
-This project includes a Docker-based LLM runner that automatically processes AI tasks and uploads results to Vercel Blob storage with Supabase logging.
+AEON processes all AI tasks through cloud APIs with automatic uploads to Vercel Blob storage and Supabase logging.
 
 ### 🔧 Setup
 
-#### Required GitHub Secrets
+#### Required Environment Variables
 
-Configure these secrets in your GitHub repository settings:
+Configure these in your `.env.local` file:
 
 - `SUPABASE_URL` - Your Supabase project URL
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (not anon key)
@@ -91,18 +93,13 @@ CREATE TABLE llm_outputs (
 
 ### 🚀 How It Works
 
-1. **Trigger**: Workflow runs on push/PR to `main` branch
-2. **Build**: Creates Docker image with Node.js 20 Alpine
-3. **Execute**: Runs `llm-runner.js` inside container
-4. **Output**: Generates timestamped content
-5. **Upload**: Stores output in Vercel Blob storage
-6. **Log**: Records metadata in Supabase database
+AEON is a **cloud-native platform** that runs entirely on Vercel with Replicate API for AI video generation:
 
-### 📁 Files
-
-- `.github/workflows/docker-llm-runner.yml` - GitHub Actions workflow
-- `Dockerfile` - Docker container configuration
-- `llm-runner.js` - Main LLM processing script
+1. **Frontend**: Next.js 14 App Router deployed on Vercel
+2. **AI Processing**: Replicate API for all video generation models
+3. **Storage**: Vercel Blob for video assets
+4. **Database**: Supabase for user data and project management
+5. **Payments**: Stripe for subscriptions and credits
 
 ### 🔄 Local Development
 
@@ -110,49 +107,26 @@ CREATE TABLE llm_outputs (
 # Install dependencies
 pnpm install
 
-# Run locally (requires environment variables)
-node llm-runner.js
+# Copy environment template
+cp .env.example .env.local
 
-# Build Docker image
-docker build -t llm-runner .
+# Add your API keys to .env.local
+# Required: REPLICATE_API_TOKEN, NEXT_PUBLIC_SUPABASE_URL, STRIPE_API_KEY
 
-# Run Docker container
-docker run --rm -e SUPABASE_URL="..." -e SUPABASE_SERVICE_ROLE="..." llm-runner
+# Start development server
+pnpm dev
 ```
 
-### 🎯 Integration with AEON
+### 🎯 Cloud-Native Architecture
 
-This Docker runner is designed to integrate with AEON's agent orchestration system, providing scalable AI processing capabilities for video generation workflows.
+AEON uses a modern cloud-native stack with no local containers or Docker dependencies:
+- **Vercel** for hosting and deployment
+- **Replicate** for AI model inference
+- **Supabase** for database and authentication
+- **Stripe** for payment processing
 
-## 🌾 DocHarvester Deployment
+## 📚 Documentation
 
-DocHarvester is fully integrated into the AEON platform. To deploy with DocHarvester:
-
-```bash
-# Deploy AEON with DocHarvester
-pnpm run docharvester:up
-
-# Test the integration
-pnpm run test:docharvester
-
-# Access points:
-# - Main platform: http://localhost:3000
-# - Documentation: http://localhost:3000/docs
-# - DocHarvester: http://localhost:3000/docs/docharvester
-```
-
-For detailed deployment instructions, see [DOCHARVESTER_DEPLOYMENT.md](./DOCHARVESTER_DEPLOYMENT.md).
-
-## 🐳 Docker Development Environment
-
-For running the full AEON development environment with Docker:
-
-```bash
-# Linux/macOS
-pnpm run docker:dev
-
-# Windows
-pnpm run docker:dev:win
-```
-
-> **Note for Windows developers**: Use the `docker:dev:win` command to ensure proper path handling in the Docker development environment.
+Access comprehensive documentation at `/docs` within the platform:
+- **AEON Platform Docs**: Complete platform guides and API reference
+- **DocHarvester**: Universal documentation extraction tool
