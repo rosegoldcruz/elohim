@@ -1,27 +1,22 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Mail, Sparkles, CheckCircle } from "lucide-react";
-import { toast } from "sonner";
-import Link from "next/link";
+import { useState, Suspense } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Mail, Sparkles, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import Link from 'next/link';
 
-function SignupForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const isTrial = searchParams.get("trial") === "true";
-
-  const [email, setEmail] = useState("");
+function LoginForm() {
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (!email) {
       toast.error('Please enter your email address');
       return;
@@ -30,24 +25,28 @@ function SignupForm() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        body: JSON.stringify({ email, trial: isTrial }),
+      const response = await fetch('/api/auth/magic-link', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          email,
+          redirectTo: '/studio',
+        }),
       });
 
-      const data = await res.json();
+      const result = await response.json();
 
-      if (res.ok) {
-        setEmailSent(true);
-        toast.success('Account created! Check your email for the magic link.');
-      } else {
-        toast.error(data.message || "Signup failed");
+      if (result.error) {
+        toast.error(result.error);
+        return;
       }
+
+      setEmailSent(true);
+      toast.success('Magic link sent! Check your email.');
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('Login error:', error);
       toast.error('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
@@ -62,7 +61,7 @@ function SignupForm() {
             <div className="mx-auto mb-4 w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
               <CheckCircle className="w-8 h-8 text-green-400" />
             </div>
-            <CardTitle className="text-2xl text-white">Welcome to AEON!</CardTitle>
+            <CardTitle className="text-2xl text-white">Check Your Email</CardTitle>
             <CardDescription className="text-gray-300">
               We've sent a magic link to <strong>{email}</strong>
             </CardDescription>
@@ -70,10 +69,10 @@ function SignupForm() {
           <CardContent className="space-y-4">
             <div className="bg-blue-500/20 rounded-lg p-4 border border-blue-400/30">
               <p className="text-blue-300 text-sm">
-                Click the link in your email to access your new AEON account. The link expires in 15 minutes.
+                Click the link in your email to access your AEON account. The link expires in 15 minutes.
               </p>
             </div>
-
+            
             <div className="text-center">
               <p className="text-gray-400 text-sm mb-4">
                 Didn't receive the email? Check your spam folder or try again.
@@ -104,23 +103,21 @@ function SignupForm() {
             <Sparkles className="w-4 h-4 mr-2" />
             AEON Portal
           </Badge>
-          <h1 className="text-4xl font-bold text-white mb-2">
-            Start your {isTrial ? "Free Trial" : "Account"}
-          </h1>
+          <h1 className="text-4xl font-bold text-white mb-2">Sign in</h1>
           <p className="text-gray-300">
-            {isTrial ? "Try AEON free for 7 days" : "Create videos with AI in seconds"}
+            Access your videos, credits, and account settings
           </p>
         </div>
 
-        {/* Signup Form */}
+        {/* Login Form */}
         <Card className="bg-white/10 backdrop-blur-lg border-white/20">
           <CardHeader>
             <CardTitle className="text-xl text-white flex items-center gap-2">
               <Mail className="w-5 h-5" />
-              Create Account
+              Magic Link Login
             </CardTitle>
             <CardDescription className="text-gray-300">
-              No passwords needed. We'll send you a secure link to get started.
+              No passwords needed. We'll send you a secure link to access your account.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -147,11 +144,11 @@ function SignupForm() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Creating Account...
+                    Sending Magic Link...
                   </>
                 ) : (
                   <>
-                    Create Account
+                    Send Magic Link
                     <Mail className="w-4 h-4 ml-2" />
                   </>
                 )}
@@ -163,9 +160,9 @@ function SignupForm() {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-gray-400 text-sm mb-4">
-            Already have an account?{" "}
-            <Link href="/auth/login" className="text-purple-400 hover:text-purple-300">
-              Sign in
+            Don't have an account?{" "}
+            <Link href="/sign-up" className="text-purple-400 hover:text-purple-300">
+              Create one
             </Link>
           </p>
           <div className="flex gap-4 justify-center text-sm text-gray-500">
@@ -179,7 +176,7 @@ function SignupForm() {
   );
 }
 
-export default function SignupPage() {
+export default function LoginPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
@@ -189,7 +186,7 @@ export default function SignupPage() {
         </div>
       </div>
     }>
-      <SignupForm />
+      <LoginForm />
     </Suspense>
   );
 }
