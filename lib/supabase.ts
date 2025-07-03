@@ -1,14 +1,25 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { env } from '../env.mjs'
 
-// Create a single supabase client for interacting with your database
-export const supabase = createClient(
+/**
+ * Standard server-side Supabase client factory
+ * Use this in API routes and server components
+ */
+export function createClient() {
+  return createSupabaseClient(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
+}
+
+// Legacy singleton client for backward compatibility
+export const supabase = createSupabaseClient(
   env.NEXT_PUBLIC_SUPABASE_URL,
   env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
-// Server-side client with service role key for admin operations
-export const supabaseAdmin = createClient(
+// Server-side admin client with service role key for admin operations
+export const supabaseAdmin = createSupabaseClient(
   env.SUPABASE_URL,
   env.SUPABASE_SERVICE_ROLE_KEY,
   {
