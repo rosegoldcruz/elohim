@@ -639,8 +639,6 @@ Would you like me to apply these optimizations automatically?`);
         )}
       </div>
 
-      </div>
-
       {/* Modals and Overlays */}
 
       {/* Transition Library Modal */}
@@ -666,7 +664,7 @@ Would you like me to apply these optimizations automatically?`);
         scenes={scenes}
         isOpen={pythonRenderOpen}
         onClose={() => setPythonRenderOpen(false)}
-        projectId="current-project" // You can get this from your project state
+        projectId="current-project"
       />
 
       {/* AI Assistant Panel */}
