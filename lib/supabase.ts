@@ -2,6 +2,19 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { env } from '../env.mjs'
 
 /**
+ * AEON Supabase Client Configuration
+ *
+ * Export Strategy:
+ * - createClient(): Standard factory function for API routes and server components
+ * - supabase: Legacy singleton client for backward compatibility
+ * - supabaseAdmin: Admin client with service role key for privileged operations
+ *
+ * Usage in API routes:
+ * import { createClient } from '@/lib/supabase';
+ * const supabase = createClient();
+ */
+
+/**
  * Standard server-side Supabase client factory
  * Use this in API routes and server components
  */

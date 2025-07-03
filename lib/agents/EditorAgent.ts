@@ -1,6 +1,14 @@
 /**
- * AEON EditingAgent - Production-grade video editing with FFmpeg
+ * AEON EditorAgent - Production-grade video editing with FFmpeg
  * Handles video assembly, transitions, overlays, and final processing
+ *
+ * Export Strategy:
+ * - EditorAgent: Main editing class (renamed from EditingAgent for consistency)
+ * - EditingRequest: Interface for editing requests
+ * - EditingResult: Interface for editing results
+ *
+ * Note: This is the legacy EditorAgent. For new development, use EditingAgent
+ * from './editing-agent.ts' which has the latest production features.
  */
 
 import { exec } from 'child_process';
@@ -53,7 +61,7 @@ interface DownloadedAsset {
   type: 'video' | 'audio' | 'image';
 }
 
-export class EditingAgent {
+export class EditorAgent {
   private readonly tempDir = './temp/editing';
   private readonly aspectRatioConfigs: Record<string, AspectRatioConfig> = {
     '9:16': { width: 1080, height: 1920, scale: '1080:1920' },
