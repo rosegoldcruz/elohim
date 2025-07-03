@@ -32,22 +32,27 @@ const DOC_KEYWORDS = [
 
 export async function POST(req: NextRequest) {
   let browser: Browser | null = null;
-  
+
   try {
+    console.log('🌾 DocHarvester: Starting request...');
     const body: HarvestRequest = await req.json();
     const { base_url, urls, max_depth = 2, use_js = false } = body;
 
+    console.log('📋 Request params:', { base_url, urls: urls?.length || 0, max_depth, use_js });
+
     // Validation
     if (!base_url && (!urls || urls.length === 0)) {
+      console.error('❌ Validation failed: No base_url or urls provided');
       return NextResponse.json(
-        { error: "Either base_url or urls array must be provided" }, 
+        { error: "Either base_url or urls array must be provided" },
         { status: 400 }
       );
     }
 
     if (max_depth < 0 || max_depth > 5) {
+      console.error('❌ Validation failed: Invalid max_depth:', max_depth);
       return NextResponse.json(
-        { error: "max_depth must be between 0 and 5" }, 
+        { error: "max_depth must be between 0 and 5" },
         { status: 400 }
       );
     }
@@ -58,18 +63,28 @@ export async function POST(req: NextRequest) {
     console.log(`Use JS: ${use_js}`);
 
     // Launch Puppeteer
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
-        '--no-zygote',
-        '--disable-gpu'
-      ]
-    });
+    try {
+      console.log('🚀 Launching Puppeteer browser...');
+      browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--disable-gpu'
+        ]
+      });
+      console.log('✅ Browser launched successfully');
+    } catch (browserError) {
+      console.error('❌ Failed to launch browser:', browserError);
+      return NextResponse.json(
+        { error: `Failed to launch browser: ${browserError instanceof Error ? browserError.message : 'Unknown error'}` },
+        { status: 500 }
+      );
+    }
 
     const page = await browser.newPage();
     

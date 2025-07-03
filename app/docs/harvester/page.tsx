@@ -100,9 +100,9 @@ export default function DocHarvesterPage() {
     setIsRunning(true);
     setProgressText('Discovering documentation URLs...');
     setShowProgress(true);
-    
+
     try {
-      const response = await fetch('/api/harvest/discover', {
+      const response = await fetch('/api/harvester', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -113,14 +113,18 @@ export default function DocHarvesterPage() {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
-      const urlsWithSelection = data.urls.map((url: string) => ({ url, selected: true }));
+
+      // Extract URLs from the harvested results
+      const urls = data.results ? data.results.map((result: any) => result.url) : [];
+      const urlsWithSelection = urls.map((url: string) => ({ url, selected: true }));
       setDiscoveredUrls(urlsWithSelection);
       setShowDiscovered(true);
-      setProgressText(`Discovered ${data.urls.length} URLs`);
+      setProgressText(`Discovered ${urls.length} URLs`);
       
     } catch (error) {
       console.error('Discovery failed:', error);
@@ -216,31 +220,41 @@ export default function DocHarvesterPage() {
   const fetchSingleDocument = async (url: string): Promise<void> => {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       if (shouldStop) return;
-      
+
       try {
         setProgressText(`Fetching: ${getDisplayUrl(url)} (attempt ${attempt})`);
-        
-        const response = await fetch('/api/harvest/fetch', {
+
+        const response = await fetch('/api/harvester', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url, use_js: useJS }),
+          body: JSON.stringify({
+            urls: [url],
+            use_js: useJS
+          }),
           signal: abortControllerRef.current?.signal
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
         const data = await response.json();
-        
+
+        // Extract the first result from the harvester response
+        const harvestResult = data.results && data.results[0];
+        if (!harvestResult) {
+          throw new Error('No content returned from harvester');
+        }
+
         const result: ProcessingResult = {
           url,
-          status: 'success',
-          content: data.content,
-          title: data.title,
-          size: data.size
+          status: harvestResult.success ? 'success' : 'error',
+          content: harvestResult.content || '',
+          title: harvestResult.title || '',
+          size: harvestResult.content ? harvestResult.content.length : 0
         };
-        
+
         setResults(prev => [...prev, result]);
         return;
         
