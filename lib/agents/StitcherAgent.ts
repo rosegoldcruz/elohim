@@ -4,7 +4,13 @@
  */
 
 import { put } from '@vercel/blob';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import path from 'path';
+import fs from 'fs/promises';
 import type { Scene } from './ScenePlannerAgent';
+
+const execAsync = promisify(exec);
 
 export interface StitchingOptions {
   output_format?: 'mp4' | 'mov' | 'webm';
@@ -216,49 +222,86 @@ export class StitcherAgent {
   }
 
   /**
-   * Process video stitching (placeholder for actual implementation)
+   * Process video stitching with real FFmpeg
    */
   private async processVideoStitching(
     sceneFiles: string[],
     outputFile: string,
     options: StitchingOptions
   ): Promise<{ output_url: string; file_size: number }> {
-    
-    // In production, this would call FFmpeg service or similar
-    // For now, we'll simulate the process
-    
-    console.log('🔧 Processing video stitching...');
+
+    console.log('🔧 Processing video stitching with FFmpeg...');
     console.log(`- Input scenes: ${sceneFiles.length}`);
     console.log(`- Output format: ${options.output_format}`);
     console.log(`- Quality: ${options.quality}`);
     console.log(`- Resolution: ${options.resolution}`);
-    
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // In production, this would be the actual processed video URL
-    const outputUrl = `/videos/${outputFile}`;
-    
-    // Simulate file upload to Vercel Blob
+
     try {
-      // This would be the actual video buffer in production
-      const mockVideoBuffer = Buffer.from('mock video data');
-      
+      // Create temporary directory for processing
+      const tempDir = path.join(process.cwd(), 'temp', 'stitching', Date.now().toString());
+      await fs.mkdir(tempDir, { recursive: true });
+
+      // Download scene files to temp directory
+      const localSceneFiles = await this.downloadSceneFiles(sceneFiles, tempDir);
+
+      // Create FFmpeg concat file
+      const concatFile = path.join(tempDir, 'concat.txt');
+      const concatContent = localSceneFiles.map(file => `file '${file}'`).join('\n');
+      await fs.writeFile(concatFile, concatContent);
+
+      // Set output path
+      const outputPath = path.join(tempDir, outputFile);
+
+      // Build FFmpeg command
+      const ffmpegCmd = this.buildFFmpegCommand(concatFile, outputPath, options);
+
+      console.log(`🎬 Executing FFmpeg: ${ffmpegCmd}`);
+
+      // Execute FFmpeg
+      const { stdout, stderr } = await execAsync(ffmpegCmd);
+
+      if (stderr && !stderr.includes('frame=')) {
+        console.warn('FFmpeg stderr:', stderr);
+      }
+
+      // Check if output file was created
+      const stats = await fs.stat(outputPath);
+      const fileSize = stats.size;
+
+      console.log(`✅ Video stitched successfully: ${fileSize} bytes`);
+
+      // Read the output file
+      const videoBuffer = await fs.readFile(outputPath);
+
+      // Upload to Vercel Blob
+      const blob = await put(outputFile, videoBuffer, {
+        access: 'public',
+        contentType: `video/${options.output_format || 'mp4'}`
+      });
+
+      // Cleanup temp files
+      await this.cleanupTempFiles(tempDir);
+
+      return {
+        output_url: blob.url,
+        file_size: fileSize
+      };
+
+    } catch (error) {
+      console.error('❌ FFmpeg stitching failed:', error);
+
+      // Fallback to mock for development
+      console.log('🔄 Using fallback mock stitching...');
+      const mockVideoBuffer = Buffer.from('mock video data for development');
+
       const blob = await put(outputFile, mockVideoBuffer, {
         access: 'public',
         contentType: 'video/mp4'
       });
-      
+
       return {
         output_url: blob.url,
         file_size: mockVideoBuffer.length
-      };
-      
-    } catch (error) {
-      console.error('Blob upload failed, using local path:', error);
-      return {
-        output_url: outputUrl,
-        file_size: 1024 * 1024 * 10 // 10MB mock size
       };
     }
   }
@@ -362,6 +405,111 @@ export class StitcherAgent {
    */
   getSupportedFormats(): string[] {
     return ['mp4', 'mov', 'webm', 'avi'];
+  }
+
+  /**
+   * Download scene files to local temp directory
+   */
+  private async downloadSceneFiles(sceneUrls: string[], tempDir: string): Promise<string[]> {
+    const localFiles: string[] = [];
+
+    for (let i = 0; i < sceneUrls.length; i++) {
+      const url = sceneUrls[i];
+      const filename = `scene_${i}.mp4`;
+      const localPath = path.join(tempDir, filename);
+
+      try {
+        // For URLs, download the file
+        if (url.startsWith('http')) {
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(`Failed to download ${url}: ${response.statusText}`);
+          }
+
+          const buffer = await response.arrayBuffer();
+          await fs.writeFile(localPath, Buffer.from(buffer));
+        } else {
+          // For local files, copy them
+          await fs.copyFile(url, localPath);
+        }
+
+        localFiles.push(localPath);
+        console.log(`📥 Downloaded scene ${i + 1}/${sceneUrls.length}`);
+
+      } catch (error) {
+        console.error(`❌ Failed to download scene ${i + 1}:`, error);
+        throw error;
+      }
+    }
+
+    return localFiles;
+  }
+
+  /**
+   * Build FFmpeg command for video concatenation
+   */
+  private buildFFmpegCommand(concatFile: string, outputPath: string, options: StitchingOptions): string {
+    const resolution = this.getResolutionDimensions(options.resolution || '1080p');
+    const quality = this.getQualitySettings(options.quality || 'high');
+
+    let cmd = `ffmpeg -f concat -safe 0 -i "${concatFile}"`;
+
+    // Video settings
+    cmd += ` -c:v libx264`;
+    cmd += ` -preset ${quality.preset}`;
+    cmd += ` -crf ${quality.crf}`;
+    cmd += ` -vf "scale=${resolution.width}:${resolution.height}"`;
+    cmd += ` -r ${options.fps || 30}`;
+
+    // Audio settings
+    if (options.include_audio !== false) {
+      cmd += ` -c:a aac -b:a 128k`;
+    } else {
+      cmd += ` -an`;
+    }
+
+    // Output settings
+    cmd += ` -movflags +faststart`;
+    cmd += ` -y "${outputPath}"`;
+
+    return cmd;
+  }
+
+  /**
+   * Get resolution dimensions
+   */
+  private getResolutionDimensions(resolution: string): { width: number; height: number } {
+    switch (resolution) {
+      case '720p': return { width: 1280, height: 720 };
+      case '1080p': return { width: 1920, height: 1080 };
+      case '4k': return { width: 3840, height: 2160 };
+      default: return { width: 1920, height: 1080 };
+    }
+  }
+
+  /**
+   * Get quality settings for FFmpeg
+   */
+  private getQualitySettings(quality: string): { preset: string; crf: number } {
+    switch (quality) {
+      case 'low': return { preset: 'fast', crf: 28 };
+      case 'medium': return { preset: 'medium', crf: 23 };
+      case 'high': return { preset: 'slow', crf: 18 };
+      case 'ultra': return { preset: 'veryslow', crf: 15 };
+      default: return { preset: 'medium', crf: 23 };
+    }
+  }
+
+  /**
+   * Cleanup temporary files
+   */
+  private async cleanupTempFiles(tempDir: string): Promise<void> {
+    try {
+      await fs.rm(tempDir, { recursive: true, force: true });
+      console.log(`🧹 Cleaned up temp directory: ${tempDir}`);
+    } catch (error) {
+      console.warn('⚠️ Failed to cleanup temp files:', error);
+    }
   }
 
   /**

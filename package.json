@@ -75,6 +75,7 @@
     "recharts": "2.15.0",
     "replicate": "^0.31.1",
     "sonner": "latest",
+    "string-similarity": "^4.0.4",
     "stripe": "^16.8.0",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",

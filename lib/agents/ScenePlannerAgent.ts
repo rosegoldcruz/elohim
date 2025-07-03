@@ -1,377 +1,368 @@
 /**
- * AEON ScenePlannerAgent - Breaks scripts into visual scenes for video generation
- * Optimizes scene planning for AI video generation models
+ * AEON ScenePlannerAgent - Advanced Scene Planning and Timing
+ * Converts script scenes into detailed production plans with timing, emotions, and camera work
  */
 
-import { openai } from '@/lib/ai-services';
-import type { VideoScript, ScriptSection } from './ScriptWriterAgent';
+import { ScriptScene } from './ScriptWriterAgent';
 
-export interface Scene {
-  id: number;
-  narration: string;
-  visual_prompt: string;
+export interface PlannedScene extends ScriptScene {
+  timestamp: number;
   duration: number;
+  emotion: string;
+  shotType: string;
   transition: string;
-  mood: string;
-  camera_angle: string;
-  lighting: string;
-  style: string;
-  priority: 'high' | 'medium' | 'low';
+  visualElements: string[];
+  audioElements: string[];
+  pacing: 'slow' | 'medium' | 'fast' | 'rapid';
+  energy: number; // 1-10 scale
 }
 
 export interface ScenePlan {
-  total_scenes: number;
-  total_duration: number;
-  scenes: Scene[];
-  visual_style: string;
-  consistency_notes: string[];
-  generation_settings: {
-    aspect_ratio: string;
-    fps: number;
-    quality: string;
+  scenes: PlannedScene[];
+  metadata: {
+    totalDuration: number;
+    averageSceneDuration: number;
+    emotionalArc: string[];
+    pacingPattern: string[];
+    viralMoments: number[];
+    generatedAt: string;
   };
 }
 
 export interface PlanningOptions {
-  max_scenes?: number;
-  scene_duration?: number;
-  visual_style?: 'realistic' | 'animated' | 'cinematic' | 'documentary' | 'artistic';
-  consistency_level?: 'high' | 'medium' | 'low';
-  transition_style?: 'smooth' | 'dynamic' | 'minimal';
+  totalDuration?: number;
+  emotionalArc?: 'linear' | 'crescendo' | 'rollercoaster' | 'hook-heavy';
+  pacingStyle?: 'consistent' | 'accelerating' | 'varied' | 'tiktok-native';
+  transitionStyle?: 'smooth' | 'sharp' | 'viral' | 'cinematic';
 }
 
 export class ScenePlannerAgent {
-  private readonly defaultOptions: PlanningOptions = {
-    max_scenes: 16,
-    scene_duration: 4,
-    visual_style: 'cinematic',
-    consistency_level: 'high',
-    transition_style: 'smooth'
-  };
 
   /**
-   * Plan scenes from a video script
+   * Convert script scenes into detailed production plan
    */
-  async planScenes(script: VideoScript | string, options: PlanningOptions = {}): Promise<ScenePlan> {
-    console.log("🎬 ScenePlannerAgent: Breaking script into scenes...");
-    
-    const opts = { ...this.defaultOptions, ...options };
-    
+  async planScenes(scriptScenes: ScriptScene[], options: PlanningOptions = {}): Promise<ScenePlan> {
+    const {
+      totalDuration = 60,
+      emotionalArc = 'crescendo',
+      pacingStyle = 'tiktok-native',
+      transitionStyle = 'viral'
+    } = options;
+
+    console.log(`🎬 ScenePlannerAgent: Planning ${scriptScenes.length} scenes for ${totalDuration}s video`);
+
     try {
-      let scriptContent: string;
-      let totalDuration: number;
-      
-      if (typeof script === 'string') {
-        scriptContent = script;
-        totalDuration = opts.scene_duration! * opts.max_scenes!;
-      } else {
-        scriptContent = script.sections.map(s => s.content).join(' ');
-        totalDuration = script.total_duration;
-      }
-      
-      const scenePlan = await this.generateScenePlan(scriptContent, totalDuration, opts);
-      
-      console.log(`✅ ScenePlannerAgent: Created ${scenePlan.scenes.length} scenes`);
-      return scenePlan;
-      
+      // Calculate base timing
+      const baseSceneDuration = Math.floor(totalDuration / scriptScenes.length);
+
+      // Plan each scene with detailed timing and production notes
+      const plannedScenes = scriptScenes.map((scene, index) =>
+        this.planIndividualScene(scene, index, baseSceneDuration, totalDuration, emotionalArc, pacingStyle, transitionStyle)
+      );
+
+      // Adjust timing to fit exact duration
+      this.adjustTiming(plannedScenes, totalDuration);
+
+      // Generate metadata
+      const metadata = this.generatePlanMetadata(plannedScenes, totalDuration);
+
+      console.log(`✅ ScenePlannerAgent: Generated detailed plan with ${plannedScenes.length} scenes`);
+
+      return {
+        scenes: plannedScenes,
+        metadata
+      };
+
     } catch (error) {
       console.error('❌ ScenePlannerAgent error:', error);
-      return this.generateFallbackPlan(script, opts);
+      throw new Error(`Scene planning failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   /**
-   * Optimize scenes for specific AI video models
+   * Plan individual scene with detailed production notes
    */
-  async optimizeForModel(scenePlan: ScenePlan, model: 'runway' | 'pika' | 'stable' | 'luma' | 'minimax' | 'kling'): Promise<ScenePlan> {
-    console.log(`🎯 ScenePlannerAgent: Optimizing scenes for ${model}`);
-    
-    const modelOptimizations = {
-      runway: {
-        maxDuration: 4,
-        preferredStyle: 'cinematic',
-        promptStyle: 'detailed and specific',
-        specialFeatures: ['camera movements', 'realistic lighting']
-      },
-      pika: {
-        maxDuration: 3,
-        preferredStyle: 'dynamic',
-        promptStyle: 'action-focused',
-        specialFeatures: ['motion effects', 'transformations']
-      },
-      stable: {
-        maxDuration: 4,
-        preferredStyle: 'artistic',
-        promptStyle: 'style-heavy',
-        specialFeatures: ['artistic styles', 'consistent characters']
-      },
-      luma: {
-        maxDuration: 5,
-        preferredStyle: 'realistic',
-        promptStyle: 'natural descriptions',
-        specialFeatures: ['natural motion', 'realistic physics']
-      },
-      minimax: {
-        maxDuration: 6,
-        preferredStyle: 'versatile',
-        promptStyle: 'balanced',
-        specialFeatures: ['long sequences', 'complex scenes']
-      },
-      kling: {
-        maxDuration: 5,
-        preferredStyle: 'high-quality',
-        promptStyle: 'detailed',
-        specialFeatures: ['high resolution', 'smooth motion']
-      }
-    };
-    
-    const optimization = modelOptimizations[model];
-    
-    const optimizedScenes = scenePlan.scenes.map(scene => ({
+  private planIndividualScene(
+    scene: ScriptScene,
+    index: number,
+    baseDuration: number,
+    totalDuration: number,
+    emotionalArc: string,
+    pacingStyle: string,
+    transitionStyle: string
+  ): PlannedScene {
+
+    const timestamp = index * baseDuration;
+    const duration = this.calculateSceneDuration(scene, index, baseDuration, pacingStyle);
+    const emotion = this.determineEmotion(scene, index, emotionalArc);
+    const shotType = this.selectShotType(scene, index);
+    const transition = this.selectTransition(scene, index, transitionStyle);
+    const pacing = this.determinePacing(scene, index, pacingStyle);
+    const energy = this.calculateEnergy(scene, index, emotionalArc);
+
+    return {
       ...scene,
-      duration: Math.min(scene.duration, optimization.maxDuration),
-      visual_prompt: this.optimizePromptForModel(scene.visual_prompt, optimization),
-      style: optimization.preferredStyle
-    }));
-    
-    return {
-      ...scenePlan,
-      scenes: optimizedScenes,
-      generation_settings: {
-        ...scenePlan.generation_settings,
-        quality: model === 'kling' ? 'ultra' : 'high'
-      }
+      timestamp,
+      duration,
+      emotion,
+      shotType,
+      transition,
+      visualElements: this.extractVisualElements(scene),
+      audioElements: this.extractAudioElements(scene),
+      pacing,
+      energy
     };
   }
 
   /**
-   * Generate scene transitions and continuity
+   * Calculate optimal duration for each scene based on function and pacing
    */
-  async planTransitions(scenePlan: ScenePlan): Promise<ScenePlan> {
-    console.log("🔄 ScenePlannerAgent: Planning scene transitions...");
-    
-    const scenesWithTransitions = scenePlan.scenes.map((scene, index) => {
-      const nextScene = scenePlan.scenes[index + 1];
-      
-      if (!nextScene) {
-        return { ...scene, transition: 'fade_out' };
-      }
-      
-      // Determine transition based on mood and content change
-      const transition = this.determineTransition(scene, nextScene);
-      
-      return { ...scene, transition };
+  private calculateSceneDuration(scene: ScriptScene, index: number, baseDuration: number, pacingStyle: string): number {
+    let multiplier = 1.0;
+
+    // Adjust based on scene function
+    switch (scene.function?.toLowerCase()) {
+      case 'hook':
+        multiplier = 0.6; // Hooks should be short and punchy
+        break;
+      case 'escalation':
+      case 'reveal':
+        multiplier = 1.2; // Give more time for key moments
+        break;
+      case 'cta':
+        multiplier = 0.8; // CTAs should be concise
+        break;
+      default:
+        multiplier = 1.0;
+    }
+
+    // Adjust based on pacing style
+    switch (pacingStyle) {
+      case 'tiktok-native':
+        // First scene extra short, accelerate through middle, slow for CTA
+        if (index === 0) multiplier *= 0.5;
+        else if (index === 1) multiplier *= 0.7;
+        else multiplier *= 1.1;
+        break;
+      case 'accelerating':
+        multiplier *= (1.0 - (index * 0.1));
+        break;
+      case 'varied':
+        multiplier *= (index % 2 === 0) ? 0.8 : 1.2;
+        break;
+    }
+
+    return Math.max(3, Math.floor(baseDuration * multiplier));
+  }
+
+  /**
+   * Determine emotional tone for scene based on arc
+   */
+  private determineEmotion(scene: ScriptScene, index: number, emotionalArc: string): string {
+    const description = scene.description?.toLowerCase() || '';
+
+    // First check for explicit emotional cues in the scene
+    if (/shock|surprise|twist|reveal/i.test(description)) return "surprise";
+    if (/fun|meme|joke|laugh/i.test(description)) return "humor";
+    if (/intense|urgent|scandal|dramatic/i.test(description)) return "tension";
+    if (/calm|peaceful|soothing/i.test(description)) return "calm";
+    if (/exciting|energy|pump/i.test(description)) return "excitement";
+
+    // Then apply emotional arc pattern
+    switch (emotionalArc) {
+      case 'crescendo':
+        const emotions = ['curiosity', 'interest', 'engagement', 'excitement', 'climax'];
+        return emotions[Math.min(index, emotions.length - 1)];
+
+      case 'rollercoaster':
+        return index % 2 === 0 ? 'tension' : 'relief';
+
+      case 'hook-heavy':
+        return index === 0 ? 'shock' : 'engagement';
+
+      default:
+        return 'neutral';
+    }
+  }
+
+  /**
+   * Select optimal shot type based on scene content and position
+   */
+  private selectShotType(scene: ScriptScene, index: number): string {
+    const camera = scene.camera?.toLowerCase() || '';
+    const description = scene.description?.toLowerCase() || '';
+
+    // Use existing camera direction if specific
+    if (camera.includes('close-up') || camera.includes('macro')) return 'extreme-close-up';
+    if (camera.includes('wide') || camera.includes('establishing')) return 'wide-shot';
+    if (camera.includes('medium')) return 'medium-shot';
+
+    // Determine based on scene function and content
+    if (scene.function?.toLowerCase() === 'hook') return 'punch-in-close-up';
+    if (description.includes('reveal') || description.includes('show')) return 'reveal-shot';
+    if (description.includes('action') || description.includes('movement')) return 'dynamic-tracking';
+
+    // Default pattern to avoid monotony
+    const shotTypes = [
+      'macro-close-up', 'sudden-punch-in', 'whip-pan', 'static-wide',
+      'split-screen', 'freeze-frame', 'dutch-angle', 'overhead'
+    ];
+    return shotTypes[index % shotTypes.length];
+  }
+
+  /**
+   * Select transition style between scenes
+   */
+  private selectTransition(scene: ScriptScene, index: number, transitionStyle: string): string {
+    if (index === 0) return 'none'; // First scene has no transition
+
+    switch (transitionStyle) {
+      case 'viral':
+        const viralTransitions = ['quick-cut', 'glitch', 'zoom-blur', 'whip-pan', 'freeze-pop'];
+        return viralTransitions[index % viralTransitions.length];
+
+      case 'sharp':
+        return index % 2 === 0 ? 'hard-cut' : 'snap-zoom';
+
+      case 'cinematic':
+        return index % 3 === 0 ? 'fade' : 'dissolve';
+
+      default:
+        return 'cut';
+    }
+  }
+
+  /**
+   * Determine pacing for scene
+   */
+  private determinePacing(scene: ScriptScene, index: number, pacingStyle: string): 'slow' | 'medium' | 'fast' | 'rapid' {
+    const audio = scene.audio?.toLowerCase() || '';
+    const description = scene.description?.toLowerCase() || '';
+
+    // Check for explicit pacing cues
+    if (audio.includes('rapid') || description.includes('fast')) return 'rapid';
+    if (audio.includes('slow') || description.includes('calm')) return 'slow';
+
+    // Apply pacing style
+    switch (pacingStyle) {
+      case 'tiktok-native':
+        return index === 0 ? 'rapid' : (index < 3 ? 'fast' : 'medium');
+
+      case 'accelerating':
+        if (index < 2) return 'medium';
+        if (index < 4) return 'fast';
+        return 'rapid';
+
+      case 'varied':
+        return index % 2 === 0 ? 'fast' : 'medium';
+
+      default:
+        return 'medium';
+    }
+  }
+
+  /**
+   * Calculate energy level (1-10) for scene
+   */
+  private calculateEnergy(scene: ScriptScene, index: number, emotionalArc: string): number {
+    let baseEnergy = 5;
+
+    // Adjust based on scene function
+    switch (scene.function?.toLowerCase()) {
+      case 'hook':
+        baseEnergy = 9;
+        break;
+      case 'escalation':
+        baseEnergy = 7;
+        break;
+      case 'reveal':
+        baseEnergy = 8;
+        break;
+      case 'cta':
+        baseEnergy = 6;
+        break;
+    }
+
+    // Apply emotional arc
+    switch (emotionalArc) {
+      case 'crescendo':
+        baseEnergy += Math.floor(index * 1.5);
+        break;
+      case 'rollercoaster':
+        baseEnergy += index % 2 === 0 ? 2 : -1;
+        break;
+    }
+
+    return Math.max(1, Math.min(10, baseEnergy));
+  }
+
+  /**
+   * Extract visual elements from scene description
+   */
+  private extractVisualElements(scene: ScriptScene): string[] {
+    const elements: string[] = [];
+    const text = `${scene.description} ${scene.overlay}`.toLowerCase();
+
+    if (text.includes('text') || text.includes('overlay')) elements.push('text-overlay');
+    if (text.includes('emoji')) elements.push('emoji-graphics');
+    if (text.includes('split') || text.includes('comparison')) elements.push('split-screen');
+    if (text.includes('zoom') || text.includes('punch')) elements.push('dynamic-zoom');
+    if (text.includes('freeze') || text.includes('pause')) elements.push('freeze-frame');
+
+    return elements.length > 0 ? elements : ['standard-visuals'];
+  }
+
+  /**
+   * Extract audio elements from scene
+   */
+  private extractAudioElements(scene: ScriptScene): string[] {
+    const elements: string[] = [];
+    const audio = scene.audio?.toLowerCase() || '';
+
+    if (audio.includes('music')) elements.push('background-music');
+    if (audio.includes('sfx') || audio.includes('sound')) elements.push('sound-effects');
+    if (audio.includes('asmr')) elements.push('asmr-audio');
+    if (audio.includes('meme')) elements.push('meme-sound');
+    if (audio.includes('voice')) elements.push('voiceover');
+
+    return elements.length > 0 ? elements : ['standard-audio'];
+  }
+
+  /**
+   * Adjust scene timing to fit exact total duration
+   */
+  private adjustTiming(scenes: PlannedScene[], targetDuration: number): void {
+    const currentTotal = scenes.reduce((sum, scene) => sum + scene.duration, 0);
+    const adjustment = targetDuration / currentTotal;
+
+    let runningTime = 0;
+    scenes.forEach(scene => {
+      scene.timestamp = runningTime;
+      scene.duration = Math.max(2, Math.floor(scene.duration * adjustment));
+      runningTime += scene.duration;
     });
-    
+
+    // Final adjustment for any rounding errors
+    const finalTotal = scenes.reduce((sum, scene) => sum + scene.duration, 0);
+    if (finalTotal !== targetDuration) {
+      const diff = targetDuration - finalTotal;
+      scenes[scenes.length - 1].duration += diff;
+    }
+  }
+
+  /**
+   * Generate metadata for the scene plan
+   */
+  private generatePlanMetadata(scenes: PlannedScene[], totalDuration: number) {
     return {
-      ...scenePlan,
-      scenes: scenesWithTransitions
-    };
-  }
-
-  /**
-   * Generate comprehensive scene plan using AI
-   */
-  private async generateScenePlan(scriptContent: string, totalDuration: number, options: PlanningOptions): Promise<ScenePlan> {
-    const prompt = `
-      Create a detailed scene plan for this video script:
-      
-      Script: "${scriptContent}"
-      Total Duration: ${totalDuration} seconds
-      Max Scenes: ${options.max_scenes}
-      Visual Style: ${options.visual_style}
-      
-      Break the script into ${options.max_scenes} or fewer scenes. For each scene provide:
-      1. Narration (what's being said)
-      2. Visual prompt (detailed description for AI video generation)
-      3. Duration (seconds)
-      4. Mood/emotion
-      5. Camera angle
-      6. Lighting description
-      7. Priority (high/medium/low)
-      
-      Make visual prompts specific and detailed for AI video generation.
-      Ensure visual consistency across scenes.
-      
-      Return as JSON:
-      {
-        "total_scenes": number,
-        "total_duration": number,
-        "visual_style": "${options.visual_style}",
-        "consistency_notes": ["note1", "note2"],
-        "scenes": [
-          {
-            "id": number,
-            "narration": "string",
-            "visual_prompt": "detailed visual description",
-            "duration": number,
-            "transition": "string",
-            "mood": "string",
-            "camera_angle": "string",
-            "lighting": "string",
-            "style": "string",
-            "priority": "high|medium|low"
-          }
-        ],
-        "generation_settings": {
-          "aspect_ratio": "16:9",
-          "fps": 30,
-          "quality": "high"
-        }
-      }
-    `;
-
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a professional video director and scene planner. Create detailed, AI-generation-ready scene descriptions.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 3000,
-    });
-
-    const planData = JSON.parse(response.choices[0].message.content || '{}');
-    return this.validateScenePlan(planData, options);
-  }
-
-  /**
-   * Optimize visual prompt for specific AI model
-   */
-  private optimizePromptForModel(prompt: string, optimization: any): string {
-    const { promptStyle, specialFeatures } = optimization;
-    
-    let optimizedPrompt = prompt;
-    
-    switch (promptStyle) {
-      case 'detailed and specific':
-        optimizedPrompt = `${prompt}, professional cinematography, detailed lighting, high quality`;
-        break;
-      case 'action-focused':
-        optimizedPrompt = `${prompt}, dynamic movement, energetic, fast-paced action`;
-        break;
-      case 'style-heavy':
-        optimizedPrompt = `${prompt}, artistic style, creative composition, stylized`;
-        break;
-      case 'natural descriptions':
-        optimizedPrompt = `${prompt}, natural lighting, realistic motion, organic feel`;
-        break;
-      case 'balanced':
-        optimizedPrompt = `${prompt}, balanced composition, smooth motion`;
-        break;
-      case 'detailed':
-        optimizedPrompt = `${prompt}, ultra detailed, high resolution, crisp quality`;
-        break;
-    }
-    
-    // Add special features
-    if (specialFeatures.includes('camera movements')) {
-      optimizedPrompt += ', smooth camera movement';
-    }
-    if (specialFeatures.includes('realistic lighting')) {
-      optimizedPrompt += ', cinematic lighting';
-    }
-    
-    return optimizedPrompt;
-  }
-
-  /**
-   * Determine appropriate transition between scenes
-   */
-  private determineTransition(currentScene: Scene, nextScene: Scene): string {
-    // Analyze mood and content change
-    const moodChange = currentScene.mood !== nextScene.mood;
-    const styleChange = currentScene.style !== nextScene.style;
-    
-    if (moodChange && styleChange) {
-      return 'cross_fade';
-    } else if (moodChange) {
-      return 'fade_through_black';
-    } else if (styleChange) {
-      return 'wipe';
-    } else {
-      return 'cut';
-    }
-  }
-
-  /**
-   * Validate and format scene plan
-   */
-  private validateScenePlan(planData: any, options: PlanningOptions): ScenePlan {
-    const scenes = (planData.scenes || []).map((scene: any, index: number) => ({
-      id: scene.id || index + 1,
-      narration: scene.narration || `Scene ${index + 1}`,
-      visual_prompt: scene.visual_prompt || 'Generic scene description',
-      duration: Math.min(scene.duration || options.scene_duration || 4, 10),
-      transition: scene.transition || 'cut',
-      mood: scene.mood || 'neutral',
-      camera_angle: scene.camera_angle || 'medium shot',
-      lighting: scene.lighting || 'natural',
-      style: scene.style || options.visual_style || 'cinematic',
-      priority: scene.priority || 'medium'
-    }));
-
-    return {
-      total_scenes: scenes.length,
-      total_duration: scenes.reduce((sum, scene) => sum + scene.duration, 0),
-      scenes,
-      visual_style: planData.visual_style || options.visual_style || 'cinematic',
-      consistency_notes: planData.consistency_notes || ['Maintain consistent lighting', 'Keep similar color palette'],
-      generation_settings: planData.generation_settings || {
-        aspect_ratio: '16:9',
-        fps: 30,
-        quality: 'high'
-      }
-    };
-  }
-
-  /**
-   * Generate fallback scene plan
-   */
-  private generateFallbackPlan(script: VideoScript | string, options: PlanningOptions): ScenePlan {
-    console.log("⚠️ ScenePlannerAgent: Using fallback scene planning");
-    
-    let scriptContent: string;
-    if (typeof script === 'string') {
-      scriptContent = script;
-    } else {
-      scriptContent = script.sections.map(s => s.content).join(' ');
-    }
-    
-    // Split by sentences or periods
-    const parts = scriptContent.split(/[.!?]+/).filter(Boolean);
-    const maxScenes = Math.min(parts.length, options.max_scenes || 16);
-    
-    const scenes: Scene[] = parts.slice(0, maxScenes).map((part, index) => ({
-      id: index + 1,
-      narration: part.trim(),
-      visual_prompt: `Scene showing: ${part.trim().substring(0, 100)}`,
-      duration: options.scene_duration || 4,
-      transition: 'cut',
-      mood: 'neutral',
-      camera_angle: 'medium shot',
-      lighting: 'natural',
-      style: options.visual_style || 'cinematic',
-      priority: 'medium'
-    }));
-
-    return {
-      total_scenes: scenes.length,
-      total_duration: scenes.reduce((sum, scene) => sum + scene.duration, 0),
-      scenes,
-      visual_style: options.visual_style || 'cinematic',
-      consistency_notes: ['Basic scene consistency'],
-      generation_settings: {
-        aspect_ratio: '16:9',
-        fps: 30,
-        quality: 'high'
-      }
+      totalDuration,
+      averageSceneDuration: Math.floor(totalDuration / scenes.length),
+      emotionalArc: scenes.map(s => s.emotion),
+      pacingPattern: scenes.map(s => s.pacing),
+      viralMoments: scenes
+        .map((scene, index) => scene.energy >= 8 ? index : -1)
+        .filter(index => index >= 0),
+      generatedAt: new Date().toISOString()
     };
   }
 }

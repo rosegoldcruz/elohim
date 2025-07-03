@@ -1,334 +1,329 @@
 /**
- * AEON ScriptWriterAgent - Generates compelling video scripts using AI
- * Integrates with OpenAI GPT-4 and Claude for high-quality content creation
+ * AEON ScriptWriterAgent - TikTok/Viral Video Script Generation
+ * Generates viral-optimized video scripts with TikTok-native techniques
  */
 
-import { openai, claude } from '@/lib/ai-services';
+import { OpenAI } from 'openai';
+import { env } from '@/env.mjs';
 
-export interface ScriptSection {
-  type: 'hook' | 'body' | 'cta' | 'transition';
-  content: string;
-  duration: number;
-  visual_cue: string;
-  emotion: string;
-}
+const SYSTEM_PROMPT = `
+You are a professional TikTok/Uber-viral video scriptwriter.
+Break the following topic into exactly {sceneCount} scenes, each with:
+- Unique narrative or cinematic function (no repetition)
+- Narrative escalation or increasing curiosity
+- 1 cold open/hook, 1 payoff, 1 CTA
+- At least 2 TikTok-native viral techniques: first-frame hook, meme, irony, ASMR, rapid cut, on-screen text, punch-in, etc.
+- Camera direction, audio, and overlay for each scene
+
+OUTPUT FORMAT STRICTLY:
+Scene {#}:
+Function: [e.g. Hook, Escalation, Reveal, CTA, etc.]
+Description: [Vivid visual action, not just facts]
+Camera: [Angle, movement, or effect]
+Audio/SFX: [Sound, meme, or ASMR]
+Text/Overlay: [On-screen caption, emoji, meme text]
+`;
 
 export interface VideoScript {
-  title: string;
+  scenes: ScriptScene[];
+  metadata: {
+    topic: string;
+    style: string;
+    duration: number;
+    sceneCount: number;
+    viralTechniques: string[];
+    generatedAt: string;
+  };
+}
+
+export interface ScriptScene {
+  scene: string;
+  function: string;
   description: string;
-  total_duration: number;
-  target_audience: string;
-  tone: string;
-  sections: ScriptSection[];
-  hashtags: string[];
-  thumbnail_suggestion: string;
+  camera: string;
+  audio: string;
+  overlay: string;
+  sceneNumber: number;
 }
 
 export interface ScriptOptions {
   duration?: number;
-  tone?: 'educational' | 'entertaining' | 'inspirational' | 'conversational' | 'professional';
-  platform?: 'tiktok' | 'youtube' | 'instagram' | 'general';
-  target_audience?: string;
-  include_cta?: boolean;
-  style?: 'storytelling' | 'listicle' | 'tutorial' | 'review' | 'commentary';
+  tone?: 'conversational' | 'dramatic' | 'educational' | 'entertaining';
+  platform?: 'tiktok' | 'instagram' | 'youtube' | 'general';
+  sceneCount?: number;
+  style?: string;
 }
 
 export class ScriptWriterAgent {
-  private readonly defaultOptions: ScriptOptions = {
-    duration: 60,
-    tone: 'conversational',
-    platform: 'general',
-    target_audience: 'general audience',
-    include_cta: true,
-    style: 'storytelling'
-  };
+  private openai: OpenAI;
+
+  constructor(apiKey?: string) {
+    this.openai = new OpenAI({
+      apiKey: apiKey || env.OPENAI_API_KEY
+    });
+  }
 
   /**
-   * Generate a complete video script from a topic
+   * Generate viral video script with TikTok-optimized scenes
    */
   async generateScript(topic: string, options: ScriptOptions = {}): Promise<VideoScript> {
-    console.log(`✍️ ScriptWriterAgent: Generating script for topic: ${topic}`);
-    
-    const opts = { ...this.defaultOptions, ...options };
-    
+    const {
+      duration = 60,
+      style = "TikTok/Documentary",
+      sceneCount = Math.max(4, Math.min(8, Math.floor(duration / 8)))
+    } = options;
+
+    console.log(`🎬 ScriptWriterAgent: Generating ${sceneCount} scenes for "${topic}"`);
     try {
-      // Use GPT-4 for script generation
-      const script = await this.generateWithOpenAI(topic, opts);
-      
-      console.log(`✅ ScriptWriterAgent: Generated ${script.sections.length}-section script`);
-      return script;
-      
-    } catch (error) {
-      console.error('❌ ScriptWriterAgent OpenAI error:', error);
-      
-      try {
-        // Fallback to Claude
-        console.log('🔄 ScriptWriterAgent: Trying Claude fallback...');
-        return await this.generateWithClaude(topic, opts);
-        
-      } catch (claudeError) {
-        console.error('❌ ScriptWriterAgent Claude error:', claudeError);
-        return this.generateFallbackScript(topic, opts);
-      }
-    }
-  }
+      const scenes = await this.generateScenes(topic, style, duration, sceneCount);
 
-  /**
-   * Generate script variations for A/B testing
-   */
-  async generateScriptVariations(topic: string, count: number = 3, options: ScriptOptions = {}): Promise<VideoScript[]> {
-    console.log(`🎭 ScriptWriterAgent: Generating ${count} script variations for: ${topic}`);
-    
-    const variations: VideoScript[] = [];
-    const tones: Array<ScriptOptions['tone']> = ['educational', 'entertaining', 'inspirational'];
-    const styles: Array<ScriptOptions['style']> = ['storytelling', 'listicle', 'tutorial'];
-    
-    for (let i = 0; i < count; i++) {
-      const variationOptions = {
-        ...options,
-        tone: tones[i % tones.length],
-        style: styles[i % styles.length]
-      };
-      
-      try {
-        const script = await this.generateScript(topic, variationOptions);
-        script.title = `${script.title} (Variation ${i + 1})`;
-        variations.push(script);
-      } catch (error) {
-        console.error(`Failed to generate variation ${i + 1}:`, error);
-      }
-    }
-    
-    return variations;
-  }
+      // Validate viral techniques
+      if (!this.hasViralTechniques(scenes)) {
+        console.warn('⚠️ Insufficient viral techniques detected, regenerating...');
+        // Retry once with more explicit viral instruction
+        const retryScenes = await this.generateScenes(
+          topic,
+          `${style} (MUST include viral hooks, memes, ASMR, rapid cuts)`,
+          duration,
+          sceneCount
+        );
 
-  /**
-   * Optimize script for specific platform
-   */
-  async optimizeForPlatform(script: VideoScript, platform: 'tiktok' | 'youtube' | 'instagram'): Promise<VideoScript> {
-    console.log(`🎯 ScriptWriterAgent: Optimizing script for ${platform}`);
-    
-    const platformGuidelines = {
-      tiktok: {
-        maxDuration: 60,
-        hookDuration: 3,
-        fastPaced: true,
-        trendy: true
-      },
-      youtube: {
-        maxDuration: 300,
-        hookDuration: 15,
-        fastPaced: false,
-        trendy: false
-      },
-      instagram: {
-        maxDuration: 90,
-        hookDuration: 5,
-        fastPaced: true,
-        trendy: true
-      }
-    };
-    
-    const guidelines = platformGuidelines[platform];
-    
-    try {
-      const prompt = `
-        Optimize this video script for ${platform}:
-        
-        Original Script: ${JSON.stringify(script, null, 2)}
-        
-        Platform Guidelines:
-        - Max Duration: ${guidelines.maxDuration}s
-        - Hook Duration: ${guidelines.hookDuration}s
-        - Fast Paced: ${guidelines.fastPaced}
-        - Trendy Language: ${guidelines.trendy}
-        
-        Return optimized script in the same JSON format.
-      `;
-
-      const response = await openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7,
-        max_tokens: 2000,
-      });
-
-      const optimizedScript = JSON.parse(response.choices[0].message.content || '{}');
-      return { ...script, ...optimizedScript };
-      
-    } catch (error) {
-      console.error('Script optimization failed:', error);
-      return script;
-    }
-  }
-
-  /**
-   * Generate script using OpenAI GPT-4
-   */
-  private async generateWithOpenAI(topic: string, options: ScriptOptions): Promise<VideoScript> {
-    const prompt = this.buildScriptPrompt(topic, options);
-    
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a professional video script writer specializing in viral, engaging content. Always respond with valid JSON.'
-        },
-        {
-          role: 'user',
-          content: prompt
+        if (!this.hasViralTechniques(retryScenes)) {
+          console.warn('⚠️ Still insufficient viral techniques after retry');
         }
+
+        return this.buildVideoScript(topic, style, duration, sceneCount, retryScenes);
+      }
+
+      return this.buildVideoScript(topic, style, duration, sceneCount, scenes);
+
+    } catch (error) {
+      console.error('❌ ScriptWriterAgent error:', error);
+      throw new Error(`Script generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Generate scenes using OpenAI
+   */
+  async generateScenes(topic: string, style: string, duration: number, sceneCount: number): Promise<ScriptScene[]> {
+    const userPrompt = `
+Topic: ${topic}
+Visual Style: ${style}
+Duration: ${duration}s
+Scene Count: ${sceneCount}
+
+REQUIREMENTS:
+- Each scene must be visually distinct and escalate narrative tension
+- Include viral TikTok techniques: hooks, memes, ASMR, rapid cuts, overlays, punch-ins
+- First scene MUST be a powerful hook that stops scrolling
+- Final scene MUST include clear call-to-action
+- Use vivid, action-oriented descriptions
+`;
+
+    const prompt = SYSTEM_PROMPT.replace('{sceneCount}', sceneCount.toString());
+
+    const completion = await this.openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: prompt },
+        { role: "user", content: userPrompt }
       ],
-      temperature: 0.8,
-      max_tokens: 2500,
+      temperature: 0.9,
+      max_tokens: 1800,
     });
 
-    const scriptData = JSON.parse(response.choices[0].message.content || '{}');
-    return this.validateAndFormatScript(scriptData, topic, options);
-  }
-
-  /**
-   * Generate script using Claude
-   */
-  private async generateWithClaude(topic: string, options: ScriptOptions): Promise<VideoScript> {
-    const prompt = this.buildScriptPrompt(topic, options);
-    
-    const response = await claude.messages.create({
-      model: 'claude-3-sonnet-20240229',
-      max_tokens: 2500,
-      messages: [
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-    });
-
-    const content = response.content[0];
-    if (content.type === 'text') {
-      const scriptData = JSON.parse(content.text);
-      return this.validateAndFormatScript(scriptData, topic, options);
+    const content = completion.choices[0].message.content;
+    if (!content) {
+      throw new Error('No content generated from OpenAI');
     }
-    
-    throw new Error('Invalid Claude response format');
+
+    let scenes = this.parseScenes(content);
+
+    // Remove duplicate scenes by description similarity
+    scenes = this.removeDuplicateScenes(scenes);
+
+    // Ensure we have the right number of scenes
+    if (scenes.length < sceneCount) {
+      console.warn(`⚠️ Generated ${scenes.length} scenes, expected ${sceneCount}`);
+    }
+
+    return scenes;
   }
 
   /**
-   * Build comprehensive script generation prompt
+   * Parse OpenAI response into structured scenes
    */
-  private buildScriptPrompt(topic: string, options: ScriptOptions): string {
-    return `
-      Create a compelling ${options.duration}-second video script about "${topic}".
-      
-      Requirements:
-      - Tone: ${options.tone}
-      - Platform: ${options.platform}
-      - Style: ${options.style}
-      - Target Audience: ${options.target_audience}
-      - Include CTA: ${options.include_cta}
-      
-      Structure the script with these sections:
-      1. Hook (first 3-5 seconds) - grab attention immediately
-      2. Body (main content) - deliver value/entertainment
-      3. CTA (call-to-action) - if requested
-      4. Transitions between sections
-      
-      For each section, provide:
-      - Content (exact words to say)
-      - Duration (seconds)
-      - Visual cue (what should be shown)
-      - Emotion (feeling to convey)
-      
-      Also include:
-      - Compelling title
-      - Description
-      - Target audience
-      - Relevant hashtags
-      - Thumbnail suggestion
-      
-      Return as JSON with this structure:
-      {
-        "title": "string",
-        "description": "string", 
-        "total_duration": number,
-        "target_audience": "string",
-        "tone": "string",
-        "sections": [
-          {
-            "type": "hook|body|cta|transition",
-            "content": "string",
-            "duration": number,
-            "visual_cue": "string",
-            "emotion": "string"
-          }
-        ],
-        "hashtags": ["string"],
-        "thumbnail_suggestion": "string"
+  parseScenes(content: string): ScriptScene[] {
+    const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const scenes: ScriptScene[] = [];
+    let current: Partial<ScriptScene> = {};
+    let sceneNumber = 1;
+
+    for (const line of lines) {
+      if (/^Scene\s+\d+:/.test(line)) {
+        // Save previous scene if it exists
+        if (Object.keys(current).length > 0 && current.description) {
+          scenes.push(current as ScriptScene);
+        }
+
+        // Start new scene
+        current = {
+          scene: line,
+          sceneNumber: sceneNumber++
+        };
+      } else if (line.startsWith('Function:')) {
+        current.function = line.replace('Function:', '').trim();
+      } else if (line.startsWith('Description:')) {
+        current.description = line.replace('Description:', '').trim();
+      } else if (line.startsWith('Camera:')) {
+        current.camera = line.replace('Camera:', '').trim();
+      } else if (line.startsWith('Audio/SFX:')) {
+        current.audio = line.replace('Audio/SFX:', '').trim();
+      } else if (line.startsWith('Text/Overlay:')) {
+        current.overlay = line.replace('Text/Overlay:', '').trim();
       }
-    `;
+    }
+
+    // Don't forget the last scene
+    if (Object.keys(current).length > 0 && current.description) {
+      scenes.push(current as ScriptScene);
+    }
+
+    return scenes.filter(scene => scene.description && scene.description.length > 10);
   }
 
   /**
-   * Validate and format script data
+   * Remove scenes with highly similar descriptions
    */
-  private validateAndFormatScript(scriptData: any, topic: string, options: ScriptOptions): VideoScript {
-    return {
-      title: scriptData.title || `${topic} - Video Script`,
-      description: scriptData.description || `Engaging video about ${topic}`,
-      total_duration: scriptData.total_duration || options.duration || 60,
-      target_audience: scriptData.target_audience || options.target_audience || 'general audience',
-      tone: scriptData.tone || options.tone || 'conversational',
-      sections: scriptData.sections || this.generateFallbackSections(topic),
-      hashtags: scriptData.hashtags || [`#${topic.replace(/\s+/g, '')}`],
-      thumbnail_suggestion: scriptData.thumbnail_suggestion || `Eye-catching visual related to ${topic}`,
-    };
-  }
+  removeDuplicateScenes(scenes: ScriptScene[]): ScriptScene[] {
+    const filtered: ScriptScene[] = [];
 
-  /**
-   * Generate fallback script when AI fails
-   */
-  private generateFallbackScript(topic: string, options: ScriptOptions): VideoScript {
-    console.log("⚠️ ScriptWriterAgent: Using fallback script generation");
-    
-    return {
-      title: `${topic} - Must Watch!`,
-      description: `Everything you need to know about ${topic}`,
-      total_duration: options.duration || 60,
-      target_audience: options.target_audience || 'general audience',
-      tone: options.tone || 'conversational',
-      sections: this.generateFallbackSections(topic),
-      hashtags: [`#${topic.replace(/\s+/g, '')}`, '#viral', '#trending'],
-      thumbnail_suggestion: `Bold text overlay on relevant background image`,
-    };
-  }
+    for (const scene of scenes) {
+      let isDuplicate = false;
 
-  /**
-   * Generate basic script sections as fallback
-   */
-  private generateFallbackSections(topic: string): ScriptSection[] {
-    return [
-      {
-        type: 'hook',
-        content: `You won't believe what I discovered about ${topic}!`,
-        duration: 5,
-        visual_cue: 'Attention-grabbing opener',
-        emotion: 'excitement'
-      },
-      {
-        type: 'body',
-        content: `Let me break down everything you need to know about ${topic}. This is going to change how you think about it completely.`,
-        duration: 45,
-        visual_cue: 'Main content visuals',
-        emotion: 'informative'
-      },
-      {
-        type: 'cta',
-        content: `If this helped you, make sure to follow for more insights like this!`,
-        duration: 10,
-        visual_cue: 'Follow button or subscribe prompt',
-        emotion: 'encouraging'
+      for (const existing of filtered) {
+        const similarity = this.calculateSimilarity(
+          scene.description || "",
+          existing.description || ""
+        );
+
+        if (similarity > 0.75) {
+          isDuplicate = true;
+          break;
+        }
       }
+
+      if (!isDuplicate) {
+        filtered.push(scene);
+      }
+    }
+
+    return filtered;
+  }
+  /**
+   * Simple string similarity calculation
+   */
+  private calculateSimilarity(str1: string, str2: string): number {
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+
+    if (longer.length === 0) return 1.0;
+
+    const editDistance = this.levenshteinDistance(longer, shorter);
+    return (longer.length - editDistance) / longer.length;
+  }
+
+  /**
+   * Calculate Levenshtein distance between two strings
+   */
+  private levenshteinDistance(str1: string, str2: string): number {
+    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+
+    for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+    for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+
+    for (let j = 1; j <= str2.length; j++) {
+      for (let i = 1; i <= str1.length; i++) {
+        const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[j][i] = Math.min(
+          matrix[j][i - 1] + 1,
+          matrix[j - 1][i] + 1,
+          matrix[j - 1][i - 1] + indicator
+        );
+      }
+    }
+
+    return matrix[str2.length][str1.length];
+  }
+
+  /**
+   * Check if scenes contain sufficient viral TikTok techniques
+   */
+  hasViralTechniques(scenes: ScriptScene[]): boolean {
+    let viralCount = 0;
+    const viralWords = [
+      "hook", "punch", "asmr", "irony", "meme", "rapid cut", "overlay", "split screen",
+      "glitch", "freeze-frame", "first-frame", "pattern interrupt", "zoom", "whip pan",
+      "close-up", "macro", "text overlay", "emoji", "trending", "viral", "shocking"
     ];
+
+    scenes.forEach(scene => {
+      const text = `${scene.function} ${scene.camera} ${scene.audio} ${scene.overlay}`.toLowerCase();
+      if (viralWords.some(word => text.includes(word))) {
+        viralCount++;
+      }
+    });
+
+    console.log(`🎯 Detected ${viralCount} viral techniques in ${scenes.length} scenes`);
+    return viralCount >= 2;
+  }
+
+  /**
+   * Build final video script object
+   */
+  private buildVideoScript(topic: string, style: string, duration: number, sceneCount: number, scenes: ScriptScene[]): VideoScript {
+    const viralTechniques = this.extractViralTechniques(scenes);
+
+    return {
+      scenes,
+      metadata: {
+        topic,
+        style,
+        duration,
+        sceneCount: scenes.length,
+        viralTechniques,
+        generatedAt: new Date().toISOString()
+      }
+    };
+  }
+
+  /**
+   * Extract viral techniques used in the script
+   */
+  private extractViralTechniques(scenes: ScriptScene[]): string[] {
+    const techniques = new Set<string>();
+    const viralPatterns = {
+      "hook": /hook|attention|stop scrolling/i,
+      "meme": /meme|trending|viral/i,
+      "asmr": /asmr|whisper|satisfying/i,
+      "rapid_cut": /rapid|quick cut|fast/i,
+      "overlay": /overlay|text|caption/i,
+      "punch_in": /punch|zoom|close-up/i,
+      "freeze_frame": /freeze|pause|stop/i,
+      "split_screen": /split|dual|comparison/i
+    };
+
+    scenes.forEach(scene => {
+      const text = `${scene.function} ${scene.camera} ${scene.audio} ${scene.overlay}`.toLowerCase();
+
+      Object.entries(viralPatterns).forEach(([technique, pattern]) => {
+        if (pattern.test(text)) {
+          techniques.add(technique);
+        }
+      });
+    });
+
+    return Array.from(techniques);
   }
 }

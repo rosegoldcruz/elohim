@@ -4,12 +4,16 @@
  */
 
 import { TrendsAgent } from './TrendsAgent';
-import { ScriptWriterAgent } from './ScriptWriterAgent';
-import { ScenePlannerAgent } from './ScenePlannerAgent';
+import { ScriptWriterAgent, VideoScript, ScriptScene } from './ScriptWriterAgent';
+import { ScenePlannerAgent, PlannedScene, ScenePlan } from './ScenePlannerAgent';
+import { VisualGeneratorAgent } from './VisualGeneratorAgent';
+import { ParallelVisualGenerationAgent, generateVideoParallel } from './ParallelVisualGenerationAgent';
 import { StitcherAgent } from './StitcherAgent';
 import { EditorAgent } from './EditorAgent';
 import { StorageManager } from '../storage-manager';
 import { createClient } from '@/lib/supabase/server';
+import { env } from '@/env.mjs';
+import { getDefaultModelNames } from '@/config/videoModels';
 
 export interface PipelineRequest {
   topic?: string;
@@ -49,6 +53,8 @@ export class AeonPipeline {
   private trendsAgent: TrendsAgent;
   private scriptWriter: ScriptWriterAgent;
   private scenePlanner: ScenePlannerAgent;
+  private visualGenerator: VisualGeneratorAgent;
+  private parallelVisualGenerator: ParallelVisualGenerationAgent;
   private stitcher: StitcherAgent;
   private editor: EditorAgent;
   private storage: StorageManager;
@@ -58,6 +64,8 @@ export class AeonPipeline {
     this.trendsAgent = new TrendsAgent();
     this.scriptWriter = new ScriptWriterAgent();
     this.scenePlanner = new ScenePlannerAgent();
+    this.visualGenerator = new VisualGeneratorAgent();
+    this.parallelVisualGenerator = new ParallelVisualGenerationAgent();
     this.stitcher = new StitcherAgent();
     this.editor = new EditorAgent();
     this.storage = new StorageManager();
@@ -125,11 +133,74 @@ export class AeonPipeline {
       const scenePlan = await this.scenePlanner.planScenes(script);
       agentsUsed.push('ScenePlannerAgent');
       
-      // Step 4: Generate video scenes (simulated)
-      await this.updateProgress('generation', 60, 'Generating video scenes with AI...', 'VisualGeneratorAgent', onProgress);
-      
-      const sceneFiles = await this.simulateSceneGeneration(scenePlan.scenes, request.user_id);
-      agentsUsed.push('VisualGeneratorAgent');
+      // Step 4: Generate video scenes with AI (Parallel or Sequential)
+      await this.updateProgress('generation', 60, 'Generating video scenes with AI...', 'ParallelVisualGenerationAgent', onProgress);
+
+      let sceneFiles: string[] = [];
+
+      // Use parallel generation for exactly 10 scenes (5 agents × 2 scenes each)
+      if (scenePlan.scenes.length === 10) {
+        console.log('🚀 Using parallel generation for 10 scenes (5 agents × 2 scenes each)');
+
+        const scenePrompts = scenePlan.scenes.map(scene => scene.description);
+        const modelNames = getDefaultModelNames();
+
+        // Create custom inputs for each scene
+        const customSceneInputs = scenePlan.scenes.map(scene => ({
+          first_frame_image: scene.visualElements?.includes('text-overlay') ? undefined : undefined,
+          aspect_ratio: '16:9',
+          duration: Math.min(scene.duration, 6)
+        }));
+
+        const parallelResult = await generateVideoParallel(
+          scenePrompts,
+          5, // 5 agents
+          2, // 2 scenes per agent
+          modelNames,
+          customSceneInputs,
+          (progress) => {
+            const progressPercent = Math.floor(60 + (progress.completedScenes / progress.totalScenes) * 25);
+            this.updateProgress('generation', progressPercent,
+              `Parallel generation: ${progress.completedScenes}/${progress.totalScenes} scenes (Agent ${progress.currentAgent + 1})`,
+              'ParallelVisualGenerationAgent', onProgress);
+          }
+        );
+
+        if (!parallelResult.success) {
+          throw new Error(`Parallel video generation failed: ${parallelResult.error}`);
+        }
+
+        sceneFiles = parallelResult.sceneResults
+          .filter(scene => scene.success)
+          .sort((a, b) => a.sceneIndex - b.sceneIndex)
+          .map(scene => scene.videoUrl);
+
+        agentsUsed.push('ParallelVisualGenerationAgent');
+        console.log(`✅ Parallel generation: ${parallelResult.sceneResults.filter(s => s.success).length}/${parallelResult.sceneResults.length} scenes successful`);
+        console.log(`💰 Total cost: $${parallelResult.totalCost.toFixed(2)}`);
+
+      } else {
+        // Use sequential generation for other scene counts
+        console.log(`🔄 Using sequential generation for ${scenePlan.scenes.length} scenes`);
+
+        const generationResult = await this.visualGenerator.generateScenes({
+          scenes: scenePlan.scenes,
+          user_id: request.user_id,
+          style: request.style,
+          quality: 'high'
+        });
+
+        if (!generationResult.success) {
+          throw new Error(`Video generation failed: ${generationResult.error}`);
+        }
+
+        sceneFiles = generationResult.scenes
+          .filter(scene => scene.success)
+          .map(scene => scene.videoUrl);
+
+        agentsUsed.push('VisualGeneratorAgent');
+        console.log(`✅ Sequential generation: ${generationResult.successfulScenes}/${generationResult.totalScenes} scenes successful`);
+      }
       
       // Step 5: Stitch scenes together
       await this.updateProgress('stitching', 80, 'Combining scenes into final video...', 'StitcherAgent', onProgress);
@@ -245,9 +316,60 @@ export class AeonPipeline {
       // Continue with generation, stitching, and editing...
       const videoId = `custom_${Date.now()}_${request.user_id}`;
       
-      await this.updateProgress('generation', currentProgress += progressStep, 'Generating scenes...', 'VisualGeneratorAgent', onProgress);
-      const sceneFiles = await this.simulateSceneGeneration(scenes || [], request.user_id);
-      agentsUsed.push('VisualGeneratorAgent');
+      await this.updateProgress('generation', currentProgress += progressStep, 'Generating scenes...', 'ParallelVisualGenerationAgent', onProgress);
+
+      let sceneFiles: string[] = [];
+
+      // Use parallel generation for exactly 10 scenes
+      if (scenes && scenes.length === 10) {
+        console.log('🚀 Custom script: Using parallel generation for 10 scenes');
+
+        const scenePrompts = scenes.map(scene => scene.description);
+        const modelNames = getDefaultModelNames();
+
+        const customSceneInputs = scenes.map(scene => ({
+          aspect_ratio: '16:9',
+          duration: Math.min(scene.duration, 6)
+        }));
+
+        const parallelResult = await generateVideoParallel(
+          scenePrompts,
+          5,
+          2,
+          modelNames,
+          customSceneInputs
+        );
+
+        if (!parallelResult.success) {
+          throw new Error(`Parallel video generation failed: ${parallelResult.error}`);
+        }
+
+        sceneFiles = parallelResult.sceneResults
+          .filter(scene => scene.success)
+          .sort((a, b) => a.sceneIndex - b.sceneIndex)
+          .map(scene => scene.videoUrl);
+
+        agentsUsed.push('ParallelVisualGenerationAgent');
+
+      } else {
+        // Use sequential generation
+        const generationResult = await this.visualGenerator.generateScenes({
+          scenes: scenes || [],
+          user_id: request.user_id,
+          style: request.style,
+          quality: 'high'
+        });
+
+        if (!generationResult.success) {
+          throw new Error(`Video generation failed: ${generationResult.error}`);
+        }
+
+        sceneFiles = generationResult.scenes
+          .filter(scene => scene.success)
+          .map(scene => scene.videoUrl);
+
+        agentsUsed.push('VisualGeneratorAgent');
+      }
       
       await this.updateProgress('stitching', currentProgress += progressStep, 'Stitching video...', 'StitcherAgent', onProgress);
       const stitchedVideo = await this.stitcher.stitchScenes(sceneFiles, `${videoId}.mp4`);
@@ -321,24 +443,8 @@ export class AeonPipeline {
   }
 
   /**
-   * Simulate scene generation (replace with actual AI generation)
+   * REMOVED: simulateSceneGeneration - Now using real VisualGeneratorAgent
    */
-  private async simulateSceneGeneration(scenes: any[], userId: string): Promise<string[]> {
-    console.log(`🎥 Simulating generation of ${scenes.length} scenes...`);
-    
-    // In production, this would call actual AI video generation APIs
-    const sceneFiles: string[] = [];
-    
-    for (let i = 0; i < scenes.length; i++) {
-      const sceneFile = `scene_${i + 1}_${userId}_${Date.now()}.mp4`;
-      sceneFiles.push(`/videos/${sceneFile}`);
-      
-      // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    
-    return sceneFiles;
-  }
 
   /**
    * Save pipeline results to database
@@ -397,5 +503,56 @@ export class AeonPipeline {
       console.error('Failed to get pipeline status:', error);
       return null;
     }
+  }
+}
+
+/**
+ * Viral TikTok Video Script Pipeline
+ * Creates TikTok-optimized video scripts with viral techniques
+ */
+export async function createVideoScriptPipeline(
+  topic: string,
+  style: string = "TikTok/Documentary",
+  duration: number = 60,
+  sceneCount?: number
+): Promise<{ script: VideoScript; plan: ScenePlan }> {
+
+  console.log(`🎬 Starting Viral TikTok Pipeline for: "${topic}"`);
+
+  try {
+    // Initialize agents
+    const scriptAgent = new ScriptWriterAgent(env.OPENAI_API_KEY);
+    const planner = new ScenePlannerAgent();
+
+    // Generate viral script with TikTok techniques
+    console.log('📝 Generating viral script...');
+    const script = await scriptAgent.generateScript(topic, {
+      duration,
+      style,
+      sceneCount: sceneCount || Math.max(4, Math.min(8, Math.floor(duration / 8))),
+      tone: 'entertaining',
+      platform: 'tiktok'
+    });
+
+    console.log(`✅ Generated script with ${script.scenes.length} scenes`);
+    console.log(`🎯 Viral techniques detected: ${script.metadata.viralTechniques.join(', ')}`);
+
+    // Plan scenes with detailed timing and production notes
+    console.log('🎬 Planning scene production...');
+    const plan = await planner.planScenes(script.scenes, {
+      totalDuration: duration,
+      emotionalArc: 'crescendo',
+      pacingStyle: 'tiktok-native',
+      transitionStyle: 'viral'
+    });
+
+    console.log(`✅ Scene plan complete with ${plan.scenes.length} planned scenes`);
+    console.log(`⚡ Viral moments at scenes: ${plan.metadata.viralMoments.join(', ')}`);
+
+    return { script, plan };
+
+  } catch (error) {
+    console.error('❌ Viral TikTok Pipeline failed:', error);
+    throw new Error(`Pipeline failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
