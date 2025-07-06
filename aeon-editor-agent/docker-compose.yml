@@ -1,0 +1,179 @@
+version: '3.8'
+
+services:
+  aeon-editor-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aeon-editor-agent:latest
+    container_name: aeon-editor-agent
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - LOG_LEVEL=INFO
+      - FASTAPI_ENV=development
+      - FASTAPI_DEBUG=true
+      - CUDA_VISIBLE_DEVICES=0
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
+      - CUDA_MEMORY_FRACTION=0.8
+      - OMP_NUM_THREADS=4
+      - MKL_NUM_THREADS=4
+      - NUMBA_NUM_THREADS=4
+      - ENABLE_GPU_MONITORING=true
+      - MONITORING_INTERVAL=15
+      - MAX_CONCURRENT_JOBS=2
+      - MAX_VIDEO_DURATION=300
+      - MAX_FILE_SIZE_MB=500
+    volumes:
+      - ./app:/app/app:ro
+      - ./test:/app/test:ro
+      - ./assets:/app/assets:ro
+      - aeon_temp:/tmp
+      - aeon_cache:/app/cache
+      - aeon_logs:/var/log/aeon
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          memory: 8G
+          cpus: '4'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - aeon-network
+    depends_on:
+      - redis
+      - prometheus
+
+  redis:
+    image: redis:7-alpine
+    container_name: aeon-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - aeon-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: aeon-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - aeon-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: aeon-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=aeon123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - aeon-network
+    depends_on:
+      - prometheus
+
+  nginx:
+    image: nginx:alpine
+    container_name: aeon-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - aeon-network
+    depends_on:
+      - aeon-editor-agent
+
+  minio:
+    image: minio/minio:latest
+    container_name: aeon-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=aeon
+      - MINIO_ROOT_PASSWORD=aeon123456
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - aeon-network
+
+  fluentd:
+    image: fluent/fluentd:v1.16-debian-1
+    container_name: aeon-fluentd
+    restart: unless-stopped
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    volumes:
+      - ./logging/fluentd.conf:/fluentd/etc/fluent.conf:ro
+      - fluentd_logs:/var/log/fluentd
+    networks:
+      - aeon-network
+
+volumes:
+  aeon_temp:
+  aeon_cache:
+  aeon_logs:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  minio_data:
+  nginx_logs:
+  fluentd_logs:
+
+networks:
+  aeon-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -13,11 +13,17 @@ export { EditorAgent } from './EditorAgent';
 // New Production EditingAgent
 export { EditingAgent, type EditingRequest } from './editing-agent';
 
+// DeepSeek + OpenAI Unified Pipeline
+export { DeepSeekScriptScenePipeline, type TrendPackage, type ScriptAndScenePlan } from './DeepSeekScriptScenePipeline';
+
 // Pipeline Orchestrator
 export { AeonPipeline } from './pipeline';
 
 // Storage Manager
 export { StorageManager } from '../storage-manager';
+
+// Import for factory functions
+import { DeepSeekScriptScenePipeline } from './DeepSeekScriptScenePipeline';
 
 // Type Exports
 export type { TrendingTopic, TrendsAnalysis } from './TrendsAgent';
@@ -37,6 +43,7 @@ export const createScenePlanner = () => new ScenePlannerAgent();
 export const createStitcher = () => new StitcherAgent();
 export const createEditor = () => new EditorAgent();
 export const createPipeline = () => new AeonPipeline();
+export const createDeepSeekPipeline = () => new DeepSeekScriptScenePipeline();
 export const createStorageManager = () => new StorageManager();
 
 /**

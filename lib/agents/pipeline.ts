@@ -3,6 +3,8 @@
  * Coordinates all agents for end-to-end video creation
  */
 
+import { generateCinematicScript } from './ScriptWriterAgent';
+import { validateScriptStructure } from './ScenePlannerAgent';
 import { TrendsAgent } from './TrendsAgent';
 import { ScriptWriterAgent, VideoScript, ScriptScene } from './ScriptWriterAgent';
 import { ScenePlannerAgent, PlannedScene, ScenePlan } from './ScenePlannerAgent';
@@ -47,6 +49,16 @@ export interface PipelineProgress {
   message: string;
   agent: string;
   timestamp: string;
+}
+
+export async function runScriptGeneration(topic: string, style: string) {
+  const script = await generateCinematicScript(topic, style);
+  if (!validateScriptStructure(script)) {
+    throw new Error("Generated script does not match cinematic schema. Manual fix or re-run required.");
+  }
+  // Pass script object to ScenePlannerAgent, VisualGeneratorAgent, etc.
+  // ...
+  return script;
 }
 
 export class AeonPipeline {
@@ -520,8 +532,8 @@ export async function createVideoScriptPipeline(
   console.log(`🎬 Starting Viral TikTok Pipeline for: "${topic}"`);
 
   try {
-    // Initialize agents
-    const scriptAgent = new ScriptWriterAgent(env.OPENAI_API_KEY);
+    // Initialize agents (ScriptWriterAgent now uses DeepSeek)
+    const scriptAgent = new ScriptWriterAgent();
     const planner = new ScenePlannerAgent();
 
     // Generate viral script with TikTok techniques

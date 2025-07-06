@@ -2,7 +2,7 @@ import type React from "react"
 import "./globals.css"
 import { Inter } from "next/font/google"
 import Header from "@/components/header"
-import { Toaster } from "sonner"
+import { Toaster } from "@/components/ui/toaster"
 import AnimatedBackground from "@/components/animated-background"
 import PerformanceOptimizer from "@/components/performance-optimizer"
 
@@ -29,7 +29,7 @@ export default function RootLayout({
           <Header />
           <main className="relative z-10 pt-24">{children}</main>
         </div>
-        <Toaster position="top-right" theme="dark" />
+        <Toaster />
       </body>
     </html>
   )

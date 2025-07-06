@@ -1,0 +1,270 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aeon-editor-agent-config
+  namespace: aeon
+  labels:
+    app: aeon-editor-agent
+data:
+  # Application configuration
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  FASTAPI_ENV: "production"
+  FASTAPI_DEBUG: "false"
+  
+  # GPU configuration
+  CUDA_VISIBLE_DEVICES: "0"
+  NVIDIA_VISIBLE_DEVICES: "all"
+  NVIDIA_DRIVER_CAPABILITIES: "compute,utility,video"
+  CUDA_MEMORY_FRACTION: "0.8"
+  PYTORCH_CUDA_ALLOC_CONF: "max_split_size_mb:512"
+  
+  # Performance tuning
+  OMP_NUM_THREADS: "4"
+  MKL_NUM_THREADS: "4"
+  NUMBA_NUM_THREADS: "4"
+  NUMBA_CACHE_DIR: "/tmp/numba_cache"
+  CUDA_CACHE_PATH: "/tmp/cuda_cache"
+  MOVIEPY_TEMP_DIR: "/tmp/moviepy_temp"
+  
+  # Monitoring configuration
+  PROMETHEUS_MULTIPROC_DIR: "/tmp/prometheus"
+  ENABLE_GPU_MONITORING: "true"
+  MONITORING_INTERVAL: "15"
+  
+  # Processing limits
+  MAX_CONCURRENT_JOBS: "3"
+  MAX_VIDEO_DURATION: "300"
+  MAX_FILE_SIZE_MB: "500"
+  CLEANUP_INTERVAL: "3600"
+  
+  # Viral optimization settings
+  DEFAULT_VIRAL_MODE: "true"
+  DEFAULT_QUALITY: "high"
+  DEFAULT_ASPECT_RATIO: "9:16"
+  ENABLE_FACE_DETECTION: "true"
+  ENABLE_GPU_ACCELERATION: "true"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aeon-editor-agent-secrets
+  namespace: aeon
+  labels:
+    app: aeon-editor-agent
+type: Opaque
+data:
+  # Base64 encoded secrets (replace with actual values)
+  API_SECRET_KEY: YWVvbi1zZWNyZXQta2V5LWNoYW5nZS1tZQ==
+  SENTRY_DSN: ""
+  WEBHOOK_SECRET: ""
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aeon-editor-agent-nginx-config
+  namespace: aeon
+data:
+  nginx.conf: |
+    upstream aeon_backend {
+        least_conn;
+        server aeon-editor-agent-service:80 max_fails=3 fail_timeout=30s;
+    }
+    
+    server {
+        listen 80;
+        server_name _;
+        
+        client_max_body_size 1G;
+        client_body_timeout 300s;
+        client_header_timeout 60s;
+        
+        # Rate limiting
+        limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+        limit_req_zone $binary_remote_addr zone=upload:10m rate=2r/s;
+        
+        # Health check endpoint
+        location /health {
+            proxy_pass http://aeon_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_connect_timeout 5s;
+            proxy_send_timeout 10s;
+            proxy_read_timeout 10s;
+        }
+        
+        # Metrics endpoint (restricted)
+        location /metrics {
+            allow 10.0.0.0/8;
+            allow 172.16.0.0/12;
+            allow 192.168.0.0/16;
+            deny all;
+            
+            proxy_pass http://aeon_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        
+        # Video upload endpoint
+        location /edit {
+            limit_req zone=upload burst=5 nodelay;
+            
+            proxy_pass http://aeon_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_connect_timeout 30s;
+            proxy_send_timeout 600s;
+            proxy_read_timeout 600s;
+            proxy_request_buffering off;
+        }
+        
+        # Status and download endpoints
+        location ~ ^/(status|download)/ {
+            limit_req zone=api burst=20 nodelay;
+            
+            proxy_pass http://aeon_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_connect_timeout 10s;
+            proxy_send_timeout 60s;
+            proxy_read_timeout 60s;
+        }
+        
+        # API endpoints
+        location / {
+            limit_req zone=api burst=10 nodelay;
+            
+            proxy_pass http://aeon_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_connect_timeout 10s;
+            proxy_send_timeout 30s;
+            proxy_read_timeout 30s;
+        }
+        
+        # Logging
+        access_log /var/log/nginx/aeon_access.log;
+        error_log /var/log/nginx/aeon_error.log;
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aeon-editor-agent-prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    
+    rule_files:
+      - "aeon_rules.yml"
+    
+    scrape_configs:
+    - job_name: 'aeon-editor-agent'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - aeon
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+    
+    - job_name: 'kubernetes-nodes'
+      kubernetes_sd_configs:
+      - role: node
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+    
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          - alertmanager:9093
+
+  aeon_rules.yml: |
+    groups:
+    - name: aeon_editor_agent
+      rules:
+      - alert: AeonHighCPUUsage
+        expr: aeon_cpu_usage_percent > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AEON Editor Agent high CPU usage"
+          description: "CPU usage is above 90% for more than 5 minutes"
+      
+      - alert: AeonHighMemoryUsage
+        expr: aeon_memory_usage_percent > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AEON Editor Agent high memory usage"
+          description: "Memory usage is above 90% for more than 5 minutes"
+      
+      - alert: AeonGPUTemperatureHigh
+        expr: aeon_gpu_temperature_celsius > 85
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AEON GPU temperature too high"
+          description: "GPU temperature is above 85°C for more than 2 minutes"
+      
+      - alert: AeonJobFailureRate
+        expr: rate(aeon_processing_jobs_total{status="failed"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AEON high job failure rate"
+          description: "Job failure rate is above 10% for more than 2 minutes"
+      
+      - alert: AeonServiceDown
+        expr: up{job="aeon-editor-agent"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AEON Editor Agent service is down"
+          description: "AEON Editor Agent service has been down for more than 1 minute"
+      
+      - alert: AeonHighRequestLatency
+        expr: histogram_quantile(0.95, rate(aeon_request_duration_seconds_bucket[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AEON high request latency"
+          description: "95th percentile latency is above 30 seconds for more than 5 minutes"

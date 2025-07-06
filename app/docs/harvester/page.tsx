@@ -1,740 +1,625 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Search, 
-  Edit, 
-  Settings, 
-  Download, 
-  Play, 
-  Square, 
-  CheckSquare, 
-  X,
-  FileText,
-  Database,
-  Code,
-  FileSpreadsheet,
-  Target
-} from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Globe, Download, CheckCircle2, XCircle, FileText } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-type TabType = 'discover' | 'manual' | 'process';
-
-interface SiteExample {
-  name: string;
+// Interfaces
+interface CrawlResult {
   url: string;
-  description: string;
-  emoji: string;
-}
-
-interface DiscoveredUrl {
-  url: string;
-  selected: boolean;
-}
-
-interface ProcessingResult {
-  url: string;
-  status: 'success' | 'error';
-  title?: string;
-  content?: string;
+  title: string;
+  content: string;
+  links: string[];
+  wordCount: number;
+  status: 'success' | 'failed';
   error?: string;
-  size?: number;
+  filename?: string;
 }
 
-export default function DocHarvesterPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('discover');
-  const [isRunning, setIsRunning] = useState(false);
-  const [shouldStop, setShouldStop] = useState(false);
-  
-  // Discovery state
-  const [baseUrl, setBaseUrl] = useState('');
-  const [maxDepth, setMaxDepth] = useState(2);
-  const [useJS, setUseJS] = useState(false);
-  const [discoveredUrls, setDiscoveredUrls] = useState<DiscoveredUrl[]>([]);
-  const [showDiscovered, setShowDiscovered] = useState(false);
-  
-  // Manual state
-  const [urlList, setUrlList] = useState('');
-  const [delay, setDelay] = useState(1000);
-  const [maxRetries, setMaxRetries] = useState(3);
-  const [batchSize, setBatchSize] = useState(5);
-  
-  // Progress state
-  const [progress, setProgress] = useState(0);
-  const [progressText, setProgressText] = useState('');
-  const [progressStats, setProgressStats] = useState('0/0');
-  const [showProgress, setShowProgress] = useState(false);
-  
-  // Results state
-  const [results, setResults] = useState<ProcessingResult[]>([]);
-  const [showResults, setShowResults] = useState(false);
-  
-  const abortControllerRef = useRef<AbortController | null>(null);
+interface CrawlOptions {
+  maxDepth: number;
+  maxPages: number;
+  respectRobots: boolean;
+  onProgress?: (progress: { discovered: number; processed: number; current: string }) => void;
+  onLog?: (message: string) => void;
+}
 
-  const siteExamples: SiteExample[] = [
-    { name: 'Stripe Docs', url: 'https://docs.stripe.com', description: 'Payment processing documentation', emoji: '🏦' },
-    { name: 'Python Docs', url: 'https://docs.python.org', description: 'Python language reference', emoji: '🐍' },
-    { name: 'React Docs', url: 'https://react.dev', description: 'React framework documentation', emoji: '⚛️' },
-    { name: 'Docker Docs', url: 'https://docs.docker.com', description: 'Container platform docs', emoji: '🐳' },
-    { name: 'Next.js Docs', url: 'https://nextjs.org/docs', description: 'React framework documentation', emoji: '⚡' },
-    { name: 'Anthropic Docs', url: 'https://docs.anthropic.com', description: 'Claude API documentation', emoji: '🤖' }
-  ];
+interface CrawlJob {
+  id: string;
+  url: string;
+  status: 'idle' | 'running' | 'completed' | 'failed';
+  progress: { discovered: number; processed: number; current: string };
+  results: CrawlResult[];
+  logs: string[];
+}
 
-  const handleSiteExampleClick = (url: string) => {
-    setBaseUrl(url);
-  };
+// WebCrawler class adapted for browser environment
+class WebCrawler {
+  private visited = new Set<string>();
+  private discovered = new Set<string>();
+  private queue: string[] = [];
+  private results: CrawlResult[] = [];
+  private baseUrl: string = '';
+  private baseDomain: string = '';
 
-  const handleDiscoverUrls = async () => {
-    if (!baseUrl.trim()) {
-      alert('Please enter a base URL');
-      return;
-    }
+  async crawl(startUrl: string, options: CrawlOptions): Promise<CrawlResult[]> {
+    this.reset();
+    this.baseUrl = new URL(startUrl).origin;
+    this.baseDomain = new URL(startUrl).hostname;
 
-    setIsRunning(true);
-    setProgressText('Discovering documentation URLs...');
-    setShowProgress(true);
+    this.queue.push(startUrl);
+    this.discovered.add(startUrl);
 
-    try {
-      const response = await fetch('/api/harvester', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          base_url: baseUrl,
-          max_depth: maxDepth,
-          use_js: useJS
-        })
-      });
+    options.onLog?.(`Starting crawl from: ${startUrl}`);
+    options.onLog?.(`Domain: ${this.baseDomain}`);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
+    let depth = 0;
+    while (this.queue.length > 0 && depth < options.maxDepth && this.results.length < options.maxPages) {
+      const currentBatch = [...this.queue];
+      this.queue = [];
 
-      const data = await response.json();
+      options.onLog?.(`Processing depth ${depth + 1} with ${currentBatch.length} URLs`);
 
-      // Extract URLs from the harvested results
-      const urls = data.results ? data.results.map((result: any) => result.url) : [];
-      const urlsWithSelection = urls.map((url: string) => ({ url, selected: true }));
-      setDiscoveredUrls(urlsWithSelection);
-      setShowDiscovered(true);
-      setProgressText(`Discovered ${urls.length} URLs`);
-      
-    } catch (error) {
-      console.error('Discovery failed:', error);
-      alert(`Failed to discover URLs: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setShowProgress(false);
-    } finally {
-      setIsRunning(false);
-    }
-  };
+      for (const url of currentBatch) {
+        if (this.visited.has(url) || this.results.length >= options.maxPages) continue;
 
-  const handleSelectAll = () => {
-    setDiscoveredUrls(urls => urls.map(url => ({ ...url, selected: true })));
-  };
-
-  const handleSelectNone = () => {
-    setDiscoveredUrls(urls => urls.map(url => ({ ...url, selected: false })));
-  };
-
-  const handleUrlToggle = (index: number) => {
-    setDiscoveredUrls(urls => 
-      urls.map((url, i) => 
-        i === index ? { ...url, selected: !url.selected } : url
-      )
-    );
-  };
-
-  const handleFetchSelected = async () => {
-    const selectedUrls = discoveredUrls.filter(url => url.selected).map(url => url.url);
-    if (selectedUrls.length === 0) {
-      alert('Please select at least one URL');
-      return;
-    }
-    await fetchUrls(selectedUrls);
-  };
-
-  const handleStartManualFetching = async () => {
-    const urls = getCleanUrls();
-    if (urls.length === 0) {
-      alert('Please enter at least one valid URL');
-      return;
-    }
-    await fetchUrls(urls);
-  };
-
-  const getCleanUrls = (): string[] => {
-    const text = urlList.trim();
-    if (!text) return [];
-    
-    return text.split('\n')
-      .map(url => url.trim())
-      .filter(url => url && url.startsWith('http'))
-      .filter((url, index, arr) => arr.indexOf(url) === index);
-  };
-
-  const fetchUrls = async (urls: string[]) => {
-    setIsRunning(true);
-    setShouldStop(false);
-    setResults([]);
-    setShowProgress(true);
-    setShowResults(true);
-    
-    abortControllerRef.current = new AbortController();
-    
-    try {
-      for (let i = 0; i < urls.length; i += batchSize) {
-        if (shouldStop) break;
-        
-        const batch = urls.slice(i, i + batchSize);
-        const promises = batch.map(url => fetchSingleDocument(url));
-        
-        await Promise.allSettled(promises);
-        
-        const completed = Math.min(i + batchSize, urls.length);
-        setProgress((completed / urls.length) * 100);
-        setProgressStats(`${completed}/${urls.length}`);
-        
-        if (i + batchSize < urls.length && !shouldStop) {
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-      }
-      
-      setProgressText(`Completed! Fetched ${results.length} documents`);
-    } catch (error) {
-      console.error('Fetching failed:', error);
-      setProgressText('Fetching interrupted');
-    } finally {
-      setIsRunning(false);
-      setShouldStop(false);
-      abortControllerRef.current = null;
-    }
-  };
-
-  const fetchSingleDocument = async (url: string): Promise<void> => {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      if (shouldStop) return;
-
-      try {
-        setProgressText(`Fetching: ${getDisplayUrl(url)} (attempt ${attempt})`);
-
-        const response = await fetch('/api/harvester', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            urls: [url],
-            use_js: useJS
-          }),
-          signal: abortControllerRef.current?.signal
+        options.onProgress?.({
+          discovered: this.discovered.size,
+          processed: this.visited.size,
+          current: url
         });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
+        try {
+          const result = await this.crawlPage(url, options);
+          this.results.push(result);
+          this.visited.add(url);
 
-        const data = await response.json();
+          // Add discovered links to queue for next depth
+          for (const link of result.links) {
+            if (!this.discovered.has(link) && this.isValidDocLink(link)) {
+              this.queue.push(link);
+              this.discovered.add(link);
+            }
+          }
 
-        // Extract the first result from the harvester response
-        const harvestResult = data.results && data.results[0];
-        if (!harvestResult) {
-          throw new Error('No content returned from harvester');
-        }
-
-        const result: ProcessingResult = {
-          url,
-          status: harvestResult.success ? 'success' : 'error',
-          content: harvestResult.content || '',
-          title: harvestResult.title || '',
-          size: harvestResult.content ? harvestResult.content.length : 0
-        };
-
-        setResults(prev => [...prev, result]);
-        return;
-        
-      } catch (error) {
-        console.error(`Attempt ${attempt} failed for ${url}:`, error);
-        
-        if (attempt === maxRetries) {
-          const result: ProcessingResult = {
+          options.onLog?.(`✓ ${result.title} (${result.wordCount} words, ${result.links.length} links found)`);
+        } catch (error) {
+          options.onLog?.(`✗ Failed: ${url} - ${error}`);
+          this.results.push({
             url,
-            status: 'error',
-            error: error instanceof Error ? error.message : 'Unknown error'
-          };
-          
-          setResults(prev => [...prev, result]);
-        } else {
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            title: 'Failed to load',
+            content: '',
+            links: [],
+            wordCount: 0,
+            status: 'failed',
+            error: String(error)
+          });
+          this.visited.add(url);
         }
+
+        // Delay to avoid overwhelming server
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      depth++;
+    }
+
+    options.onLog?.(`Crawl completed: ${this.results.length} pages processed, ${this.discovered.size} total discovered`);
+    return this.results;
+  }
+
+  private async crawlPage(url: string, options: CrawlOptions): Promise<CrawlResult> {
+    // Use fetch with proper headers to avoid being blocked
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; DocHarvester/1.0)'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    // Extract title with better fallbacks
+    let title = doc.querySelector('title')?.textContent?.trim() || '';
+    if (!title) {
+      title = doc.querySelector('h1')?.textContent?.trim() || '';
+    }
+    if (!title) {
+      const pathParts = new URL(url).pathname.split('/');
+      title = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2] || 'Untitled';
+    }
+
+    // Clean title for filename
+    const filename = this.sanitizeFilename(title);
+
+    // Extract content with better selectors
+    const content = this.extractContent(doc);
+
+    // Extract all valid links
+    const links = this.extractLinks(doc, url);
+
+    return {
+      url,
+      title: title.trim(),
+      content,
+      links,
+      wordCount: content.split(/\s+/).filter(w => w.length > 0).length,
+      status: 'success',
+      filename
+    };
+  }
+
+  private extractContent(doc: Document): string {
+    // Remove unwanted elements
+    const unwanted = doc.querySelectorAll('script, style, nav, header, footer, .nav, .navbar, .sidebar, .menu, .advertisement, .ads');
+    unwanted.forEach(el => el.remove());
+
+    // Try multiple content selectors in order of preference
+    const contentSelectors = [
+      'main', '[role="main"]', '.main-content', '#main-content',
+      '.content', '#content', '.documentation', '.docs',
+      'article', '.article', '.post', '.entry-content',
+      '.markdown-body', '.wiki-content', '.page-content'
+    ];
+
+    for (const selector of contentSelectors) {
+      const element = doc.querySelector(selector);
+      if (element && element.textContent && element.textContent.trim().length > 100) {
+        return this.cleanText(element.textContent);
       }
     }
-  };
 
-  const getDisplayUrl = (url: string): string => {
+    // Fallback: try to get meaningful content from body
+    const body = doc.body;
+    if (body) {
+      return this.cleanText(body.textContent || '');
+    }
+
+    return '';
+  }
+
+  private extractLinks(doc: Document, baseUrl: string): string[] {
+    const links: string[] = [];
+    const anchors = doc.querySelectorAll('a[href]');
+
+    for (const anchor of anchors) {
+      const href = anchor.getAttribute('href');
+      if (!href) continue;
+
+      // Skip hash fragments, mailto, tel, etc.
+      if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) continue;
+
+      try {
+        const absoluteUrl = new URL(href, baseUrl).href;
+        const urlObj = new URL(absoluteUrl);
+
+        // Only include links from the same domain
+        if (urlObj.hostname === this.baseDomain) {
+          // Remove hash fragments from the URL
+          urlObj.hash = '';
+          links.push(urlObj.href);
+        }
+      } catch (error) {
+        // Invalid URL, skip
+      }
+    }
+
+    return [...new Set(links)]; // Remove duplicates
+  }
+
+  private isValidDocLink(url: string): boolean {
     try {
       const urlObj = new URL(url);
-      return urlObj.pathname.substring(1) || urlObj.hostname;
+
+      // Skip non-HTTP protocols
+      if (!['http:', 'https:'].includes(urlObj.protocol)) return false;
+
+      // Skip different domains
+      if (urlObj.hostname !== this.baseDomain) return false;
+
+      // Skip common non-doc file types
+      const skipExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.svg', '.css', '.js', '.zip', '.tar', '.gz', '.ico', '.woff', '.woff2', '.ttf', '.eot'];
+      if (skipExtensions.some(ext => urlObj.pathname.toLowerCase().endsWith(ext))) return false;
+
+      // Skip common non-content paths
+      const skipPaths = ['/api/', '/admin/', '/login', '/logout', '/register', '/search', '/contact'];
+      if (skipPaths.some(path => urlObj.pathname.toLowerCase().includes(path))) return false;
+
+      return true;
     } catch {
-      return url;
+      return false;
     }
-  };
+  }
 
-  const handleStop = () => {
-    setShouldStop(true);
-    abortControllerRef.current?.abort();
-    setProgressText('Stopping...');
-  };
+  private cleanText(text: string): string {
+    return text
+      .replace(/\s+/g, ' ') // Replace multiple whitespace with single space
+      .replace(/\n\s*\n/g, '\n\n') // Clean up line breaks
+      .trim();
+  }
 
-  const handleProcessForLLM = async () => {
-    if (results.length === 0) {
-      alert('No documents to process. Please fetch some documents first.');
-      return;
-    }
+  private sanitizeFilename(title: string): string {
+    return title
+      .replace(/[^a-zA-Z0-9\s-_]/g, '') // Remove special chars
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .toLowerCase()
+      .substring(0, 50) // Limit length
+      || 'untitled';
+  }
 
-    setProgressText('Processing documents for LLM use...');
-    setShowProgress(true);
+  private reset() {
+    this.visited.clear();
+    this.discovered.clear();
+    this.queue = [];
+    this.results = [];
+    this.baseUrl = '';
+    this.baseDomain = '';
+  }
+}
 
-    try {
-      const response = await fetch('/api/harvest/process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documents: results })
-      });
+// FileTable Component
+interface FileTableProps {
+  results: CrawlResult[];
+  onDownload: (result: CrawlResult) => void;
+}
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      setProgressText(`✅ Created ${data.chunks_created} LLM-ready chunks`);
-      alert(`Successfully processed! Created ${data.chunks_created} chunks.`);
-      
-    } catch (error) {
-      console.error('Processing failed:', error);
-      alert(`Failed to process documents: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setShowProgress(false);
-    }
-  };
-
-  const handleExport = async (format: string) => {
-    if (results.length === 0) {
-      alert('No results to export');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/harvest/export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          documents: results,
-          format 
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `docharvester_export.${format === 'training' ? 'jsonl' : format}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-    } catch (error) {
-      console.error('Export failed:', error);
-      alert(`Failed to export: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  };
+const FileTable: React.FC<FileTableProps> = ({ results, onDownload }) => {
+  if (!results.length) {
+    return (
+      <div className="text-center py-8 text-gray-400">
+        <FileText className="w-12 h-12 mx-auto mb-4 text-purple-400" />
+        <p>No files available yet. Start a crawl to see results here.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 text-white p-8 rounded-2xl">
-            <h1 className="text-4xl font-bold mb-2">🌾 DocHarvester</h1>
-            <p className="text-xl opacity-90">Extract and process documentation from ANY website for your LLM agents</p>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="mb-8">
-          <div className="flex space-x-1 bg-black/20 p-1 rounded-lg backdrop-blur-xl border border-white/10">
-            {[
-              { id: 'discover', label: '🔍 Auto Discover', icon: Search },
-              { id: 'manual', label: '✏️ Manual URLs', icon: Edit },
-              { id: 'process', label: '⚙️ Process & Export', icon: Settings }
-            ].map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  type="button"
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`
-                    flex items-center space-x-2 px-6 py-3 rounded-md font-medium transition-all duration-200
-                    ${activeTab === tab.id
-                      ? 'bg-purple-600 text-white shadow-lg'
-                      : 'text-gray-300 hover:text-white hover:bg-white/5'
-                    }
-                  `}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Tab Content */}
-        <div className="space-y-8">
-          {/* Auto Discovery Tab */}
-          {activeTab === 'discover' && (
-            <Card className="bg-black/20 border-white/10 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <Search className="h-5 w-5" />
-                  <span>Auto-Discover Documentation</span>
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Automatically discover documentation URLs from a base URL
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Base URL Input */}
-                <div className="space-y-2">
-                  <Label htmlFor="baseUrl" className="text-white">Base Documentation URL:</Label>
-                  <Input
-                    id="baseUrl"
-                    type="url"
-                    placeholder="https://docs.stripe.com"
-                    value={baseUrl}
-                    onChange={(e) => setBaseUrl(e.target.value)}
-                    className="bg-black/20 border-white/20 text-white placeholder:text-gray-400"
-                  />
-                </div>
-
-                {/* Site Examples */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {siteExamples.map((site, index) => (
-                    <div
-                      key={index}
-                      onClick={() => handleSiteExampleClick(site.url)}
-                      className="p-4 bg-black/20 border border-white/10 rounded-lg cursor-pointer hover:bg-black/30 transition-all duration-200"
-                    >
-                      <h4 className="text-white font-medium flex items-center space-x-2">
-                        <span>{site.emoji}</span>
-                        <span>{site.name}</span>
-                      </h4>
-                      <p className="text-gray-400 text-sm mt-1">{site.description}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Controls */}
-                <div className="flex flex-wrap items-center gap-6">
-                  <div className="flex items-center space-x-2">
-                    <Label htmlFor="maxDepth" className="text-white">Max Depth:</Label>
-                    <Input
-                      id="maxDepth"
-                      type="number"
-                      min="1"
-                      max="5"
-                      value={maxDepth}
-                      onChange={(e) => setMaxDepth(parseInt(e.target.value))}
-                      className="w-20 bg-black/20 border-white/20 text-white text-center"
-                    />
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="useJS"
-                      checked={useJS}
-                      onCheckedChange={(checked) => setUseJS(checked as boolean)}
-                    />
-                    <Label htmlFor="useJS" className="text-white">Enable JavaScript (for modern sites)</Label>
-                  </div>
-
-                  <Button
-                    onClick={handleDiscoverUrls}
-                    disabled={isRunning}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    <Search className="h-4 w-4 mr-2" />
-                    Discover URLs
-                  </Button>
-                </div>
-
-                {/* Discovered URLs */}
-                {showDiscovered && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-white font-medium">📋 Discovered URLs</h3>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                          <CheckSquare className="h-4 w-4 mr-1" />
-                          Select All
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={handleSelectNone}>
-                          <X className="h-4 w-4 mr-1" />
-                          Select None
-                        </Button>
-                        <Button onClick={handleFetchSelected} disabled={isRunning}>
-                          <Play className="h-4 w-4 mr-1" />
-                          Fetch Selected
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="max-h-80 overflow-y-auto bg-black/20 border border-white/10 rounded-lg p-4 space-y-2">
-                      {discoveredUrls.map((urlItem, index) => (
-                        <div key={index} className="flex items-center space-x-3 p-2 hover:bg-white/5 rounded">
-                          <Checkbox
-                            checked={urlItem.selected}
-                            onCheckedChange={() => handleUrlToggle(index)}
-                          />
-                          <span className="text-gray-300 text-sm break-all">{urlItem.url}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+    <div className="rounded-md border border-white/10 bg-black/20 backdrop-blur-xl">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-white/10 hover:bg-white/5">
+            <TableHead className="text-gray-300">Status</TableHead>
+            <TableHead className="text-gray-300">Title</TableHead>
+            <TableHead className="text-gray-300">URL</TableHead>
+            <TableHead className="text-gray-300">Words</TableHead>
+            <TableHead className="text-gray-300">Links</TableHead>
+            <TableHead className="text-gray-300">Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {results.map((result, index) => (
+            <TableRow key={index} className="border-white/10 hover:bg-white/5">
+              <TableCell>
+                {result.status === 'success' ? (
+                  <Badge className="bg-green-600/20 text-green-400 border-green-500/30">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    Success
+                  </Badge>
+                ) : (
+                  <Badge variant="destructive" className="bg-red-600/20 text-red-400 border-red-500/30">
+                    <XCircle className="w-3 h-3 mr-1" />
+                    Failed
+                  </Badge>
                 )}
-              </CardContent>
-            </Card>
-          )}
+              </TableCell>
+              <TableCell className="font-medium text-white max-w-xs truncate">
+                {result.title || 'Untitled'}
+              </TableCell>
+              <TableCell className="text-gray-300 max-w-xs truncate">
+                {result.url}
+              </TableCell>
+              <TableCell className="text-gray-300">
+                {result.wordCount.toLocaleString()}
+              </TableCell>
+              <TableCell className="text-gray-300">
+                {result.links.length}
+              </TableCell>
+              <TableCell>
+                <Button
+                  size="sm"
+                  onClick={() => onDownload(result)}
+                  disabled={result.status !== 'success'}
+                  className="bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white border-0"
+                >
+                  <Download className="w-3 h-3 mr-1" />
+                  Download
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
 
-          {/* Manual URLs Tab */}
-          {activeTab === 'manual' && (
-            <Card className="bg-black/20 border-white/10 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <Edit className="h-5 w-5" />
-                  <span>Manual URL Entry</span>
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Enter URLs manually for precise control over what gets extracted
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* URL List */}
-                <div className="space-y-2">
-                  <Label htmlFor="urlList" className="text-white">Enter URLs (one per line):</Label>
-                  <Textarea
-                    id="urlList"
-                    placeholder={`https://docs.stripe.com/api
-https://docs.stripe.com/payments
-https://docs.stripe.com/billing
-...`}
-                    value={urlList}
-                    onChange={(e) => setUrlList(e.target.value)}
-                    className="min-h-40 bg-black/20 border-white/20 text-white placeholder:text-gray-400 font-mono"
-                  />
-                </div>
+export default function DocHarvesterPage() {
+  const [url, setUrl] = useState('');
+  const [currentJob, setCurrentJob] = useState<CrawlJob | null>(null);
+  const [crawler] = useState(() => new WebCrawler());
+  const { toast } = useToast();
 
-                {/* Controls */}
-                <div className="flex flex-wrap items-center gap-6">
-                  <div className="flex items-center space-x-2">
-                    <Label htmlFor="delay" className="text-white">Delay (ms):</Label>
-                    <Input
-                      id="delay"
-                      type="number"
-                      min="500"
-                      max="5000"
-                      value={delay}
-                      onChange={(e) => setDelay(parseInt(e.target.value))}
-                      className="w-24 bg-black/20 border-white/20 text-white text-center"
-                    />
-                  </div>
+  const addLog = useCallback((message: string) => {
+    setCurrentJob(prev => prev ? {
+      ...prev,
+      logs: [...prev.logs, `${new Date().toLocaleTimeString()}: ${message}`]
+    } : null);
+  }, []);
 
-                  <div className="flex items-center space-x-2">
-                    <Label htmlFor="maxRetries" className="text-white">Max retries:</Label>
-                    <Input
-                      id="maxRetries"
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={maxRetries}
-                      onChange={(e) => setMaxRetries(parseInt(e.target.value))}
-                      className="w-20 bg-black/20 border-white/20 text-white text-center"
-                    />
-                  </div>
+  const updateProgress = useCallback((progress: { discovered: number; processed: number; current: string }) => {
+    setCurrentJob(prev => prev ? {
+      ...prev,
+      progress
+    } : null);
+  }, []);
 
-                  <div className="flex items-center space-x-2">
-                    <Label htmlFor="batchSize" className="text-white">Batch size:</Label>
-                    <Input
-                      id="batchSize"
-                      type="number"
-                      min="1"
-                      max="20"
-                      value={batchSize}
-                      onChange={(e) => setBatchSize(parseInt(e.target.value))}
-                      className="w-20 bg-black/20 border-white/20 text-white text-center"
-                    />
-                  </div>
+  const startCrawl = async () => {
+    if (!url.trim()) {
+      toast({ title: 'Error', description: 'Please enter a valid URL', variant: 'destructive' });
+      return;
+    }
 
-                  <Button
-                    onClick={handleStartManualFetching}
-                    disabled={isRunning}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    <Play className="h-4 w-4 mr-2" />
-                    Start Fetching
-                  </Button>
+    const newJob: CrawlJob = {
+      id: Date.now().toString(),
+      url: url.trim(),
+      status: 'running',
+      progress: { discovered: 0, processed: 0, current: '' },
+      results: [],
+      logs: []
+    };
 
-                  <Button
-                    onClick={handleStop}
-                    disabled={!isRunning}
-                    variant="outline"
-                  >
-                    <Square className="h-4 w-4 mr-2" />
-                    Stop
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+    setCurrentJob(newJob);
+    addLog(`Starting crawl: ${newJob.url}`);
 
-          {/* Process & Export Tab */}
-          {activeTab === 'process' && (
-            <Card className="bg-black/20 border-white/10 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center space-x-2">
-                  <Settings className="h-5 w-5" />
-                  <span>Process & Export</span>
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Convert your fetched documentation into LLM-ready formats with embeddings and search capabilities
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Processing Controls */}
-                <div className="flex space-x-4">
-                  <Button
-                    onClick={handleProcessForLLM}
-                    disabled={results.length === 0}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    <Database className="h-4 w-4 mr-2" />
-                    Process for LLM
-                  </Button>
+    try {
+      const options: CrawlOptions = {
+        maxDepth: 3,
+        maxPages: 50,
+        respectRobots: true,
+        onProgress: updateProgress,
+        onLog: addLog
+      };
 
-                  <Button
-                    onClick={() => alert('Embeddings generation requires the Python script. Please run the generate_embeddings.py script from your output directory.')}
-                    variant="outline"
-                  >
-                    <Code className="h-4 w-4 mr-2" />
-                    Generate Embeddings
-                  </Button>
-                </div>
+      const results = await crawler.crawl(newJob.url, options);
 
-                {/* Export Section */}
-                <div className="border-t border-white/10 pt-6">
-                  <h3 className="text-white font-medium mb-4 flex items-center space-x-2">
-                    <Download className="h-5 w-5" />
-                    <span>Export Results</span>
-                  </h3>
+      setCurrentJob(prev => prev ? {
+        ...prev,
+        status: 'completed',
+        results
+      } : null);
 
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                    {[
-                      { format: 'json', label: 'JSON', icon: FileText, description: 'Structured data' },
-                      { format: 'markdown', label: 'Markdown', icon: FileText, description: 'Human readable' },
-                      { format: 'text', label: 'Text', icon: FileText, description: 'Plain text' },
-                      { format: 'csv', label: 'CSV', icon: FileSpreadsheet, description: 'Spreadsheet' },
-                      { format: 'training', label: 'Training', icon: Target, description: 'LLM training' }
-                    ].map((exportOption) => {
-                      const Icon = exportOption.icon;
-                      return (
-                        <Button
-                          key={exportOption.format}
-                          onClick={() => handleExport(exportOption.format)}
-                          disabled={results.length === 0}
-                          variant="outline"
-                          className="h-auto p-4 flex flex-col items-center space-y-2 border-white/20 hover:bg-white/5"
-                        >
-                          <Icon className="h-6 w-6" />
-                          <div className="text-center">
-                            <div className="font-medium">{exportOption.label}</div>
-                            <div className="text-xs text-gray-400">{exportOption.description}</div>
-                          </div>
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+      addLog(`SUCCESS: Crawl completed! ${results.length} pages processed`);
+      toast({ title: 'Success', description: `Crawl completed! ${results.length} pages processed.` });
+    } catch (error) {
+      addLog(`FAILED: Crawl failed - ${error}`);
+      setCurrentJob(prev => prev ? {
+        ...prev,
+        status: 'failed'
+      } : null);
+      toast({ title: 'Error', description: 'Crawl failed. Check logs for details.', variant: 'destructive' });
+    }
+  };
+
+  const downloadFile = (result: CrawlResult) => {
+    const filename = result.filename || 'untitled';
+    const content = `# ${result.title}\n\n**URL:** ${result.url}\n\n${result.content}`;
+
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({ title: 'Success', description: `Downloaded ${filename}.md` });
+  };
+
+  const downloadSummaryJSON = () => {
+    if (!currentJob?.results.length) return;
+
+    const summary = {
+      crawl_summary: {
+        total_pages: currentJob.results.length,
+        successful_pages: currentJob.results.filter(r => r.status === 'success').length,
+        failed_pages: currentJob.results.filter(r => r.status === 'failed').length,
+        total_words: currentJob.results.reduce((sum, r) => sum + r.wordCount, 0),
+        start_url: currentJob.url,
+        timestamp: new Date().toISOString()
+      },
+      generated_files: currentJob.results
+        .filter(r => r.status === 'success')
+        .map(r => ({
+          filename: `${r.filename}.md`,
+          title: r.title,
+          url: r.url,
+          word_count: r.wordCount,
+          links_found: r.links.length
+        })),
+      failed_urls: currentJob.results
+        .filter(r => r.status === 'failed')
+        .map(r => ({
+          url: r.url,
+          error: r.error
+        }))
+    };
+
+    const blob = new Blob([JSON.stringify(summary, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'crawl-summary.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({ title: 'Success', description: 'Downloaded crawl-summary.json' });
+  };
+
+  const successCount = currentJob?.results.filter(r => r.status === 'success').length || 0;
+  const failedCount = currentJob?.results.filter(r => r.status === 'failed').length || 0;
+  const totalWords = currentJob?.results.reduce((sum, r) => sum + r.wordCount, 0) || 0;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            🌾 DocHarvester
+          </h1>
+          <p className="text-purple-200">Real website crawling with individual file downloads</p>
         </div>
 
-        {/* Progress Section */}
-        {showProgress && (
-          <Card className="bg-black/20 border-white/10 backdrop-blur-xl">
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <Progress value={progress} className="w-full" />
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-300">{progressText}</span>
-                  <span className="text-gray-400">{progressStats}</span>
+        <Card className="bg-gradient-to-br from-purple-800/40 to-purple-700/20 border-purple-500/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Globe className="w-5 h-5 text-purple-400" />
+              Start Website Crawl
+            </CardTitle>
+            <CardDescription className="text-purple-200">
+              Enter a documentation website URL. Each page will be available for individual download.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="url" className="text-purple-200">Documentation Website URL</Label>
+              <Input
+                id="url"
+                placeholder="https://docs.soliditylang.org"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                disabled={currentJob?.status === 'running'}
+                className="bg-purple-900/50 border-purple-500/50 text-white placeholder:text-purple-300"
+              />
+            </div>
+            <Button
+              onClick={startCrawl}
+              disabled={!url.trim() || currentJob?.status === 'running'}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white border-0"
+            >
+              <Globe className="w-4 h-4 mr-2" />
+              {currentJob?.status === 'running' ? 'Crawling...' : 'Start Crawl'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {currentJob && (
+          <Card className="bg-gradient-to-br from-purple-800/40 to-purple-700/20 border-purple-500/30">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between text-white">
+                <span>Live Progress</span>
+                <Badge variant={currentJob.status === 'completed' ? 'default' : 'secondary'}>
+                  {currentJob.status}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm text-purple-200">
+                  <span>Current: {currentJob.progress.current || 'Starting...'}</span>
+                  <span>{currentJob.progress.processed}/{currentJob.progress.discovered}</span>
+                </div>
+                <Progress value={(currentJob.progress.processed / Math.max(currentJob.progress.discovered, 1)) * 100} className="bg-purple-900/50" />
+              </div>
+              <div className="grid grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-purple-400">{currentJob.progress.discovered}</div>
+                  <div className="text-sm text-purple-200">Links Found</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-green-400">{successCount}</div>
+                  <div className="text-sm text-purple-200">Success</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-red-400">{failedCount}</div>
+                  <div className="text-sm text-purple-200">Failed</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-white">{totalWords.toLocaleString()}</div>
+                  <div className="text-sm text-purple-200">Words</div>
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Results Section */}
-        {showResults && results.length > 0 && (
-          <Card className="bg-black/20 border-white/10 backdrop-blur-xl">
-            <CardHeader>
-              <CardTitle className="text-white">📊 Processing Results</CardTitle>
-              <CardDescription className="text-gray-400">
-                {results.length} documents processed
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {results.map((result, index) => (
-                  <div
-                    key={index}
-                    className="p-4 bg-black/20 border border-white/10 rounded-lg"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-white font-medium text-sm break-all">
-                        {getDisplayUrl(result.url)}
-                      </div>
-                      <Badge
-                        variant={result.status === 'success' ? 'default' : 'destructive'}
-                        className={result.status === 'success' ? 'bg-green-600' : 'bg-red-600'}
-                      >
-                        {result.status === 'success' ? 'Success' : 'Error'}
-                      </Badge>
-                    </div>
-                    <div className="text-gray-400 text-sm">
-                      {result.status === 'success'
-                        ? `📄 ${result.title} (${result.size || 0} characters)`
-                        : `❌ ${result.error}`
-                      }
-                    </div>
+        <Tabs defaultValue="files" className="space-y-4">
+          <TabsList className="bg-purple-900/50 border-purple-500/30">
+            <TabsTrigger value="files" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Files</TabsTrigger>
+            <TabsTrigger value="logs" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Logs</TabsTrigger>
+            <TabsTrigger value="export" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Export</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="files">
+            <Card className="bg-gradient-to-br from-purple-800/40 to-purple-700/20 border-purple-500/30">
+              <CardHeader>
+                <CardTitle className="text-white">Downloaded Files</CardTitle>
+                <CardDescription className="text-purple-200">
+                  Click "Download" to get individual .md files named after page titles
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FileTable
+                  results={currentJob?.results || []}
+                  onDownload={downloadFile}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="logs">
+            <Card className="bg-gradient-to-br from-purple-800/40 to-purple-700/20 border-purple-500/30">
+              <CardHeader>
+                <CardTitle className="text-white">Live Logs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-96">
+                  <div className="space-y-1 font-mono text-sm">
+                    {currentJob?.logs.map((log, index) => (
+                      <div key={index} className="text-purple-200">{log}</div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="export">
+            <Card className="bg-gradient-to-br from-purple-800/40 to-purple-700/20 border-purple-500/30">
+              <CardHeader>
+                <CardTitle className="text-white">Export Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  onClick={downloadSummaryJSON}
+                  disabled={!currentJob?.results.length}
+                  className="w-full h-16 flex-col bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white border-0"
+                >
+                  <Download className="w-5 h-5 mb-1" />
+                  Download Summary JSON
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
-}
+

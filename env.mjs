@@ -22,9 +22,13 @@ export const env = createEnv({
     
     // AI APIs
     OPENAI_API_KEY: z.string().min(1),
+    DEEPSEEK_API_KEY: z.string().min(1),
     CLAUDE_API_KEY: z.string().min(1),
     REPLICATE_API_TOKEN: z.string().min(1),
     ELEVENLABS_API_KEY: z.string().min(1),
+
+    // Redis
+    REDIS_URL: z.string().url().optional(),
     
     // EmailJS (optional)
     EMAILJS_SERVICE_ID: z.string().min(1).optional(),
@@ -76,9 +80,11 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY,
     CLAUDE_API_KEY: process.env.CLAUDE_API_KEY,
     REPLICATE_API_TOKEN: process.env.REPLICATE_API_TOKEN,
     ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY,
+    REDIS_URL: process.env.REDIS_URL,
     EMAILJS_SERVICE_ID: process.env.EMAILJS_SERVICE_ID,
     EMAILJS_TEMPLATE_ID: process.env.EMAILJS_TEMPLATE_ID,
     DASH0_AUTH_TOKEN: process.env.DASH0_AUTH_TOKEN,
