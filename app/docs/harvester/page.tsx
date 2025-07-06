@@ -622,4 +622,5 @@ export default function DocHarvesterPage() {
       </div>
     </div>
   );
+}
 
