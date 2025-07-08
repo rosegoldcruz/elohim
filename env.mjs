@@ -11,14 +11,14 @@ export const env = createEnv({
     CLERK_SECRET_KEY: z.string().min(1),
     CLERK_JWT_KEY: z.string().min(1).optional(),
     
-    // Database
-    DATABASE_URL: z.string().url(),
-    POSTGRES_URL: z.string().url(),
+    // Database (optional since using Clerk for auth)
+    DATABASE_URL: z.string().url().optional(),
+    POSTGRES_URL: z.string().url().optional(),
     
-    // Supabase (for database only)
-    SUPABASE_URL: z.string().url(),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-    SUPABASE_JWT_SECRET: z.string().min(1),
+    // Supabase (optional - for database only, not auth)
+    SUPABASE_URL: z.string().url().optional(),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+    SUPABASE_JWT_SECRET: z.string().min(1).optional(),
     
     // Stripe
     STRIPE_SECRET_KEY: z.string().min(1),
@@ -56,9 +56,9 @@ export const env = createEnv({
     // Clerk Public
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
     
-    // Supabase Public (for database only)
-    NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+    // Supabase Public (optional - for database only, not auth)
+    NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
     
     // Stripe Public
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_API: z.string().min(1),

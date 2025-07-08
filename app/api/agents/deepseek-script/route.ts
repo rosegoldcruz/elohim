@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { DeepSeekScriptScenePipeline, ScriptWriterAgent } from '@/lib/agents';
+import { DeepSeekScriptScenePipeline, generateCinematicScript } from '@/lib/agents';
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,19 +65,7 @@ export async function POST(request: NextRequest) {
               
             } else {
               // Script-only generation
-              const scriptAgent = new ScriptWriterAgent();
-              
-              const script = await scriptAgent.generateScriptStream(
-                topic,
-                { duration, tone, platform, sceneCount },
-                (chunk) => {
-                  const data = JSON.stringify({ 
-                    type: 'script_chunk', 
-                    content: chunk 
-                  });
-                  controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-                }
-              );
+              const script = await generateCinematicScript(topic, tone);
 
               // Send final result
               const finalData = JSON.stringify({ 
@@ -125,19 +113,13 @@ export async function POST(request: NextRequest) {
       
     } else {
       // Script-only generation
-      const scriptAgent = new ScriptWriterAgent();
-      const script = await scriptAgent.generateScript(topic, {
-        duration,
-        tone,
-        platform,
-        sceneCount
-      });
+      const script = await generateCinematicScript(topic, tone);
 
       return NextResponse.json({
         success: true,
         data: { script },
-        model_used: 'deepseek-chat',
-        viral_techniques: script.metadata.viralTechniques,
+        model_used: 'gpt-4o',
+        viral_techniques: ['hook', 'storytelling', 'cta'],
         scene_count: script.scenes.length
       });
     }
