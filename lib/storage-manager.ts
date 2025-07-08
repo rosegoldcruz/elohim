@@ -4,12 +4,11 @@
  */
 
 import { put, del, list } from '@vercel/blob';
-import { createClient } from '@/lib/supabase/server';
 import { writeFile, readFile, mkdir, unlink } from 'fs/promises';
 import path from 'path';
 
 export interface StorageOptions {
-  provider?: 'vercel' | 'supabase' | 'local';
+  provider?: 'vercel' | 'local';
   bucket?: string;
   public_access?: boolean;
   content_type?: string;
@@ -250,52 +249,20 @@ export class StorageManager {
   }
 
   /**
-   * Save to Supabase Storage
+   * Supabase storage removed - use Vercel Blob or local storage
    */
   private async saveToSupabase(
     filename: string,
     data: Buffer,
     options: StorageOptions
   ): Promise<StorageResult> {
-    try {
-      const supabase = createClient();
-      const bucket = options.bucket || 'videos';
-      
-      const { data: uploadData, error } = await supabase.storage
-        .from(bucket)
-        .upload(filename, data, {
-          contentType: options.content_type,
-          upsert: true
-        });
-      
-      if (error) {
-        throw error;
-      }
-      
-      const { data: publicData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filename);
-      
-      return {
-        success: true,
-        url: publicData.publicUrl,
-        size: data.length,
-        provider: 'supabase',
-        metadata: {
-          path: uploadData.path,
-          bucket
-        }
-      };
-      
-    } catch (error) {
-      return {
-        success: false,
-        url: '',
-        size: 0,
-        provider: 'supabase',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
+    return {
+      success: false,
+      url: '',
+      size: 0,
+      provider: 'supabase',
+      error: 'Supabase storage removed - use Vercel Blob or local storage'
+    };
   }
 
   /**
@@ -348,22 +315,10 @@ export class StorageManager {
   }
 
   /**
-   * Delete from Supabase
+   * Supabase storage removed - use Vercel Blob or local storage
    */
   private async deleteFromSupabase(url: string): Promise<void> {
-    const supabase = createClient();
-    
-    // Extract filename from URL
-    const filename = path.basename(url);
-    const bucket = 'videos'; // Default bucket
-    
-    const { error } = await supabase.storage
-      .from(bucket)
-      .remove([filename]);
-    
-    if (error) {
-      throw error;
-    }
+    throw new Error('Supabase storage removed - use Vercel Blob or local storage');
   }
 
   /**
@@ -393,28 +348,10 @@ export class StorageManager {
   }
 
   /**
-   * List files from Supabase
+   * Supabase storage removed - use Vercel Blob or local storage
    */
   private async listFromSupabase(prefix?: string): Promise<FileInfo[]> {
-    const supabase = createClient();
-    const bucket = 'videos';
-    
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .list(prefix);
-    
-    if (error) {
-      throw error;
-    }
-    
-    return (data || []).map(file => ({
-      name: file.name,
-      url: supabase.storage.from(bucket).getPublicUrl(file.name).data.publicUrl,
-      size: file.metadata?.size || 0,
-      created_at: file.created_at || new Date().toISOString(),
-      content_type: file.metadata?.mimetype || 'application/octet-stream',
-      provider: 'supabase'
-    }));
+    return [];
   }
 
   /**
@@ -428,11 +365,9 @@ export class StorageManager {
   /**
    * Detect storage provider from URL
    */
-  private detectProvider(url: string): 'vercel' | 'supabase' | 'local' {
+  private detectProvider(url: string): 'vercel' | 'local' {
     if (url.includes('blob.vercel-storage.com')) {
       return 'vercel';
-    } else if (url.includes('supabase.co')) {
-      return 'supabase';
     } else {
       return 'local';
     }
@@ -446,7 +381,7 @@ export class StorageManager {
     total_size: number;
     by_provider: Record<string, { files: number; size: number }>;
   }> {
-    const providers = ['vercel', 'supabase', 'local'] as const;
+    const providers = ['vercel', 'local'] as const;
     const stats = {
       total_files: 0,
       total_size: 0,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PreviewRequest, PreviewResponse } from '@/types/video-editor';
-import { createClient } from '@/lib/supabase';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import { put } from '@vercel/blob';
 
 /**

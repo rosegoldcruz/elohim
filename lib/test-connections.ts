@@ -1,4 +1,4 @@
-import { supabase, supabaseAdmin } from './supabase'
+// Supabase removed - using Clerk for authentication
 import { stripe } from './stripe'
 import { openai, claude, replicate, elevenlabs } from './ai-services'
 import { telemetry, elohimTelemetry } from './telemetry'

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import { Scene, BeatMarker } from '@/types/video-editor';
 
 /**

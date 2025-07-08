@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Play, Sparkles, Loader2, CheckCircle, XCircle, Download, Eye, Clock, Video } from "lucide-react"
 import { toast } from "sonner"
-import { createClient } from "@/lib/supabase/client"
+import { useUser } from "@clerk/nextjs"
 
 interface VideoProject {
   id: string
@@ -52,8 +52,8 @@ export default function StudioPage() {
   const [projects, setProjects] = useState<VideoProject[]>([])
   const [loadingProjects, setLoadingProjects] = useState(true)
   
-  // Supabase client
-  const supabase = createClient()
+  // Clerk user
+  const { user } = useUser()
 
   // Load user projects on mount
   useEffect(() => {
@@ -74,24 +74,22 @@ export default function StudioPage() {
   const loadProjects = async () => {
     try {
       setLoadingProjects(true)
-      
-      // Get current user (in production, this would come from auth)
-      const userId = 'demo-user' // TODO: Replace with real auth
-      
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(10)
 
-      if (error) {
-        console.error('Failed to load projects:', error)
-        toast.error('Failed to load projects')
+      if (!user) {
+        setProjects([])
         return
       }
 
-      setProjects(data || [])
+      // Since Supabase database was removed, projects are now stored in Clerk user metadata
+      // This is a temporary solution - you should implement a proper database
+      const userProjects = user.publicMetadata?.projects as VideoProject[] || []
+
+      // Sort by created_at descending and limit to 10
+      const sortedProjects = userProjects
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 10)
+
+      setProjects(sortedProjects)
     } catch (error) {
       console.error('Error loading projects:', error)
       toast.error('Error loading projects')
@@ -102,39 +100,37 @@ export default function StudioPage() {
 
   const updateProjectStatus = async (projectId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('id', projectId)
-        .single()
+      if (!user) return
 
-      if (error) {
-        console.error('Failed to update project status:', error)
+      // Since Supabase database was removed, projects are now stored in Clerk user metadata
+      const userProjects = user.publicMetadata?.projects as VideoProject[] || []
+      const project = userProjects.find(p => p.id === projectId)
+
+      if (!project) {
+        console.error('Project not found:', projectId)
         return
       }
 
-      if (data) {
-        setCurrentProject(data)
-        setProgress({
-          stage: data.current_stage || 'initializing',
-          progress: data.progress || 0,
-          message: data.status_message || 'Starting...',
-          agent: data.current_agent || 'System'
-        })
+      setCurrentProject(project)
+      setProgress({
+        stage: project.current_stage || 'initializing',
+        progress: project.progress || 0,
+        message: project.status_message || 'Starting...',
+        agent: project.current_agent || 'System'
+      })
 
-        // Check if generation is complete
-        if (data.status === 'completed' || data.status === 'failed') {
-          setIsGenerating(false)
-          
-          if (data.status === 'completed') {
-            toast.success('Video generation completed!')
-          } else {
-            toast.error(`Video generation failed: ${data.error_message || 'Unknown error'}`)
-          }
-          
-          // Reload projects list
-          await loadProjects()
+      // Check if generation is complete
+      if (project.status === 'completed' || project.status === 'failed') {
+        setIsGenerating(false)
+
+        if (project.status === 'completed') {
+          toast.success('Video generation completed!')
+        } else {
+          toast.error(`Video generation failed: ${project.error_message || 'Unknown error'}`)
         }
+
+        // Reload projects list
+        await loadProjects()
       }
     } catch (error) {
       console.error('Error updating project status:', error)

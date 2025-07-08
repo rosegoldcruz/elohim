@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AeonPipeline } from "@/lib/agents/pipeline";
-import { createClient } from "@/lib/supabase/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { env } from "@/env.mjs";
 
 interface VideoGenerationRequest {

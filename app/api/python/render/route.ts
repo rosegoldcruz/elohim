@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'child_process';
-import { createClient } from '@/lib/supabase';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import path from 'path';
 import fs from 'fs/promises';
 

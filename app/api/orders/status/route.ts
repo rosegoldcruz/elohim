@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { auth, clerkClient } from '@clerk/nextjs/server'
 
 export async function GET(request: NextRequest) {
   try {
+    const { userId } = await auth()
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const sessionId = searchParams.get('session_id')
     const orderId = searchParams.get('order_id')
@@ -14,31 +23,19 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    let query = supabaseAdmin
-      .from('orders')
-      .select(`
-        id,
-        email,
-        video_prompt,
-        video_style,
-        status,
-        video_url,
-        video_duration,
-        credits_used,
-        created_at,
-        updated_at
-      `)
+    // Since Supabase database was removed, orders are now stored in Clerk user metadata
+    // This is a temporary solution - you should implement a proper database
+    const user = await clerkClient.users.getUser(userId)
+    const orders = user.publicMetadata?.orders as any[] || []
 
+    let order = null
     if (sessionId) {
-      query = query.eq('stripe_session_id', sessionId)
+      order = orders.find(o => o.stripe_session_id === sessionId)
     } else if (orderId) {
-      query = query.eq('id', orderId)
+      order = orders.find(o => o.id === orderId)
     }
 
-    const { data: order, error } = await query.single()
-
-    if (error) {
-      console.error('Error fetching order:', error)
+    if (!order) {
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }

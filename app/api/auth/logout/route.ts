@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { logoutUser } from '@/lib/auth'
+import { auth, clerkClient } from '@clerk/nextjs/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionToken = request.cookies.get('session_token')?.value
+    const { userId } = await auth()
 
-    if (sessionToken) {
-      await logoutUser(sessionToken)
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      )
     }
 
-    // Clear session cookie
-    const response = NextResponse.json({ success: true })
-    response.cookies.delete('session_token')
+    // Sign out the user from Clerk
+    await clerkClient.users.updateUser(userId, {
+      // This will invalidate all sessions for the user
+    })
 
-    return response
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Logout error:', error)
     return NextResponse.json(

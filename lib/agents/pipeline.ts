@@ -11,7 +11,7 @@ import { ParallelVisualGenerationAgent, generateVideoParallel } from './Parallel
 import { StitcherAgent } from './StitcherAgent';
 import { EditorAgent } from './EditorAgent';
 import { StorageManager } from '../storage-manager';
-import { createClient } from '@/lib/supabase/server';
+// Supabase removed - using Clerk for authentication
 import { env } from '@/env.mjs';
 import { getDefaultModelNames } from '@/config/videoModels';
 

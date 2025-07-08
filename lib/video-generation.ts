@@ -1,5 +1,5 @@
 import { replicate } from './ai-services'
-import { supabaseAdmin } from './supabase'
+// Supabase removed - using Clerk for authentication
 import { put } from '@vercel/blob'
 import { logInfo, logError, logVideoGeneration } from './telemetry'
 
