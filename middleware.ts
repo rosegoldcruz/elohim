@@ -1,23 +1,22 @@
-import { authMiddleware } from '@clerk/nextjs/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-export default authMiddleware({
-  // Routes that can be accessed while signed out
-  publicRoutes: [
-    '/',
-    '/pricing',
-    '/privacy',
-    '/terms',
-    '/docs',
-    '/docs/(.*)',
-    '/api/health',
-    '/api/webhooks/(.*)',
-  ],
-  // Routes that can always be accessed, and have
-  // no authentication information
-  ignoredRoutes: [
-    '/api/health',
-    '/api/webhooks/(.*)',
-  ],
+const isPublicRoute = createRouteMatcher([
+  '/',
+  '/pricing',
+  '/privacy',
+  '/terms',
+  '/docs',
+  '/docs/(.*)',
+  '/api/health',
+  '/api/webhooks/(.*)',
+  '/sign-in(.*)',
+  '/sign-up(.*)',
+])
+
+export default clerkMiddleware(async (auth, req) => {
+  if (!isPublicRoute(req)) {
+    await auth.protect()
+  }
 })
 
 export const config = {
