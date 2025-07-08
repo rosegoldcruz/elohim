@@ -3,11 +3,9 @@
  * Coordinates all agents for end-to-end video creation
  */
 
-import { generateCinematicScript } from './ScriptWriterAgent';
+import { generateCinematicScript, type CinematicScript, type CinematicScene } from './ScriptWriterAgent';
 import { validateScriptStructure } from './ScenePlannerAgent';
 import { TrendsAgent } from './TrendsAgent';
-import { ScriptWriterAgent, VideoScript, ScriptScene } from './ScriptWriterAgent';
-import { ScenePlannerAgent, PlannedScene, ScenePlan } from './ScenePlannerAgent';
 import { VisualGeneratorAgent } from './VisualGeneratorAgent';
 import { ParallelVisualGenerationAgent, generateVideoParallel } from './ParallelVisualGenerationAgent';
 import { StitcherAgent } from './StitcherAgent';
@@ -63,8 +61,6 @@ export async function runScriptGeneration(topic: string, style: string) {
 
 export class AeonPipeline {
   private trendsAgent: TrendsAgent;
-  private scriptWriter: ScriptWriterAgent;
-  private scenePlanner: ScenePlannerAgent;
   private visualGenerator: VisualGeneratorAgent;
   private parallelVisualGenerator: ParallelVisualGenerationAgent;
   private stitcher: StitcherAgent;
@@ -74,8 +70,6 @@ export class AeonPipeline {
 
   constructor() {
     this.trendsAgent = new TrendsAgent();
-    this.scriptWriter = new ScriptWriterAgent();
-    this.scenePlanner = new ScenePlannerAgent();
     this.visualGenerator = new VisualGeneratorAgent();
     this.parallelVisualGenerator = new ParallelVisualGenerationAgent();
     this.stitcher = new StitcherAgent();
@@ -139,29 +133,32 @@ export class AeonPipeline {
         agentsUsed.push('ScriptWriterAgent');
       }
       
-      // Step 3: Plan scenes
-      await this.updateProgress('scenes', 40, 'Breaking script into visual scenes...', 'ScenePlannerAgent', onProgress);
+      // Step 3: Validate script structure
+      await this.updateProgress('scenes', 40, 'Validating script structure...', 'ScriptValidator', onProgress);
       
-      const scenePlan = await this.scenePlanner.planScenes(script);
-      agentsUsed.push('ScenePlannerAgent');
+      const isValidScript = validateScriptStructure(script);
+      if (!isValidScript) {
+        throw new Error('Generated script does not match expected structure');
+      }
+      agentsUsed.push('ScriptValidator');
       
       // Step 4: Generate video scenes with AI (Parallel or Sequential)
       await this.updateProgress('generation', 60, 'Generating video scenes with AI...', 'ParallelVisualGenerationAgent', onProgress);
 
       let sceneFiles: string[] = [];
 
-      // Use parallel generation for exactly 10 scenes (5 agents × 2 scenes each)
-      if (scenePlan.scenes.length === 10) {
-        console.log('🚀 Using parallel generation for 10 scenes (5 agents × 2 scenes each)');
+      // Use parallel generation for scenes (5 agents × 2 scenes each)
+      if (script.scenes.length >= 10) {
+        console.log('🚀 Using parallel generation for scenes (5 agents × 2 scenes each)');
 
-        const scenePrompts = scenePlan.scenes.map(scene => scene.description);
+        const scenePrompts = script.scenes.slice(0, 10).map(scene => scene.visual);
         const modelNames = getDefaultModelNames();
 
         // Create custom inputs for each scene
-        const customSceneInputs = scenePlan.scenes.map(scene => ({
-          first_frame_image: scene.visualElements?.includes('text-overlay') ? undefined : undefined,
+        const customSceneInputs = script.scenes.slice(0, 10).map(scene => ({
+          first_frame_image: undefined,
           aspect_ratio: '16:9',
-          duration: Math.min(scene.duration, 6)
+          duration: 4
         }));
 
         const parallelResult = await generateVideoParallel(
@@ -193,10 +190,10 @@ export class AeonPipeline {
 
       } else {
         // Use sequential generation for other scene counts
-        console.log(`🔄 Using sequential generation for ${scenePlan.scenes.length} scenes`);
+        console.log(`🔄 Using sequential generation for ${script.scenes.length} scenes`);
 
         const generationResult = await this.visualGenerator.generateScenes({
-          scenes: scenePlan.scenes,
+          scenes: script.scenes,
           user_id: request.user_id,
           style: request.style,
           quality: 'high'
@@ -247,7 +244,7 @@ export class AeonPipeline {
         video_url: finalVideo,
         thumbnail_url: `${finalVideo}?thumbnail=true`,
         script,
-        scenes: scenePlan.scenes,
+        scenes: script.scenes,
         metadata: {
           total_duration: script.total_duration,
           processing_time: processingTime,
@@ -321,7 +318,7 @@ export class AeonPipeline {
       if (!scenes && script) {
         await this.updateProgress('scenes', currentProgress += progressStep, 'Planning scenes...', 'ScenePlannerAgent', onProgress);
         const scenePlan = await this.scenePlanner.planScenes(script);
-        scenes = scenePlan.scenes;
+        scenes = script.scenes;
         agentsUsed.push('ScenePlannerAgent');
       }
       
@@ -527,41 +524,28 @@ export async function createVideoScriptPipeline(
   style: string = "TikTok/Documentary",
   duration: number = 60,
   sceneCount?: number
-): Promise<{ script: VideoScript; plan: ScenePlan }> {
+): Promise<{ script: CinematicScript }> {
 
   console.log(`🎬 Starting Viral TikTok Pipeline for: "${topic}"`);
 
   try {
-    // Initialize agents (ScriptWriterAgent now uses DeepSeek)
-    const scriptAgent = new ScriptWriterAgent();
-    const planner = new ScenePlannerAgent();
 
     // Generate viral script with TikTok techniques
     console.log('📝 Generating viral script...');
-    const script = await scriptAgent.generateScript(topic, {
-      duration,
-      style,
-      sceneCount: sceneCount || Math.max(4, Math.min(8, Math.floor(duration / 8))),
-      tone: 'entertaining',
-      platform: 'tiktok'
-    });
+    const script = await generateCinematicScript(topic, style);
 
     console.log(`✅ Generated script with ${script.scenes.length} scenes`);
-    console.log(`🎯 Viral techniques detected: ${script.metadata.viralTechniques.join(', ')}`);
 
-    // Plan scenes with detailed timing and production notes
-    console.log('🎬 Planning scene production...');
-    const plan = await planner.planScenes(script.scenes, {
-      totalDuration: duration,
-      emotionalArc: 'crescendo',
-      pacingStyle: 'tiktok-native',
-      transitionStyle: 'viral'
-    });
+    // Validate script structure
+    console.log('🎬 Validating script structure...');
+    const isValid = validateScriptStructure(script);
+    if (!isValid) {
+      throw new Error('Generated script does not match expected structure');
+    }
 
-    console.log(`✅ Scene plan complete with ${plan.scenes.length} planned scenes`);
-    console.log(`⚡ Viral moments at scenes: ${plan.metadata.viralMoments.join(', ')}`);
+    console.log(`✅ Script validation complete`);
 
-    return { script, plan };
+    return { script };
 
   } catch (error) {
     console.error('❌ Viral TikTok Pipeline failed:', error);

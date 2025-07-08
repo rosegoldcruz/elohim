@@ -16,6 +16,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { auth } from '@clerk/nextjs/server'
 
 // ===== GLOBAL TYPE DECLARATIONS =====
 declare global {
@@ -62,7 +63,7 @@ function getClientIP(req: NextRequest): string {
   )
 }
 
-function checkRateLimit(ip: string): { allowed: boolean; resetTime?: number } {
+function checkRateLimit(userId: string): { allowed: boolean; resetTime?: number } {
   // ===== DEVELOPMENT MODE BYPASS =====
   // Skip rate limiting entirely in development for easier testing
   if (process.env.NODE_ENV === 'development') {
@@ -70,7 +71,7 @@ function checkRateLimit(ip: string): { allowed: boolean; resetTime?: number } {
   }
 
   const now = Date.now()
-  const record = rateLimitStore.get(ip)
+  const record = rateLimitStore.get(userId)
 
   // ===== CLEANUP EXPIRED RECORDS =====
   // Prevent memory leaks by cleaning up old records periodically
@@ -85,7 +86,7 @@ function checkRateLimit(ip: string): { allowed: boolean; resetTime?: number } {
   // ===== RATE LIMIT LOGIC =====
   // No previous record or window expired - allow and create new record
   if (!record || now > record.resetTime) {
-    rateLimitStore.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW })
+    rateLimitStore.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW })
     return { allowed: true }
   }
 
@@ -129,9 +130,20 @@ function createSuccessResponse(videoId: string): NextResponse {
 // ===== MAIN API HANDLER =====
 export async function POST(req: NextRequest) {
   try {
+    // ===== AUTHENTICATION CHECK =====
+    const { userId } = auth()
+    if (!userId) {
+      return createErrorResponse(
+        'UNAUTHORIZED',
+        'Authentication required',
+        'Please sign in to generate videos.',
+        401
+      )
+    }
+
     // ===== RATE LIMITING CHECK =====
-    const clientIP = getClientIP(req)
-    const rateLimitResult = checkRateLimit(clientIP)
+    // Use userId instead of IP for authenticated rate limiting
+    const rateLimitResult = checkRateLimit(userId)
 
     if (!rateLimitResult.allowed) {
       const resetTimeSeconds = rateLimitResult.resetTime

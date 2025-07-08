@@ -7,14 +7,18 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    // Supabase
-    SUPABASE_URL: z.string().url(),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-    SUPABASE_JWT_SECRET: z.string().min(1),
+    // Clerk Auth
+    CLERK_SECRET_KEY: z.string().min(1),
+    CLERK_JWT_KEY: z.string().min(1).optional(),
+    
+    // Database
     DATABASE_URL: z.string().url(),
     POSTGRES_URL: z.string().url(),
     
-    // Authentication (Supabase handles this)
+    // Supabase (for database only)
+    SUPABASE_URL: z.string().url(),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+    SUPABASE_JWT_SECRET: z.string().min(1),
     
     // Stripe
     STRIPE_SECRET_KEY: z.string().min(1),
@@ -49,16 +53,17 @@ export const env = createEnv({
     // Frontend
     NEXT_PUBLIC_APP_URL: z.string().url(),
     
-    // Supabase Public
+    // Clerk Public
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
+    
+    // Supabase Public (for database only)
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
     
-    // Authentication handled by Supabase
-    
     // Stripe Public
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_API: z.string().min(1),
-    NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID: z.string().min(1),
-    NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID: z.string().min(1),
+    NEXT_PUBLIC_STRIPE_PRO_MONTHLY_PRICE_ID: z.string().min(1).optional(),
+    NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID: z.string().min(1).optional(),
     NEXT_PUBLIC_STRIPE_CREATOR_MONTHLY_PRICE_ID: z.string().min(1).optional(),
     NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID: z.string().min(1).optional(),
     NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID: z.string().min(1).optional(),
@@ -71,11 +76,13 @@ export const env = createEnv({
    */
   runtimeEnv: {
     // Server
+    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+    CLERK_JWT_KEY: process.env.CLERK_JWT_KEY,
+    DATABASE_URL: process.env.DATABASE_URL,
+    POSTGRES_URL: process.env.POSTGRES_URL,
     SUPABASE_URL: process.env.SUPABASE_URL,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     SUPABASE_JWT_SECRET: process.env.SUPABASE_JWT_SECRET,
-    DATABASE_URL: process.env.DATABASE_URL,
-    POSTGRES_URL: process.env.POSTGRES_URL,
 
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
@@ -105,6 +112,7 @@ export const env = createEnv({
     
     // Client
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 

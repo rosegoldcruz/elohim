@@ -5,8 +5,8 @@
 
 // Core Agents
 export { TrendsAgent } from './TrendsAgent';
-export { ScriptWriterAgent } from './ScriptWriterAgent';
-export { ScenePlannerAgent } from './ScenePlannerAgent';
+export { generateCinematicScript } from './ScriptWriterAgent';
+export { validateScriptStructure } from './ScenePlannerAgent';
 export { StitcherAgent } from './StitcherAgent';
 export { EditorAgent } from './EditorAgent';
 
@@ -27,8 +27,7 @@ import { DeepSeekScriptScenePipeline } from './DeepSeekScriptScenePipeline';
 
 // Type Exports
 export type { TrendingTopic, TrendsAnalysis } from './TrendsAgent';
-export type { VideoScript, ScriptSection, ScriptOptions } from './ScriptWriterAgent';
-export type { Scene, ScenePlan, PlanningOptions } from './ScenePlannerAgent';
+export type { CinematicScript, CinematicScene } from './ScriptWriterAgent';
 export type { StitchingOptions, StitchingResult, AudioTrack } from './StitcherAgent';
 export type { EditingOptions, EditingResult, CaptionSegment } from './EditorAgent';
 export type { PipelineRequest, PipelineResult, PipelineProgress } from './pipeline';
@@ -38,8 +37,6 @@ export type { StorageOptions, StorageResult, FileInfo } from '../storage-manager
  * Quick agent factory functions
  */
 export const createTrendsAgent = () => new TrendsAgent();
-export const createScriptWriter = () => new ScriptWriterAgent();
-export const createScenePlanner = () => new ScenePlannerAgent();
 export const createStitcher = () => new StitcherAgent();
 export const createEditor = () => new EditorAgent();
 export const createPipeline = () => new AeonPipeline();
@@ -118,25 +115,13 @@ export const WorkflowTemplates = {
   },
   
   // Script-only workflow
-  scriptOnly: async (topic: string, options = {}) => {
-    const scriptWriter = createScriptWriter();
-    return scriptWriter.generateScript(topic, {
-      duration: 60,
-      tone: 'conversational',
-      platform: 'general',
-      ...options
-    });
+  scriptOnly: async (topic: string, style: string = 'conversational') => {
+    return generateCinematicScript(topic, style);
   },
   
-  // Scene planning workflow
-  scenePlanning: async (script: any, options = {}) => {
-    const scenePlanner = createScenePlanner();
-    return scenePlanner.planScenes(script, {
-      max_scenes: 16,
-      scene_duration: 4,
-      visual_style: 'cinematic',
-      ...options
-    });
+  // Scene validation workflow
+  validateScript: (script: any) => {
+    return validateScriptStructure(script);
   },
   
   // Editing-only workflow
@@ -161,8 +146,6 @@ export const AgentUtils = {
   async checkAgentHealth() {
     const agents = [
       { name: 'TrendsAgent', instance: createTrendsAgent() },
-      { name: 'ScriptWriterAgent', instance: createScriptWriter() },
-      { name: 'ScenePlannerAgent', instance: createScenePlanner() },
       { name: 'StitcherAgent', instance: createStitcher() },
       { name: 'EditorAgent', instance: createEditor() }
     ];
@@ -289,15 +272,13 @@ export const Examples = {
   
   // Custom workflow
   customWorkflow: `
-    import { createTrendsAgent, createScriptWriter, createScenePlanner } from '@/lib/agents';
+    import { createTrendsAgent, generateCinematicScript, validateScriptStructure } from '@/lib/agents';
     
     const trends = createTrendsAgent();
-    const scriptWriter = createScriptWriter();
-    const scenePlanner = createScenePlanner();
     
     const topics = await trends.fetchTrendingTopics();
-    const script = await scriptWriter.generateScript(topics[0]);
-    const scenes = await scenePlanner.planScenes(script);
+    const script = await generateCinematicScript(topics[0].topic, 'engaging');
+    const isValid = validateScriptStructure(script);
   `,
   
   // Event-driven processing

@@ -1,6 +1,7 @@
 import type React from "react"
 import "./globals.css"
 import { Inter } from "next/font/google"
+import { ClerkProvider } from '@clerk/nextjs'
 import Header from "@/components/header"
 import { Toaster } from "@/components/ui/toaster"
 import AnimatedBackground from "@/components/animated-background"
@@ -20,17 +21,19 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-black text-white min-h-screen overflow-x-hidden`}>
-        <PerformanceOptimizer />
-        {/* This div ensures the pure black background */}
-        <div className="relative min-h-screen w-full bg-black">
-          <AnimatedBackground /> {/* Canvas is fixed, z-index -10, transparent bg */}
-          <Header />
-          <main className="relative z-10 pt-24">{children}</main>
-        </div>
-        <Toaster />
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={`${inter.className} bg-black text-white min-h-screen overflow-x-hidden`}>
+          <PerformanceOptimizer />
+          {/* This div ensures the pure black background */}
+          <div className="relative min-h-screen w-full bg-black">
+            <AnimatedBackground /> {/* Canvas is fixed, z-index -10, transparent bg */}
+            <Header />
+            <main className="relative z-10 pt-24">{children}</main>
+          </div>
+          <Toaster />
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }
