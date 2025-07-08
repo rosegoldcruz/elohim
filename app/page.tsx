@@ -35,8 +35,8 @@ export default function HomePage() {
                 size="lg"
                 className="relative bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 hover:from-purple-600 hover:via-pink-600 hover:to-cyan-600 text-white font-semibold px-8 py-4 text-lg border-0"
               >
-                <Link href="/signup?trial=true">
-                  Start Free Trial
+                <Link href="/pricing">
+                  Get Started
                   <Sparkles className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
