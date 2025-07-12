@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { fraudDetector } from '@/lib/fraud/fraudDetector'
 import { z } from 'zod'
 

@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { adminAgent } from '@/lib/agents/adminAgent'
 import { RevenueAnalyzer } from '@/lib/analytics/revenueAnalyzer'
 import { z } from 'zod'
@@ -40,8 +40,10 @@ async function checkAdminAccess(userId: string): Promise<boolean> {
 export async function GET(req: NextRequest) {
   try {
     // Authentication check
-    const { userId } = auth()
-    if (!userId) {
+    const supabase = createClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+
+    if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -49,7 +51,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Admin access check
-    const isAdmin = await checkAdminAccess(userId)
+    const isAdmin = await checkAdminAccess(user.id)
     if (!isAdmin) {
       return NextResponse.json(
         { error: 'Admin access required' },
@@ -168,8 +170,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // Authentication check
-    const { userId } = auth()
-    if (!userId) {
+    const supabase = createClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+
+    if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -177,7 +181,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Admin access check
-    const isAdmin = await checkAdminAccess(userId)
+    const isAdmin = await checkAdminAccess(user.id)
     if (!isAdmin) {
       return NextResponse.json(
         { error: 'Admin access required' },
@@ -190,7 +194,7 @@ export async function POST(req: NextRequest) {
     const { creatorId, action, reason, notes } = CreatorActionSchema.parse(body)
 
     // Log admin action (you would implement actual logging)
-    console.log(`Admin ${userId} performed action ${action} on creator ${creatorId}`, {
+    console.log(`Admin ${user.id} performed action ${action} on creator ${creatorId}`, {
       reason,
       notes,
       timestamp: new Date().toISOString()
@@ -232,7 +236,7 @@ export async function POST(req: NextRequest) {
         action_performed: action,
         creator_id: creatorId,
         result,
-        performed_by: userId,
+        performed_by: user.id,
         performed_at: new Date().toISOString()
       }
     })

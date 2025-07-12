@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { adminAgent } from '@/lib/agents/adminAgent'
 import { RevenueAnalyzer } from '@/lib/analytics/revenueAnalyzer'
 import { z } from 'zod'
