@@ -15,16 +15,17 @@ export const metadata: Metadata = {
 
 export default async function CreatorDashboardPage() {
   // Check authentication
-  const { userId } = auth()
-  
-  if (!userId) {
-    redirect('/sign-in?redirect_url=/creator/dashboard')
+  const supabase = createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login?redirect_url=/creator/dashboard')
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
       <div className="container mx-auto px-4 py-8">
-        <CreatorDashboard creatorId={userId} />
+        <CreatorDashboard creatorId={user.id} />
       </div>
     </div>
   )

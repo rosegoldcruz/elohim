@@ -29,10 +29,11 @@ interface CreatorLayoutProps {
 
 export default async function CreatorLayout({ children }: CreatorLayoutProps) {
   // Check authentication
-  const { userId } = auth()
-  
-  if (!userId) {
-    redirect('/sign-in?redirect_url=/creator/dashboard')
+  const supabase = createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login?redirect_url=/creator/dashboard')
   }
 
   const navigationItems = [
