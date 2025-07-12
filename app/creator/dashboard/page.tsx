@@ -4,7 +4,7 @@
  */
 
 import { Metadata } from 'next'
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import CreatorDashboard from '@/components/CreatorDashboard'
 
