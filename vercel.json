@@ -1,0 +1,44 @@
+{
+  "functions": {
+    "app/api/admin/**": {
+      "maxDuration": 300
+    },
+    "app/api/cron/**": {
+      "maxDuration": 900
+    },
+    "app/api/agents/**": {
+      "maxDuration": 180
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/daily-operations",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/fraud-monitoring",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/health-check",
+      "schedule": "0 * * * *"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/admin/:path*",
+      "destination": "/admin/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/admin/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ]
+}

@@ -2,9 +2,18 @@
 
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Gem, Network } from "lucide-react"
+import { Gem, Network, User, LogOut } from "lucide-react"
 import Link from "next/link"
-import { useUser, UserButton } from "@clerk/nextjs"
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { User as SupabaseUser } from "@supabase/supabase-js"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const navLinks = [
   { href: "/studio", label: "Studio" },
@@ -19,9 +28,48 @@ const navLinks = [
 
 export default function Header() {
   const pathname = usePathname()
-  const { isSignedIn, user } = useUser()
-  const credits = user?.publicMetadata?.credits as number || 0
+  const [user, setUser] = useState<SupabaseUser | null>(null)
+  const [credits, setCredits] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
   const isHomepage = pathname === "/"
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+
+      if (user) {
+        // Get user credits from database
+        const { data: profile } = await supabase
+          .from('users')
+          .select('credits')
+          .eq('id', user.id)
+          .single()
+
+        setCredits(profile?.credits || 0)
+      }
+
+      setLoading(false)
+    }
+
+    getUser()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null)
+        if (!session?.user) {
+          setCredits(0)
+        }
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [supabase])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/10 border-b border-white/5 backdrop-blur-2xl">
@@ -60,7 +108,7 @@ export default function Header() {
         )}
 
         <div className="flex items-center gap-6">
-          {isSignedIn ? (
+          {user ? (
             <>
               {!isHomepage && (
                 <Link
@@ -71,29 +119,36 @@ export default function Header() {
                   <span>{credits} Credits</span>
                 </Link>
               )}
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "w-10 h-10",
-                    userButtonPopoverCard: "bg-gray-900 border border-gray-800",
-                    userButtonPopoverActionButton: "text-white hover:bg-gray-800",
-                  }
-                }}
-              >
-                <UserButton.MenuItems>
-                  <UserButton.Link
-                    label="Studio"
-                    labelIcon={<Network className="h-4 w-4" />}
-                    href="/studio"
-                  />
-                  <UserButton.Link
-                    label="Account"
-                    labelIcon={<Gem className="h-4 w-4" />}
-                    href="/account"
-                  />
-                  <UserButton.Action label="manageAccount" />
-                </UserButton.MenuItems>
-              </UserButton>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email || ""} />
+                      <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600">
+                        <User className="h-5 w-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-gray-900 border border-gray-800" align="end" forceMount>
+                  <DropdownMenuItem asChild>
+                    <Link href="/studio" className="flex items-center">
+                      <Network className="mr-2 h-4 w-4" />
+                      <span>Studio</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/account" className="flex items-center">
+                      <Gem className="mr-2 h-4 w-4" />
+                      <span>Account</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <div className="flex items-center gap-4">
@@ -106,12 +161,21 @@ export default function Header() {
                   Pricing
                 </Button>
               </Link>
-              <Link href="/sign-in">
+              <Link href="/login">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-lg font-medium text-white border-white/20 hover:bg-white/10 transition-colors duration-300"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/signup">
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 hover:from-purple-700 hover:via-pink-700 hover:to-cyan-700 rounded-2xl px-8 py-3 text-lg font-semibold shadow-xl shadow-purple-500/20 transform hover:scale-105 transition-all duration-300"
                 >
-                  Sign In
+                  Get Started
                 </Button>
               </Link>
             </div>

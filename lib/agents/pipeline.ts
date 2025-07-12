@@ -11,6 +11,8 @@ import { ParallelVisualGenerationAgent, generateVideoParallel } from './Parallel
 import { StitcherAgent } from './StitcherAgent';
 import { EditorAgent } from './EditorAgent';
 import { StorageManager } from '../storage-manager';
+import { pipelineOptimizer, initializePipelineOptimization } from './pipeline-optimizer';
+import { optimizerAgent } from './OptimizerAgent';
 // Supabase removed - using Clerk for authentication
 import { env } from '@/env.mjs';
 import { getDefaultModelNames } from '@/config/videoModels';
@@ -76,6 +78,21 @@ export class AeonPipeline {
     this.editor = new EditorAgent();
     this.storage = new StorageManager();
     this.supabase = createClient();
+
+    // Initialize pipeline optimization feedback loop
+    this.initializeOptimization();
+  }
+
+  /**
+   * Initialize the optimization feedback loop
+   */
+  private async initializeOptimization(): Promise<void> {
+    try {
+      await initializePipelineOptimization();
+      console.log('🔄 Pipeline optimization feedback loop initialized');
+    } catch (error) {
+      console.error('❌ Failed to initialize pipeline optimization:', error);
+    }
   }
 
   /**

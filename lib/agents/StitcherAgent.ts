@@ -9,6 +9,10 @@ import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs/promises';
 import type { Scene } from './ScenePlannerAgent';
+import { GPUTransitionEngine } from '../gpu-transition-engine';
+import { transitionCore, getOptimalTransitionForContent } from '../transitions/core';
+import { createClient } from '@/lib/supabase/client';
+import { transitionAnalytics } from '../supabase/transition-analytics';
 
 const execAsync = promisify(exec);
 
@@ -116,7 +120,21 @@ export class StitcherAgent {
       const result = await this.executeStitching(stitchingPlan, outputFile, opts);
       
       const processingTime = Date.now() - startTime;
-      
+
+      // Track video completion with transition analytics (Callback Hook)
+      const transitionsUsed = stitchingPlan.transitions?.map((t: any) => t.type) || [];
+      const videoId = `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const projectId = `project_${Date.now()}`;
+      const userId = 'user_placeholder'; // Would be passed from caller
+
+      await this.onVideoCompleted(
+        videoId,
+        projectId,
+        userId,
+        transitionsUsed,
+        processingTime
+      );
+
       return {
         success: true,
         output_url: result.output_url,
@@ -127,7 +145,9 @@ export class StitcherAgent {
           transitions_applied: scenes.length - 1,
           audio_tracks: audioTracks.length,
           processing_time: processingTime,
-          quality_settings: opts
+          quality_settings: opts,
+          video_id: videoId,
+          transitions_tracked: transitionsUsed.length
         }
       };
       
@@ -497,6 +517,127 @@ export class StitcherAgent {
       case 'high': return { preset: 'slow', crf: 18 };
       case 'ultra': return { preset: 'veryslow', crf: 15 };
       default: return { preset: 'medium', crf: 23 };
+    }
+  }
+
+  /**
+   * Track transition usage with comprehensive analytics (Callback Hook)
+   */
+  private async trackTransitionUsage(params: {
+    transitionId: string;
+    projectId: string;
+    userId: string;
+    videoId: string;
+    processingTimeMs?: number;
+    gpuAccelerated?: boolean;
+    beatSynced?: boolean;
+    syncAccuracy?: number;
+    viralScoreImpact?: number;
+    retentionImpact?: number;
+    engagementBoost?: number;
+  }): Promise<void> {
+    try {
+      console.log(`📊 Tracking transition usage: ${params.transitionId} for video ${params.videoId}`);
+
+      await transitionAnalytics.trackTransitionUsage({
+        transitionId: params.transitionId,
+        projectId: params.projectId,
+        userId: params.userId,
+        videoId: params.videoId,
+        viralScoreImpact: params.viralScoreImpact || 0,
+        retentionImpact: params.retentionImpact || 0,
+        engagementBoost: params.engagementBoost || 0,
+        beatSynced: params.beatSynced || false,
+        syncAccuracy: params.syncAccuracy,
+        processingTimeMs: params.processingTimeMs,
+        gpuAccelerated: params.gpuAccelerated || false
+      });
+
+      // Log for debugging
+      console.log(`✅ Transition analytics tracked successfully`);
+    } catch (error) {
+      console.error('❌ Failed to track transition usage:', error);
+      // Don't throw - analytics failure shouldn't break video processing
+    }
+  }
+
+  /**
+   * Estimate retention impact based on transition properties
+   */
+  private estimateRetentionImpact(transition: any): number {
+    let impact = 0.5; // Base retention impact
+
+    // High-energy transitions tend to improve retention
+    if (['zoom_punch', 'glitch_blast', 'viral_cut'].includes(transition.type)) {
+      impact += 0.3;
+    }
+
+    // Beat-synced transitions have higher retention
+    if (transition.beat_synced) {
+      impact += 0.2;
+    }
+
+    // Intensity affects retention
+    const intensity = transition.intensity || 1.0;
+    impact += (intensity - 1.0) * 0.1;
+
+    return Math.max(0, Math.min(1, impact));
+  }
+
+  /**
+   * Estimate engagement boost based on transition properties
+   */
+  private estimateEngagementBoost(transition: any): number {
+    let boost = 0.3; // Base engagement boost
+
+    // Viral transitions get higher engagement
+    if (['zoom_punch', 'glitch_blast', 'viral_cut'].includes(transition.type)) {
+      boost += 0.4;
+    }
+
+    // Dramatic transitions increase engagement
+    if (['3d_flip', 'cube_rotate'].includes(transition.type)) {
+      boost += 0.3;
+    }
+
+    // Beat sync improves engagement
+    if (transition.beat_synced) {
+      boost += 0.2;
+    }
+
+    return Math.max(0, Math.min(1, boost));
+  }
+
+  /**
+   * Post-processing callback to track video completion
+   */
+  private async onVideoCompleted(
+    videoId: string,
+    projectId: string,
+    userId: string,
+    transitionsUsed: string[],
+    processingTime: number
+  ): Promise<void> {
+    try {
+      console.log(`🎬 Video completed: ${videoId} with ${transitionsUsed.length} transitions`);
+
+      // Track overall video metrics
+      for (const transitionId of transitionsUsed) {
+        await this.trackTransitionUsage({
+          transitionId,
+          projectId,
+          userId,
+          videoId,
+          processingTimeMs: processingTime / transitionsUsed.length, // Distribute processing time
+          viralScoreImpact: 5.0, // Default score, will be updated by OptimizerAgent
+          retentionImpact: 0.6,  // Default retention estimate
+          engagementBoost: 0.4   // Default engagement estimate
+        });
+      }
+
+      console.log(`📈 Video completion analytics tracked for ${transitionsUsed.length} transitions`);
+    } catch (error) {
+      console.error('❌ Failed to track video completion:', error);
     }
   }
 

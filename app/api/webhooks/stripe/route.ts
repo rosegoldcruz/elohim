@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { stripe } from '@/lib/stripe'
-import { clerkClient } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { env } from '@/env.mjs'
 import { sendVideoCompleteEmail } from '@/lib/email'
 import { logInfo, logError } from '@/lib/telemetry'

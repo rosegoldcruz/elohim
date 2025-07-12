@@ -8,13 +8,12 @@ It's our empire. This is how we build it.
 
 ## 🔑 **Core Principle**
 
-**We run Clerk for ALL AUTH. Period.**
+**We run Supabase for ALL AUTH. Period.**
 
-- 🔐 **One unified sign-in layer** — usernames, emails, Google OAuth, **Web3 wallets** (MetaMask, Coinbase, OKX) — all in **Clerk**.
-- No more Supabase Auth.  
-- Supabase stays if needed for **Postgres + RLS**, but Clerk issues and verifies every JWT.  
-- Clerk's UI handles sign-up, sign-in, social logins — so we never waste time on auth flows.  
-- Our job: plug Clerk tokens into whatever pipeline needs them. **No excuses.**
+- 🔐 **One unified sign-in layer** — magic links, email/password, Google OAuth — all in **Supabase**.
+- Supabase handles auth, database, and RLS policies seamlessly.
+- Magic link authentication for frictionless user experience.
+- Our job: use Supabase client for auth state and database queries. **No excuses.**
 
 ---
 
@@ -22,30 +21,30 @@ It's our empire. This is how we build it.
 
 **Two beasts under one flag:**
 
-**1️⃣ `elohim` — the premium SaaS.**  
-- Next.js 15  
-- Clerk for auth  
-- Stripe for payments  
-- Vercel Blob for storage  
-- GPT, Claude, DeepSeek, Replicate, ElevenLabs for smart scene and video generation  
+**1️⃣ `elohim` — the premium SaaS.**
+- Next.js 15
+- Supabase for auth & database
+- Stripe for payments
+- Vercel Blob for storage
+- GPT, Claude, DeepSeek, Replicate, ElevenLabs for smart scene and video generation
 - 7-agent system: trend scan, script, plan, render, stitch, edit, deliver.
 
-**2️⃣ `atom` — the private ops lab.**  
-- Same Clerk instance or separate → locked for **us only**  
-- Can sign in with **Web3 wallet**, or regular credentials  
+**2️⃣ `atom` — the private ops lab.**
+- Same Supabase instance or separate → locked for **us only**
+- Can sign in with **magic links**, or regular credentials
 - Runs bot logs, smart contract status, internal arbitrage metrics.
 
 ---
 
 ## ⚙️ **Key Tech Stack**
 
-- **Framework:** Next.js 15 (App Router)  
-- **Auth:** Clerk — multi-method (email/pass, OAuth, Web3)
-- **DB:** Postgres or Neon, with RLS — Clerk JWT maps to `user_id`  
-- **Storage:** Vercel Blob  
-- **Payments:** Stripe  
-- **AI:** OpenAI GPT, Anthropic Claude, DeepSeek, Replicate, ElevenLabs  
-- **Styling:** Tailwind CSS + shadcn/ui  
+- **Framework:** Next.js 15 (App Router)
+- **Auth:** Supabase — magic links, email/pass, OAuth
+- **DB:** Supabase Postgres with RLS — Supabase JWT maps to `user_id`
+- **Storage:** Vercel Blob
+- **Payments:** Stripe
+- **AI:** OpenAI GPT, Anthropic Claude, DeepSeek, Replicate, ElevenLabs
+- **Styling:** Tailwind CSS + shadcn/ui
 - **State:** Local hooks — no unnecessary global junk.
 
 ---
@@ -72,15 +71,11 @@ pnpm install      # Install dependencies (pnpm required)
 
 ## 🕹️ **Environment Rules**
 
-**Required Clerk Variables:**
+**Required Supabase Variables:**
 ```bash
-# Clerk Auth (REQUIRED)
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxx
-CLERK_SECRET_KEY=sk_test_xxx
-CLERK_JWT_KEY=xxx  # Optional for custom JWT handling
-
-# Database (Supabase for storage only)
-SUPABASE_URL=https://xxx.supabase.co
+# Supabase Auth & Database (REQUIRED)
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 SUPABASE_SERVICE_ROLE_KEY=xxx
 DATABASE_URL=postgresql://xxx
 POSTGRES_URL=postgresql://xxx
@@ -114,14 +109,14 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_API=pk_xxx
 ### File Structure
 ```
 app/
-├── (auth)/           # Auth pages (Clerk components)
-├── api/              # API routes (Clerk protected)
+├── (auth)/           # Auth pages (Supabase magic links)
+├── api/              # API routes (Supabase protected)
 ├── app/              # Main app pages
 └── docs/             # Documentation
 
 lib/
 ├── agents/           # 7-agent AI system
-├── supabase/         # Database client (storage only)
+├── supabase/         # Database & auth client
 └── utils.ts          # Utilities
 
 components/
@@ -133,20 +128,21 @@ components/
 
 ## 🧠 **Agent Code Contracts**
 
-**Claude & Codex:**  
-- Never overwrite Clerk keys in `.env`  
-- Always verify JWTs with Clerk before hitting database
-- Use `@clerk/nextjs` for wrapping pages and API routes  
-- UI must use `UserButton`, `SignIn`, `SignUp` components — no custom auth UIs
-- Database queries use Clerk `userId` for RLS policies
+**Claude & Codex:**
+- Never overwrite Supabase keys in `.env`
+- Always verify JWTs with Supabase before hitting database
+- Use `@supabase/ssr` for server-side auth
+- UI uses custom magic link components for seamless UX
+- Database queries use Supabase `user.id` for RLS policies
 
 **Example API Route:**
 ```typescript
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: Request) {
-  const { userId } = auth()
-  if (!userId) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
   // Your logic here
@@ -155,13 +151,14 @@ export async function POST(req: Request) {
 
 **Example Page:**
 ```typescript
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
 export default async function ProtectedPage() {
-  const { userId } = auth()
-  if (!userId) redirect('/sign-in')
-  
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
   return <div>Protected content</div>
 }
 ```

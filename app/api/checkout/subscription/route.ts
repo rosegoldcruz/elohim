@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { clerkClient } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { env } from '@/env.mjs'
 import { z } from 'zod'
 

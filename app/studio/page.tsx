@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Play, Sparkles, Loader2, CheckCircle, XCircle, Download, Eye, Clock, Video } from "lucide-react"
 import { toast } from "sonner"
-import { useUser } from "@clerk/nextjs"
+import { createClient } from "@/lib/supabase/client"
+import { User } from "@supabase/supabase-js"
 
 interface VideoProject {
   id: string
@@ -51,9 +52,19 @@ export default function StudioPage() {
   // Projects state
   const [projects, setProjects] = useState<VideoProject[]>([])
   const [loadingProjects, setLoadingProjects] = useState(true)
-  
-  // Clerk user
-  const { user } = useUser()
+
+  // Supabase user
+  const [user, setUser] = useState<User | null>(null)
+  const supabase = createClient()
+
+  // Get user on mount
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    }
+    getUser()
+  }, [supabase])
 
   // Load user projects on mount
   useEffect(() => {

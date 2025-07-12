@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth, clerkClient } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const supabase = createClient()
 
-    if (!userId) {
+    const { error } = await supabase.auth.signOut()
+
+    if (error) {
       return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
+        { error: error.message },
+        { status: 400 }
       )
     }
-
-    // Sign out the user from Clerk
-    await clerkClient.users.updateUser(userId, {
-      // This will invalidate all sessions for the user
-    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -68,6 +68,10 @@ export const env = createEnv({
     NEXT_PUBLIC_STRIPE_CREATOR_YEARLY_PRICE_ID: z.string().min(1).optional(),
     NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID: z.string().min(1).optional(),
     NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID: z.string().min(1).optional(),
+
+    // Analytics
+    NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
+    NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
   },
 
   /**
@@ -106,6 +110,39 @@ export const env = createEnv({
     elohim_DASH0_AUTH_TOKEN: process.env.elohim_DASH0_AUTH_TOKEN,
     elohim_DASH0_LOG_DRAIN_ENDPOINT: process.env.elohim_DASH0_LOG_DRAIN_ENDPOINT,
     elohim_OTEL_EXPORTER_OTLP_ENDPOINT: process.env.elohim_OTEL_EXPORTER_OTLP_ENDPOINT,
+
+    // Admin System
+    ADMIN_USER_IDS: process.env.ADMIN_USER_IDS,
+    ADMIN_EMAILS: process.env.ADMIN_EMAILS,
+    EXECUTIVE_EMAILS: process.env.EXECUTIVE_EMAILS,
+
+    // Email System
+    EMAIL_SERVICE: process.env.EMAIL_SERVICE,
+    SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
+    SMTP_HOST: process.env.SMTP_HOST,
+    SMTP_PORT: process.env.SMTP_PORT,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_PASS: process.env.SMTP_PASS,
+    FROM_EMAIL: process.env.FROM_EMAIL,
+
+    // Export System
+    EXPORT_STORAGE_PROVIDER: process.env.EXPORT_STORAGE_PROVIDER,
+    EXPORT_ENCRYPTION: process.env.EXPORT_ENCRYPTION,
+    EXPORT_RETENTION_DAYS: process.env.EXPORT_RETENTION_DAYS,
+    EXPORT_DIR: process.env.EXPORT_DIR,
+    EXPORT_ENCRYPTION_KEY: process.env.EXPORT_ENCRYPTION_KEY,
+
+    // AWS S3
+    AWS_S3_BUCKET: process.env.AWS_S3_BUCKET,
+    AWS_REGION: process.env.AWS_REGION,
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    AWS_S3_ENDPOINT: process.env.AWS_S3_ENDPOINT,
+
+    // Cron/Scheduling
+    TIMEZONE: process.env.TIMEZONE,
+    CRON_SECRET: process.env.CRON_SECRET,
+
     APP_ENV: process.env.APP_ENV,
     PORT: process.env.PORT,
     ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
@@ -124,6 +161,10 @@ export const env = createEnv({
     NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_STUDIO_MONTHLY_PRICE_ID,
     NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_STUDIO_YEARLY_PRICE_ID,
     NEXT_PUBLIC_STRIPE_FREE_TRIAL_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_FREE_TRIAL_PRICE_ID,
+
+    // Analytics
+    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },
   /**
    * Run `build` or `dev` with SKIP_ENV_VALIDATION to skip env validation. This is especially
