@@ -4,19 +4,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { AeonPipeline, AgentPresets, AgentUtils } from '@/lib/agents';
+// import { AeonPipeline, AgentPresets, AgentUtils } from '@/lib/agents';
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { 
-      topic, 
-      custom_script, 
-      duration, 
-      style, 
-      platform, 
+    const {
+      topic,
+      custom_script,
+      duration,
+      style,
+      platform,
       user_id,
-      preset 
+      preset
     } = body;
 
     // Validation
@@ -36,68 +36,34 @@ export async function POST(req: NextRequest) {
 
     console.log(`🚀 Pipeline API: Starting video generation for user ${user_id}`);
 
-    // Create pipeline instance
-    const pipeline = new AeonPipeline();
-
-    // Prepare request with preset if specified
-    let pipelineRequest = {
-      topic,
-      custom_script,
-      duration,
-      style,
-      platform,
-      user_id
+    // TODO: Implement full pipeline when agents are ready
+    // For now, return a placeholder response
+    const result = {
+      success: false,
+      error: 'Pipeline temporarily disabled during build optimization',
+      video_url: null,
+      thumbnail_url: null,
+      script: null,
+      scenes: [],
+      metadata: {
+        total_duration: duration || 60,
+        processing_time: 0,
+        agents_used: [],
+        quality_score: 0,
+        file_size: 0
+      }
     };
 
-    // Apply preset if specified
-    if (preset && AgentPresets[preset as keyof typeof AgentPresets]) {
-      const presetConfig = AgentPresets[preset as keyof typeof AgentPresets];
-      pipelineRequest = {
-        ...pipelineRequest,
-        duration: duration || presetConfig.duration,
-        style: style || presetConfig.style,
-        platform: platform || presetConfig.platform
-      };
-    }
+    console.error(`❌ Pipeline temporarily disabled for user ${user_id}:`, result.error);
 
-    // Validate configuration
-    AgentUtils.validateConfig(pipelineRequest);
-
-    // Run pipeline with progress tracking
-    const progressUpdates: any[] = [];
-    
-    const result = await pipeline.runPipeline(
-      pipelineRequest,
-      (progress) => {
-        progressUpdates.push(progress);
-        console.log(`📊 Progress: ${progress.progress}% - ${progress.message}`);
-      }
+    return NextResponse.json(
+      {
+        error: 'Pipeline temporarily disabled',
+        details: result.error,
+        metadata: result.metadata
+      },
+      { status: 503 }
     );
-
-    if (result.success) {
-      console.log(`✅ Pipeline completed successfully for user ${user_id}`);
-      
-      return NextResponse.json({
-        success: true,
-        video_url: result.video_url,
-        thumbnail_url: result.thumbnail_url,
-        script: result.script,
-        scenes: result.scenes,
-        metadata: result.metadata,
-        progress_log: progressUpdates
-      });
-    } else {
-      console.error(`❌ Pipeline failed for user ${user_id}:`, result.error);
-      
-      return NextResponse.json(
-        { 
-          error: 'Pipeline execution failed',
-          details: result.error,
-          metadata: result.metadata
-        },
-        { status: 500 }
-      );
-    }
 
   } catch (error) {
     console.error('❌ Pipeline API error:', error);
@@ -119,35 +85,31 @@ export async function GET(req: NextRequest) {
 
     switch (action) {
       case 'health':
-        // Get agent health status
-        const healthStatus = await AgentUtils.checkAgentHealth();
         return NextResponse.json({
-          status: 'healthy',
-          agents: healthStatus,
+          status: 'maintenance',
+          message: 'Pipeline temporarily disabled during build optimization',
           timestamp: new Date().toISOString()
         });
 
       case 'metrics':
-        // Get performance metrics
-        const metrics = AgentUtils.getPerformanceMetrics();
         return NextResponse.json({
-          metrics,
+          message: 'Metrics temporarily unavailable',
           timestamp: new Date().toISOString()
         });
 
       case 'presets':
-        // Get available presets
         return NextResponse.json({
-          presets: Object.keys(AgentPresets),
-          configurations: AgentPresets
+          presets: ['quickVideo', 'educational', 'professional', 'social'],
+          message: 'Preset configurations temporarily unavailable'
         });
 
       default:
         return NextResponse.json({
           message: 'AEON Agent Pipeline API',
           version: '1.0.0',
+          status: 'maintenance',
           endpoints: {
-            'POST /': 'Run video generation pipeline',
+            'POST /': 'Run video generation pipeline (temporarily disabled)',
             'GET /?action=health': 'Check agent health',
             'GET /?action=metrics': 'Get performance metrics',
             'GET /?action=presets': 'Get available presets'

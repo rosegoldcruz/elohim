@@ -265,10 +265,10 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * GET /api/admin/creators/[creatorId]
  * Get detailed analytics for a specific creator
+ * Internal helper function
  */
-export async function getCreatorDetails(creatorId: string, userId: string) {
+async function getCreatorDetails(creatorId: string, userId: string) {
   try {
     // Admin access check
     const isAdmin = await checkAdminAccess(userId)

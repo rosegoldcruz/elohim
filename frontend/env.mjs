@@ -4,23 +4,22 @@ import { z } from "zod"
 export const env = createEnv({
   server: {
     // Supabase
-    SUPABASE_URL: z.string().url(),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-    SUPABASE_JWT_SECRET: z.string().min(1),
+    SERVICE_ROLE_KEY: z.string().min(1).optional(),
+    SUPABASE_JWT_SECRET: z.string().min(1).optional(),
 
     // Stripe
-    STRIPE_SECRET_KEY: z.string().min(1),
-    STRIPE_WEBHOOK_SECRET: z.string().min(1),
+    STRIPE_SECRET_KEY: z.string().min(1).optional(),
+    STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
 
     // AI Service APIs
-    OPENAI_API_KEY: z.string().min(1),
-    REPLICATE_API_TOKEN: z.string().min(1),
+    OPENAI_API_KEY: z.string().min(1).optional(),
+    REPLICATE_API_TOKEN: z.string().min(1).optional(),
     DEEPSEEK_API_KEY: z.string().min(1).optional(),
     CLAUDE_API_KEY: z.string().min(1).optional(),
     ELEVENLABS_API_KEY: z.string().min(1).optional(),
 
     // Vercel Blob
-    BLOB_READ_WRITE_TOKEN: z.string().min(1),
+    BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
 
     // App Config
     APP_ENV: z.enum(["development", "production", "test"]).default("development"),
@@ -29,14 +28,14 @@ export const env = createEnv({
 
   client: {
     // Frontend
-    NEXT_PUBLIC_APP_URL: z.string().url(),
-    
+    NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+
     // Supabase Public
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
-    
+
     // Stripe Public
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_STRIPE_PRICE_STARTER_PASS: z.string().min(1).optional(),
     NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY: z.string().min(1).optional(),
     NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY: z.string().min(1).optional(),
@@ -48,8 +47,7 @@ export const env = createEnv({
 
   runtimeEnv: {
     // Server
-    SUPABASE_URL: process.env.SUPABASE_URL,
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    SERVICE_ROLE_KEY: process.env.SERVICE_ROLE_KEY,
     SUPABASE_JWT_SECRET: process.env.SUPABASE_JWT_SECRET,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,

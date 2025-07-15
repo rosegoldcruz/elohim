@@ -3,11 +3,12 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
-    
+    const resolvedParams = await params
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
@@ -17,7 +18,7 @@ export async function GET(
     const { data: job, error } = await supabase
       .from('agent_jobs')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .eq('user_id', user.id)
       .single()
 
@@ -38,11 +39,12 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
-    
+    const resolvedParams = await params
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
@@ -53,7 +55,7 @@ export async function DELETE(
     const { data: job, error: fetchError } = await supabase
       .from('agent_jobs')
       .select('status, credits_cost')
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .eq('user_id', user.id)
       .single()
 
@@ -72,7 +74,7 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from('agent_jobs')
       .delete()
-      .eq('id', params.id)
+      .eq('id', resolvedParams.id)
       .eq('user_id', user.id)
 
     if (deleteError) {

@@ -6,34 +6,31 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export const createClient = () => {
-  const cookieStore = cookies()
-  
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name) {
-          return cookieStore.get(name)?.value
-        },
-        set(name, value, options) {
-          cookieStore.set({ name, value, ...options })
-        },
-        remove(name, options) {
-          cookieStore.set({ name, value: '', ...options })
-        },
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+export const createClient = async () => {
+  const cookieStore = await cookies()
+
+  return createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll()
       },
-    }
-  )
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) =>
+          cookieStore.set(name, value, options)
+        )
+      },
+    },
+  })
 }
 
 export function createServiceClient() {
   // Use service role key for admin operations
-  const supabaseUrl = env.SUPABASE_URL || process.env.SUPABASE_URL || 'https://placeholder.supabase.co'
-  const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-key'
+  const serviceKey = process.env.SERVICE_ROLE_KEY!
 
-  return createServerClient(supabaseUrl, supabaseServiceKey, {
+  return createServerClient(supabaseUrl, serviceKey, {
     cookies: {
       getAll() {
         return []

@@ -27,19 +27,21 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-black text-white min-h-screen overflow-x-hidden`}>
-        <CSPostHogProvider>
-          <Suspense fallback={null}>
-            <PageViewTracker />
-          </Suspense>
-          <PerformanceOptimizer />
-          {/* This div ensures the pure black background */}
-          <div className="relative min-h-screen w-full bg-black">
-            <AnimatedBackground /> {/* Canvas is fixed, z-index -10, transparent bg */}
-            <Header />
-            <main className="relative z-10 pt-24">{children}</main>
-          </div>
-          <Toaster />
-        </CSPostHogProvider>
+        <SupabaseProvider>
+          <CSPostHogProvider>
+            <Suspense fallback={null}>
+              <PageViewTracker />
+            </Suspense>
+            <PerformanceOptimizer />
+            {/* This div ensures the pure black background */}
+            <div className="relative min-h-screen w-full bg-black">
+              <AnimatedBackground /> {/* Canvas is fixed, z-index -10, transparent bg */}
+              <Header />
+              <main className="relative z-10 pt-24">{children}</main>
+            </div>
+            <Toaster />
+          </CSPostHogProvider>
+        </SupabaseProvider>
       </body>
     </html>
   )

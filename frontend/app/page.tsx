@@ -4,8 +4,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Play, Sparkles, Zap, Users, Star, Video, Clock, Cpu, Wand2 } from "lucide-react"
 import Link from "next/link"
+import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Test Supabase connection
+  let supabaseStatus = 'disconnected';
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.from('users').select('count').limit(1)
+    supabaseStatus = error ? 'error' : 'connected';
+  } catch (error) {
+    console.log('Supabase connection test:', error);
+    supabaseStatus = 'error';
+  }
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Hero Section - Immersive Design */}
@@ -21,13 +33,21 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-20 relative z-10">
           <div className="text-center max-w-6xl mx-auto">
             {/* Futuristic Badge */}
-            <div className="mb-8 inline-flex items-center">
+            <div className="mb-8 inline-flex items-center flex-col gap-2">
               <div className="relative">
                 <Badge className="bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-cyan-500/20 border border-purple-500/30 text-white text-sm px-6 py-3 rounded-full backdrop-blur-xl">
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-cyan-500/10 rounded-full animate-pulse"></div>
                   <Sparkles className="w-4 h-4 mr-2 relative z-10" />
                   <span className="relative z-10 text-futuristic">NEXT-GEN AI VIDEO PLATFORM</span>
                 </Badge>
+              </div>
+              {/* Supabase Status Indicator */}
+              <div className="text-xs text-gray-400 flex items-center gap-1">
+                <div className={`w-2 h-2 rounded-full ${
+                  supabaseStatus === 'connected' ? 'bg-green-500' :
+                  supabaseStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
+                }`}></div>
+                <span>Database: {supabaseStatus}</span>
               </div>
             </div>
 

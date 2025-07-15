@@ -1,6 +1,6 @@
 {
-  "buildCommand": "pnpm run vercel:build",
-  "installCommand": "pnpm install --network-timeout 300000 --fetch-retries 5 --fetch-retry-factor 2 || npm install --fetch-retries 5 --fetch-retry-factor 2",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install --fetch-retries 5 --fetch-retry-factor 2 --fetch-retry-mintimeout 10000 --fetch-retry-maxtimeout 60000",
   "framework": "nextjs",
   "functions": {
     "app/api/**/*.ts": {
@@ -8,7 +8,6 @@
     }
   },
   "env": {
-    "PNPM_FLAGS": "--shamefully-hoist --network-timeout 300000 --fetch-retries 5",
     "NPM_CONFIG_REGISTRY": "https://registry.npmjs.org/",
     "NPM_CONFIG_FETCH_RETRIES": "5",
     "NPM_CONFIG_FETCH_RETRY_FACTOR": "2",

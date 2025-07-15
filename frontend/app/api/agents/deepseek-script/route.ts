@@ -4,20 +4,20 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { DeepSeekScriptScenePipeline, generateCinematicScript } from '@/lib/agents';
+// import { DeepSeekScriptScenePipeline, generateCinematicScript } from '@/lib/agents';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { 
-      topic, 
-      tone = 'engaging', 
-      duration = 60, 
+    const {
+      topic,
+      tone = 'engaging',
+      duration = 60,
       platform = 'tiktok',
       sceneCount,
       streaming = false,
       includeScenePlan = false,
-      trendPackage 
+      trendPackage
     } = body;
 
     if (!topic && !trendPackage) {
@@ -27,108 +27,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For streaming responses
-    if (streaming) {
-      const encoder = new TextEncoder();
-      const stream = new ReadableStream({
-        async start(controller) {
-          try {
-            if (includeScenePlan && trendPackage) {
-              // Use unified pipeline for script + scene plan
-              const pipeline = new DeepSeekScriptScenePipeline();
-              
-              const result = await pipeline.createTikTokScriptAndScene(
-                trendPackage,
-                tone,
-                (scriptChunk) => {
-                  const data = JSON.stringify({ 
-                    type: 'script_chunk', 
-                    content: scriptChunk 
-                  });
-                  controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-                },
-                (sceneChunk) => {
-                  const data = JSON.stringify({ 
-                    type: 'scene_chunk', 
-                    content: sceneChunk 
-                  });
-                  controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-                }
-              );
-
-              // Send final result
-              const finalData = JSON.stringify({ 
-                type: 'complete', 
-                result 
-              });
-              controller.enqueue(encoder.encode(`data: ${finalData}\n\n`));
-              
-            } else {
-              // Script-only generation
-              const script = await generateCinematicScript(topic, tone);
-
-              // Send final result
-              const finalData = JSON.stringify({ 
-                type: 'complete', 
-                script 
-              });
-              controller.enqueue(encoder.encode(`data: ${finalData}\n\n`));
-            }
-
-            controller.close();
-          } catch (error) {
-            const errorData = JSON.stringify({ 
-              type: 'error', 
-              error: error instanceof Error ? error.message : 'Unknown error' 
-            });
-            controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
-            controller.close();
-          }
-        }
-      });
-
-      return new Response(stream, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-        },
-      });
-    }
-
-    // Non-streaming response
-    if (includeScenePlan && trendPackage) {
-      // Use unified pipeline
-      const pipeline = new DeepSeekScriptScenePipeline();
-      const result = await pipeline.createTikTokScriptAndScene(trendPackage, tone);
-      
-      return NextResponse.json({
-        success: true,
-        data: result,
-        model_used: {
-          script: 'deepseek-chat',
-          scenes: 'gpt-4o'
-        }
-      });
-      
-    } else {
-      // Script-only generation
-      const script = await generateCinematicScript(topic, tone);
-
-      return NextResponse.json({
-        success: true,
-        data: { script },
-        model_used: 'gpt-4o',
-        viral_techniques: ['hook', 'storytelling', 'cta'],
-        scene_count: script.scenes.length
-      });
-    }
-
+    // TODO: Implement DeepSeek script generation when agents are ready
+    return NextResponse.json(
+      {
+        error: 'DeepSeek script generation temporarily disabled during build optimization',
+        message: 'Agent integration will be restored after deployment',
+        requested_topic: topic,
+        requested_tone: tone,
+        requested_duration: duration,
+        requested_platform: platform
+      },
+      { status: 503 }
+    )
   } catch (error) {
     console.error('DeepSeek script generation error:', error);
-    
+
     return NextResponse.json(
-      { 
+      {
         error: 'Script generation failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

@@ -5,7 +5,7 @@
  */
 
 import Replicate from "replicate";
-import { videoModels, getModelByName, validateModelConfig, type VideoModel } from "../../../shared/config/videoModels";
+import { videoModels, getModelByName, validateModelConfig, type VideoModel } from "@/config/videoModels";
 import { env } from "@/env.mjs";
 
 // Initialize Replicate client

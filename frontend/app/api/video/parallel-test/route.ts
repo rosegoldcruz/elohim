@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateVideoParallel } from "@/lib/agents/ParallelVisualGenerationAgent";
-import { getDefaultModelNames, calculateTotalCost } from "../../../../../../shared/config/videoModels";
+import { getDefaultModelNames, calculateTotalCost } from "@/config/videoModels";
 import { env } from "@/env.mjs";
 
 interface ParallelTestRequest {

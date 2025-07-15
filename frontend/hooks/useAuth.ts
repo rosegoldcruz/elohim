@@ -1,14 +1,12 @@
-// Remove Clerk imports
-// import { useAuth as useClerkAuth } from '@clerk/nextjs';
-
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useSupabase } from '@/lib/supabase/provider';
 import { useState, useEffect } from 'react';
+import type { User } from '@supabase/supabase-js';
 
 export function useAuth() {
-  const supabase = useSupabaseClient();
-  const [user, setUser] = useState(null);
+  const { supabase } = useSupabase();
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -16,15 +14,19 @@ export function useAuth() {
         setIsLoading(false);
       }
     );
-    
+
     // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       setIsLoading(false);
     });
-    
+
     return () => subscription.unsubscribe();
   }, [supabase]);
-  
-  return { user, isLoading };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  return { user, isLoading, signOut };
 }

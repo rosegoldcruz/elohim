@@ -167,16 +167,21 @@ async function generateTransitionPreview(glslCode: string, name: string): Promis
 /**
  * GET endpoint for serving preview files
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { filename: string } }
-) {
+export async function GET(request: NextRequest) {
   try {
     // In production, this would serve actual preview files from storage
     // For now, return a placeholder response
-    
-    const filename = params.filename;
-    
+
+    const { searchParams } = new URL(request.url);
+    const filename = searchParams.get('filename');
+
+    if (!filename) {
+      return NextResponse.json(
+        { success: false, error: 'Filename parameter is required' },
+        { status: 400 }
+      );
+    }
+
     if (filename.endsWith('.mp4')) {
       // Serve video preview
       return new NextResponse('Video preview placeholder', {
