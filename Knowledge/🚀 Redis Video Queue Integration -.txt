@@ -1,0 +1,335 @@
+🚀 Redis Video Queue Integration - Step by Step
+📁 Project Structure Setup
+Run these commands in your v0-modular-ai-automation project root:
+
+bash
+# 1. Create the required directory structure
+mkdir -p {lib,types,components/video,app/api/video/queue,scripts}
+
+# 2. Install Redis dependencies
+npm install ioredis ws @types/ws bull @bull-board/express
+npm install --save-dev @types/ioredis
+
+# 3. Update package.json with new scripts
+npm pkg set scripts.worker="node scripts/worker.js"
+npm pkg set scripts.ws-server="node scripts/websocket-server.js"
+npm pkg set scripts.dev:services="docker-compose -f docker-compose.dev.yml up -d"
+npm pkg set scripts.dev:full="npm run dev:services && npm run dev"
+📄 File Creation
+Create these files in your project:
+
+1. Core Redis Files
+bash
+# Copy the Redis client configuration
+cat > lib/redis-client.ts << 'EOF'
+import Redis from 'ioredis';
+
+let redis: Redis;
+let pubClient: Redis;
+let subClient: Redis;
+
+if (typeof window === 'undefined') {
+  redis = new Redis(process.env.REDIS_URL!, {
+    maxRetriesPerRequest: 3,
+    retryDelayOnFailover: 100,
+    enableOfflineQueue: false,
+  });
+
+  pubClient = new Redis(process.env.REDIS_URL!);
+  subClient = new Redis(process.env.REDIS_URL!);
+}
+
+export { redis, pubClient, subClient };
+EOF
+2. Type Definitions
+bash
+# Copy the type definitions from the artifacts above
+cat > types/video-queue.ts << 'EOF'
+[Copy the VideoJob, JobStatus, QueueMetrics interfaces from the artifacts]
+EOF
+3. Video Queue Class
+bash
+# Copy the complete VideoQueue class
+cat > lib/video-queue.ts << 'EOF'
+[Copy the complete VideoQueue class from the artifacts]
+EOF
+4. API Routes
+bash
+# Create the API routes directory and files
+mkdir -p app/api/video/queue/{metrics,active,recent}
+
+# Main queue route
+cat > app/api/video/queue/route.ts << 'EOF'
+[Copy the queue API route from the artifacts]
+EOF
+
+# Metrics route
+cat > app/api/video/queue/metrics/route.ts << 'EOF'
+import { NextResponse } from 'next/server';
+import { VideoQueue } from '@/lib/video-queue';
+
+const queue = new VideoQueue();
+
+export async function GET() {
+  try {
+    const metrics = await queue.getMetrics();
+    return NextResponse.json({ success: true, data: metrics });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+EOF
+
+# Active jobs route
+cat > app/api/video/queue/active/route.ts << 'EOF'
+import { NextResponse } from 'next/server';
+import { VideoQueue } from '@/lib/video-queue';
+
+const queue = new VideoQueue();
+
+export async function GET() {
+  try {
+    const processing = await queue.getJobsByStatus('processing', 50);
+    const queued = await queue.getJobsByStatus('queued', 50);
+    
+    const activeJobs: Record<string, any> = {};
+    [...processing, ...queued].forEach(job => {
+      activeJobs[job.id] = job;
+    });
+    
+    return NextResponse.json({ success: true, data: activeJobs });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+EOF
+
+# Recent jobs route
+cat > app/api/video/queue/recent/route.ts << 'EOF'
+import { NextResponse } from 'next/server';
+import { VideoQueue } from '@/lib/video-queue';
+
+const queue = new VideoQueue();
+
+export async function GET() {
+  try {
+    const completed = await queue.getJobsByStatus('completed', 20);
+    const failed = await queue.getJobsByStatus('failed', 10);
+    
+    const recent = [...completed, ...failed]
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .slice(0, 10);
+    
+    return NextResponse.json({ success: true, data: recent });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+EOF
+5. Video Components
+bash
+# Copy the video generation form component
+cat > components/video/video-generation-form.tsx << 'EOF'
+[Copy the complete VideoGenerationForm component from the artifacts]
+EOF
+6. Dashboard Page
+bash
+# Create the dashboard page
+mkdir -p app/dashboard
+cat > app/dashboard/page.tsx << 'EOF'
+import VideoQueueDashboard from '@/components/video/video-queue-dashboard';
+
+export default function DashboardPage() {
+  return <VideoQueueDashboard />;
+}
+EOF
+
+# Copy the dashboard component
+cat > components/video/video-queue-dashboard.tsx << 'EOF'
+[Copy the complete VideoQueueDashboard component from the artifacts]
+EOF
+7. Worker Scripts
+bash
+# Copy the worker script
+cat > scripts/worker.js << 'EOF'
+[Copy the complete worker script from the artifacts]
+EOF
+
+# Copy the WebSocket server script
+cat > scripts/websocket-server.js << 'EOF'
+[Copy the complete WebSocket server script from the artifacts]
+EOF
+8. Docker Configuration
+bash
+# Development Docker Compose
+cat > docker-compose.dev.yml << 'EOF'
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis_data:/data
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+volumes:
+  redis_data:
+EOF
+
+# Production Docker Compose
+cat > docker-compose.prod.yml << 'EOF'
+[Copy the complete production docker-compose from the artifacts]
+EOF
+
+# Dockerfile
+cat > Dockerfile << 'EOF'
+[Copy the complete Dockerfile from the artifacts]
+EOF
+9. Environment Configuration
+bash
+# Update your .env.local
+cat >> .env.local << 'EOF'
+
+# Redis Configuration
+REDIS_URL=redis://localhost:6379
+
+# Video Queue Settings
+WS_PORT=8080
+WORKER_CONCURRENCY=3
+MAX_JOB_RETRIES=3
+JOB_TIMEOUT=900000
+
+# AI Services (add your actual keys)
+OPENAI_API_KEY=sk-your-key-here
+REPLICATE_API_TOKEN=r8_your-token-here
+RUNWAY_API_KEY=rw_your-key-here
+EOF
+🔄 Integration with Existing UI
+Update Your Navigation
+Add these routes to your existing navigation component:
+
+typescript
+// In your navigation component
+const routes = [
+  // ... your existing routes
+  {
+    title: "Video Generator",
+    href: "/video/generate",
+    icon: Play
+  },
+  {
+    title: "Queue Dashboard", 
+    href: "/dashboard",
+    icon: Activity
+  }
+];
+Create Video Generation Page
+bash
+# Create the video generation page
+mkdir -p app/video/generate
+cat > app/video/generate/page.tsx << 'EOF'
+import { VideoGenerationForm } from '@/components/video/video-generation-form';
+
+export default function VideoGeneratePage() {
+  return (
+    <div className="container mx-auto py-8">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold tracking-tight">AI Video Generator</h1>
+        <p className="text-muted-foreground mt-2">
+          Transform your ideas into professional videos with AI
+        </p>
+      </div>
+      <VideoGenerationForm />
+    </div>
+  );
+}
+EOF
+🚀 Deployment Steps
+1. Local Development
+bash
+# Start Redis locally
+npm run dev:services
+
+# In separate terminals:
+# Terminal 1: Start the main app
+npm run dev
+
+# Terminal 2: Start the worker
+npm run worker
+
+# Terminal 3: Start WebSocket server (optional for real-time updates)
+npm run ws-server
+2. Test the Integration
+Go to http://localhost:3000/video/generate
+Fill out the form and submit
+Go to http://localhost:3000/dashboard to see the job processing
+Check the worker terminal to see job processing logs
+3. Production Deployment
+Option A: Vercel + Upstash (Recommended)
+bash
+# Deploy to Vercel
+vercel --prod
+
+# Set environment variables in Vercel dashboard:
+# REDIS_URL=your_upstash_redis_url
+# OPENAI_API_KEY=your_openai_key
+# REPLICATE_API_TOKEN=your_replicate_token
+# RUNWAY_API_KEY=your_runway_key
+
+# Deploy worker to Railway/Render
+# Deploy WebSocket server to Railway/Render
+Option B: Docker (Self-hosted)
+bash
+# Build and deploy with Docker
+docker-compose -f docker-compose.prod.yml up -d
+
+# Check logs
+docker-compose -f docker-compose.prod.yml logs -f
+✅ Verification Checklist
+ Redis connection working (redis-cli ping)
+ Video generation form accessible at /video/generate
+ Queue dashboard accessible at /dashboard
+ Worker processing jobs (check logs)
+ Job status updates in real-time
+ Completed videos downloadable
+🔧 Troubleshooting
+Common Issues
+Redis Connection Errors
+bash
+# Check Redis is running
+docker ps | grep redis
+
+# Test connection
+redis-cli -u $REDIS_URL ping
+Worker Not Processing Jobs
+bash
+# Check worker logs
+npm run worker
+
+# Check queue manually
+redis-cli ZRANGE video:queue 0 -1
+Missing UI Components
+bash
+# Install missing shadcn components
+npx shadcn-ui@latest add progress
+npx shadcn-ui@latest add badge
+🎯 Next Steps
+Test the basic flow: Generate a video and watch it process
+Customize the AI pipeline: Update the worker to use real AI services
+Add authentication: Integrate with your existing auth system
+Scale workers: Deploy multiple worker instances for production
+Add monitoring: Set up alerts for failed jobs and queue health
+Your Redis video queue system is now fully integrated! 🎬✨
+

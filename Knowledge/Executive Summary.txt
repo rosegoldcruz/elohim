@@ -1,0 +1,186 @@
+
+
+Aeon Investments Technologies LLC is building a comprehensive AI-driven social media automation platform—code-named TikTok Automation Engine—designed to generate, optimize, and schedule vertical video content at scale. Leveraging Hailuo AI, Runway Gen-4, CapCut, and open-source video generators, the system will produce high-performing 9:16 shorts across multiple niches (men’s lifestyle, women’s beauty, luxury living, technology, finance, sports betting, and YouTube storytelling for older demographics). The platform integrates a custom orchestration layer, backend microservices, and a React/TypeScript dashboard to monitor trends, analyze engagement, and track revenue. Containerized deployments on DigitalOcean and Hostinger ensure scalability and compliance. The ultimate goal is to autonomously drive the platform to $10 million in annual revenue through seamless monetization, affiliate partnerships, and data-driven content strategies.
+
+Project Background and Objectives
+
+Monetization Target: Achieve $10 million in annual recurring revenue within 12 months of launch.
+
+Automation: Minimize manual intervention by automating content generation, metadata enrichment, trend analysis, and scheduling.
+
+Scalability: Architect the system for horizontal scaling to handle thousands of video clips per day.
+
+Compliance: Ensure all data acquisition and publishing workflows comply with platform TOS and privacy regulations.
+
+Modularity: Build loosely coupled components to allow rapid iteration, niche expansion, and third-party integrations.
+
+High-Level Architecture
+
+1. Orchestration Layer (Build-Time vs. Runtime)
+
+Build-Time Scaffolding: Utilize Codex CLI internally to generate file structures, boilerplate code, and CI/CD pipelines.
+
+Runtime Scheduler: Implement a custom Node.js/Python CLI that triggers AI pipelines, scrapes public feeds, and enqueues video generation jobs.
+
+2. AI Content Pipelines
+
+Input Data Acquisition:
+
+Public website scraping (legal, TOS-friendly) for trending hashtags, headlines, and keywords.
+
+RSS feeds and legal APIs (e.g., Google Trends, Reddit, Twitter) to detect emerging topics.
+
+OddsAPI integration for sports betting data streams.
+
+Script & Scene Generation:
+
+Use Hailuo AI’s I2V&T2V-01-DIRECTOR model to generate 6–10 second cinematic clips with synchronized narration.
+
+Employ Runway Gen-4 for highly photo-realistic B-roll segments optimized for TikTok.
+
+Editing & Styling:
+
+Automatically apply trending TikTok templates (transitions, filters, captions) via CapCut automation APIs.
+
+Generate on-brand overlays and calls to action.
+
+Metadata Enrichment:
+
+Auto-generate hashtags, titles, and descriptions based on NLP analysis of trending content.
+
+A/B test variants within the content calendar.
+
+3. Backend Services
+
+Trend Monitoring Service (Python + Supabase Functions): Continuously fetches and analyzes data to identify high-potential viral topics.
+
+Analytics Engine (Node.js + PostgreSQL): Ingests engagement metrics (views, likes, shares) via TikTok Creator Marketplace API once access is approved.
+
+Financial Integration (Bank of America API): Securely logs revenue, affiliate payouts, and ad earnings into the Aeon Investments Tech accounting dashboard.
+
+4. Frontend Dashboard (React/TypeScript)
+
+Performance Metrics: Interactive charts for daily/weekly video performance, niche-level breakdowns, and revenue attribution.
+
+Content Calendar: Drag-and-drop scheduling interface with preview thumbnails and status indicators (queued, in production, published).
+
+AI Pipeline Control Panel: Configure Hailuo, Runway, and CapCut parameters; launch manual generation jobs if needed.
+
+User Management: Role-based access for internal teams and external partners.
+
+5. Infrastructure & Deployment
+
+Containerization: Dockerized microservices and AI pipeline workers.
+
+Hosting: DigitalOcean Kubernetes cluster for backend; Hostinger shared hosting for dashboard static assets.
+
+CI/CD: GitHub Actions workflows for build, test, and deploy phases.
+
+Monitoring & Logging: Prometheus for system health, Grafana dashboards, and centralized log aggregation (ELK stack).
+
+Functional Requirements
+
+Automated Trend Discovery:
+
+Frequency: Every 15 minutes
+
+Source Compliance: Only from TOS-approved public endpoints
+
+Video Generation Workflow:
+
+Input: Trend data + niche configuration
+
+Output: Rendered 9:16 .mp4 files with captions and metadata
+
+Throughput: Minimum 100 videos/day at launch, scalable to 1,000 videos/day
+
+Scheduling & Publishing:
+
+Schedule content across multiple TikTok business accounts
+
+Integrate with TikTok API upon approval; fallback to manual upload instructions if delayed
+
+Dashboard Features:
+
+Real-time KPI updates (1–5 second delays)
+
+Customizable alert thresholds (e.g., drops in engagement)
+
+Export CSV and PDF reports for investor presentations
+
+Non-Functional Requirements
+
+Security:
+
+SOC 2 compliance for data handling
+
+Encrypted secrets storage (Vault or AWS KMS)
+
+Reliability:
+
+99.9% uptime SLA
+
+Automated failover for critical services
+
+Performance:
+
+AI pipeline job startup latency < 30 seconds
+
+Dashboard load time < 2 seconds for 95th percentile users
+
+Maintainability:
+
+Modular codebase with clear service boundaries
+
+Comprehensive test coverage (> 80% unit and integration tests)
+
+Legal and Compliance Considerations
+
+Data Acquisition: Strictly abide by robots.txt and API TOS for all scraped sites.
+
+Content Disclosure: Clearly label AI-generated videos per FTC guidelines.
+
+Sports Betting: Limit distribution to jurisdictions with legal sports betting; include disclaimers and age gating.
+
+Financial Transactions: Ensure all Bank of America API calls comply with banking terms and PCI DSS for any card data.
+
+Deliverables for Outsourced Development
+
+Architecture Design Document (this spec)
+
+Deployment Scripts: Dockerfiles, Kubernetes manifests, GitHub Actions YAML
+
+Source Code:
+
+Orchestration CLI (Python/Node.js)
+
+AI pipeline integration modules
+
+Backend microservices
+
+React/TypeScript dashboard
+
+Documentation:
+
+README with setup and development guidelines
+
+API docs (Swagger/OpenAPI)
+
+Data flow diagrams and sequence diagrams
+
+Test Suites: Automated tests, CI integration
+
+Security Review Report: Penetration test summary and compliance checklist
+
+Project Handoff Request
+
+Objective: Using this specification, develop a production-ready, end-to-end AI-powered social media automation platform with a focus on TikTok vertical video growth.Scope: Implement all modules, services, and dashboards as described; ensure compliance, scalability, and maintainability.Timeline:
+
+Phase 1: MVP delivery (trend monitoring, AI pipeline, manual scheduling) in 8 weeks
+
+Phase 2: TikTok API integration, dashboard enhancements, and monetization features in additional 6 weeks
+
+Phase 3: Full performance tuning, documentation, and compliance certification in final 4 weeks
+
+Please confirm your understanding of the requirements, propose any improvements, and provide an estimated timeline and cost breakdown.
+

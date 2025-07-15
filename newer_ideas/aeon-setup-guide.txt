@@ -1,0 +1,572 @@
+# AEON Video System - Complete Setup & Deployment Guide
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- Python 3.10+
+- Docker
+- GPU support (NVIDIA CUDA 11.8+)
+- Redis
+- PostgreSQL (via Supabase)
+
+## 1. Initial Setup
+
+### Clone and Install
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/aeon-video-system.git
+cd aeon-video-system
+
+# Install frontend dependencies
+npm install
+
+# Install Python dependencies
+cd lib/agents
+pip install -r requirements.txt
+```
+
+### Environment Configuration
+
+Create `.env.local` in the root directory:
+
+```env
+# Core Services
+NEXT_PUBLIC_APP_URL=https://aeon-video.vercel.app
+RAILWAY_API_URL=https://aeon-workers.railway.app
+
+# Authentication
+NEXTAUTH_URL=https://aeon-video.vercel.app
+NEXTAUTH_SECRET=your-secret-key
+
+# Database
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_KEY=your-service-key
+
+# AI Services
+OPENAI_API_KEY=sk-...
+REPLICATE_API_KEY=r8_...
+HUGGINGFACE_TOKEN=hf_...
+
+# Video APIs
+SHOTSTACK_API_KEY=your-key
+CREATOMATE_API_KEY=your-key
+JSON2VIDEO_API_KEY=your-key
+PLAINLY_API_KEY=your-key
+BANUBA_API_KEY=your-key
+
+# Analytics
+POSTHOG_API_KEY=your-key
+VERCEL_ANALYTICS_ID=your-id
+
+# CDN & Storage
+CLOUDFLARE_API_TOKEN=your-token
+AWS_ACCESS_KEY_ID=your-key
+AWS_SECRET_ACCESS_KEY=your-secret
+S3_BUCKET=aeon-videos
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# GPU Workers
+RAILWAY_TOKEN=your-token
+GPU_WORKER_URL=https://gpu.railway.app
+```
+
+## 2. Database Setup
+
+### Supabase Configuration
+
+1. Create a new Supabase project
+2. Run the migrations:
+
+```sql
+-- Create all tables
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Users profile
+CREATE TABLE users_profile (
+  id UUID REFERENCES auth.users PRIMARY KEY,
+  username TEXT UNIQUE,
+  subscription_tier TEXT DEFAULT 'free',
+  api_usage JSONB DEFAULT '{}',
+  viral_score INT DEFAULT 0,
+  total_views BIGINT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Video projects
+CREATE TABLE video_projects (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES users_profile(id),
+  title TEXT,
+  platform TEXT,
+  original_video TEXT,
+  edited_video TEXT,
+  thumbnail TEXT,
+  duration FLOAT,
+  status TEXT DEFAULT 'draft',
+  viral_score INT,
+  edit_plan JSONB,
+  beats_data JSONB,
+  transitions JSONB,
+  captions JSONB,
+  metadata JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  published_at TIMESTAMPTZ
+);
+
+-- Viral templates
+CREATE TABLE viral_templates (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  category TEXT,
+  platform TEXT,
+  config JSONB,
+  preview_url TEXT,
+  viral_score INT,
+  usage_count INT DEFAULT 0,
+  creator_id UUID REFERENCES users_profile(id),
+  is_public BOOLEAN DEFAULT false,
+  price DECIMAL(10,2),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Analytics
+CREATE TABLE video_analytics (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  video_id UUID REFERENCES video_projects(id),
+  timestamp TIMESTAMPTZ DEFAULT NOW(),
+  views INT DEFAULT 0,
+  likes INT DEFAULT 0,
+  shares INT DEFAULT 0,
+  comments INT DEFAULT 0,
+  watch_time FLOAT,
+  retention_3s FLOAT,
+  retention_curve JSONB,
+  engagement_rate FLOAT,
+  virality_score FLOAT
+);
+
+-- Processing jobs
+CREATE TABLE processing_jobs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES users_profile(id),
+  video_id UUID REFERENCES video_projects(id),
+  type TEXT,
+  status TEXT DEFAULT 'pending',
+  progress INT DEFAULT 0,
+  config JSONB,
+  result JSONB,
+  error TEXT,
+  started_at TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE video_projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE viral_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE video_analytics ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Users can manage own videos" ON video_projects
+  FOR ALL USING (auth.uid() = user_id);
+
+CREATE POLICY "Public templates are viewable" ON viral_templates
+  FOR SELECT USING (is_public = true OR auth.uid() = creator_id);
+
+-- Indexes for performance
+CREATE INDEX idx_video_projects_user_id ON video_projects(user_id);
+CREATE INDEX idx_video_projects_status ON video_projects(status);
+CREATE INDEX idx_video_analytics_video_id ON video_analytics(video_id);
+CREATE INDEX idx_processing_jobs_status ON processing_jobs(status);
+```
+
+## 3. Local Development
+
+### Start Frontend
+
+```bash
+# Development mode
+npm run dev
+
+# Build for production
+npm run build
+npm start
+```
+
+### Start Python Workers
+
+```bash
+# Navigate to workers directory
+cd lib/agents
+
+# Start with uvicorn (development)
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Or with gunicorn (production)
+gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
+```
+
+### Start Redis
+
+```bash
+# Using Docker
+docker run -d -p 6379:6379 redis:alpine
+
+# Or install locally
+redis-server
+```
+
+## 4. Railway Deployment (GPU Workers)
+
+### Railway Configuration
+
+Create `railway.toml` in `lib/agents`:
+
+```toml
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "./Dockerfile.gpu"
+
+[deploy]
+startCommand = "python worker.py"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[[services]]
+name = "aeon-gpu-worker"
+internal = true
+
+[[services.ports]]
+port = 8000
+targetPort = 8000
+
+[services.resources]
+cpu = "4000m"
+memory = "16Gi"
+```
+
+### GPU Dockerfile
+
+Create `lib/agents/Dockerfile.gpu`:
+
+```dockerfile
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    python3.10 python3-pip \
+    ffmpeg libsm6 libxext6 \
+    libxrender-dev libgomp1 \
+    git wget && \
+    rm -rf /var/lib/apt/lists/*
+
+# Python dependencies
+WORKDIR /app
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# PyTorch with CUDA
+RUN pip3 install torch==2.0.1+cu118 torchvision==0.15.2+cu118 \
+    --index-url https://download.pytorch.org/whl/cu118
+
+# Copy application
+COPY . .
+
+# Environment
+ENV PYTHONUNBUFFERED=1
+ENV CUDA_VISIBLE_DEVICES=0
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Run
+CMD ["python3", "worker.py"]
+```
+
+### Deploy to Railway
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login
+railway login
+
+# Initialize project
+railway init
+
+# Add environment variables
+railway variables set OPENAI_API_KEY=$OPENAI_API_KEY
+railway variables set REDIS_URL=$REDIS_URL
+
+# Deploy
+railway up
+```
+
+## 5. Vercel Deployment (Frontend)
+
+### Vercel Configuration
+
+Create `vercel.json`:
+
+```json
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "regions": ["iad1", "sfo1", "fra1"],
+  "functions": {
+    "app/api/video/process/route.ts": {
+      "maxDuration": 300,
+      "memory": 3008
+    },
+    "app/api/ai/viral/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/analytics",
+      "schedule": "0 */4 * * *"
+    }
+  ],
+  "env": {
+    "RAILWAY_API_URL": "@railway_api_url",
+    "ENABLE_EXPERIMENTAL_COREPACK": "1"
+  }
+}
+```
+
+### Deploy to Vercel
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy
+vercel --prod
+
+# Set environment variables
+vercel env add SUPABASE_URL
+vercel env add OPENAI_API_KEY
+# ... add all other env vars
+```
+
+## 6. Production Optimization
+
+### CDN Setup (Cloudflare)
+
+1. Add your domain to Cloudflare
+2. Configure Workers for edge processing:
+
+```javascript
+// cloudflare-worker.js
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request))
+})
+
+async function handleRequest(request) {
+  const url = new URL(request.url)
+  
+  // Cache video assets
+  if (url.pathname.startsWith('/videos/')) {
+    const cache = caches.default
+    let response = await cache.match(request)
+    
+    if (!response) {
+      response = await fetch(request)
+      response = new Response(response.body, response)
+      response.headers.set('Cache-Control', 'public, max-age=86400')
+      event.waitUntil(cache.put(request, response.clone()))
+    }
+    
+    return response
+  }
+  
+  return fetch(request)
+}
+```
+
+### Performance Monitoring
+
+```typescript
+// lib/monitoring.ts
+import { PostHog } from 'posthog-node'
+
+const posthog = new PostHog(process.env.POSTHOG_API_KEY!)
+
+export function trackVideoProcessing(data: {
+  userId: string
+  videoId: string
+  duration: number
+  platform: string
+  viralScore: number
+}) {
+  posthog.capture({
+    distinctId: data.userId,
+    event: 'video_processed',
+    properties: data
+  })
+}
+
+export function trackViralPerformance(data: {
+  videoId: string
+  views: number
+  shares: number
+  retention3s: number
+}) {
+  posthog.capture({
+    distinctId: data.videoId,
+    event: 'viral_performance',
+    properties: data
+  })
+}
+```
+
+## 7. Testing
+
+### Unit Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# E2E tests
+npm run test:e2e
+```
+
+### Load Testing
+
+```python
+# load_test.py
+import asyncio
+import aiohttp
+import time
+
+async def test_video_processing(session, video_url):
+    start = time.time()
+    async with session.post(
+        'https://api.aeon-video.com/process/viral',
+        json={
+            'video_url': video_url,
+            'platform': 'tiktok',
+            'music_url': 'https://example.com/trending.mp3'
+        }
+    ) as response:
+        result = await response.json()
+        print(f"Processed in {time.time() - start}s: {result['job_id']}")
+        return result
+
+async def main():
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for i in range(100):  # 100 concurrent requests
+            task = test_video_processing(session, f'video_{i}.mp4')
+            tasks.append(task)
+        
+        results = await asyncio.gather(*tasks)
+        print(f"Completed {len(results)} requests")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## 8. Monitoring & Analytics
+
+### Real-time Dashboard
+
+```typescript
+// app/dashboard/page.tsx
+'use client'
+
+import { useEffect, useState } from 'react'
+import { createClient } from '@supabase/supabase-js'
+
+export default function Dashboard() {
+  const [metrics, setMetrics] = useState({
+    activeJobs: 0,
+    completedToday: 0,
+    avgViralScore: 0,
+    topPlatform: 'tiktok'
+  })
+
+  useEffect(() => {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    // Real-time subscriptions
+    const subscription = supabase
+      .channel('dashboard')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'processing_jobs'
+      }, payload => {
+        // Update metrics in real-time
+        updateMetrics()
+      })
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  // Render dashboard...
+}
+```
+
+## 9. Troubleshooting
+
+### Common Issues
+
+1. **GPU not detected**
+   ```bash
+   # Check CUDA installation
+   nvidia-smi
+   
+   # Verify PyTorch GPU support
+   python -c "import torch; print(torch.cuda.is_available())"
+   ```
+
+2. **Memory issues**
+   - Increase Railway instance memory
+   - Enable video chunking for large files
+   - Use streaming processing
+
+3. **Slow processing**
+   - Check Redis connection
+   - Verify GPU utilization
+   - Enable distributed processing
+
+## 10. Production Checklist
+
+- [ ] All environment variables set
+- [ ] Database migrations completed
+- [ ] Redis cluster configured
+- [ ] GPU workers deployed
+- [ ] CDN configured
+- [ ] SSL certificates active
+- [ ] Monitoring enabled
+- [ ] Backup strategy implemented
+- [ ] Rate limiting configured
+- [ ] Error tracking setup
+
+## Support
+
+- Documentation: https://docs.aeon-video.com
+- Discord: https://discord.gg/aeon-video
+- Email: support@aeon-video.com

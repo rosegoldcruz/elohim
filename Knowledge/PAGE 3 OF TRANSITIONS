@@ -1,0 +1,444 @@
+PAGE 3 OF TRANSITIONS
+
+####################################################################
+
+// License: MIT
+// Author: rectalogic
+// ported by gre from https://gist.github.com/rectalogic/b86b90161503a0023231
+
+// Converted from https://github.com/rectalogic/rendermix-basic-effects/blob/master/assets/com/rendermix/CrossZoom/CrossZoom.frag
+// Which is based on https://github.com/evanw/glfx.js/blob/master/src/filters/blur/zoomblur.js
+// With additional easing functions from https://github.com/rectalogic/rendermix-basic-effects/blob/master/assets/com/rendermix/Easing/Easing.glsllib
+
+uniform float strength; // = 0.4
+
+const float PI = 3.141592653589793;
+
+float Linear_ease(in float begin, in float change, in float duration, in float time) {
+    return change * time / duration + begin;
+}
+
+float Exponential_easeInOut(in float begin, in float change, in float duration, in float time) {
+    if (time == 0.0)
+        return begin;
+    else if (time == duration)
+        return begin + change;
+    time = time / (duration / 2.0);
+    if (time < 1.0)
+        return change / 2.0 * pow(2.0, 10.0 * (time - 1.0)) + begin;
+    return change / 2.0 * (-pow(2.0, -10.0 * (time - 1.0)) + 2.0) + begin;
+}
+
+float Sinusoidal_easeInOut(in float begin, in float change, in float duration, in float time) {
+    return -change / 2.0 * (cos(PI * time / duration) - 1.0) + begin;
+}
+
+float rand (vec2 co) {
+  return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+vec3 crossFade(in vec2 uv, in float dissolve) {
+    return mix(getFromColor(uv).rgb, getToColor(uv).rgb, dissolve);
+}
+
+vec4 transition(vec2 uv) {
+    vec2 texCoord = uv.xy / vec2(1.0).xy;
+
+    // Linear interpolate center across center half of the image
+    vec2 center = vec2(Linear_ease(0.25, 0.5, 1.0, progress), 0.5);
+    float dissolve = Exponential_easeInOut(0.0, 1.0, 1.0, progress);
+
+    // Mirrored sinusoidal loop. 0->strength then strength->0
+    float strength = Sinusoidal_easeInOut(0.0, strength, 0.5, progress);
+
+    vec3 color = vec3(0.0);
+    float total = 0.0;
+    vec2 toCenter = center - texCoord;
+
+    /* randomize the lookup values to hide the fixed number of samples */
+    float offset = rand(uv);
+
+    for (float t = 0.0; t <= 40.0; t++) {
+        float percent = (t + offset) / 40.0;
+        float weight = 4.0 * (percent - percent * percent);
+        color += crossFade(texCoord + toCenter * percent * strength, dissolve) * weight;
+        total += weight;
+    }
+    return vec4(color / total, 1.0);
+}
+
+
+####################################################################
+
+// Author: mikolalysenko
+// License: MIT
+
+vec2 offset(float progress, float x, float theta) {
+  float phase = progress*progress + progress + theta;
+  float shifty = 0.03*progress*cos(10.0*(progress+x));
+  return vec2(0, shifty);
+}
+vec4 transition(vec2 p) {
+  return mix(getFromColor(p + offset(progress, p.x, 0.0)), getToColor(p + offset(1.0-progress, p.x, 3.14)), progress);
+}
+
+####################################################################
+
+// License: MIT
+// Author: TimDonselaar
+// ported by gre from https://gist.github.com/TimDonselaar/9bcd1c4b5934ba60087bdb55c2ea92e5
+
+uniform ivec2 size; // = ivec2(4)
+uniform float pause; // = 0.1
+uniform float dividerWidth; // = 0.05
+uniform vec4 bgcolor; // = vec4(0.0, 0.0, 0.0, 1.0)
+uniform float randomness; // = 0.1
+ 
+float rand (vec2 co) {
+  return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+float getDelta(vec2 p) {
+  vec2 rectanglePos = floor(vec2(size) * p);
+  vec2 rectangleSize = vec2(1.0 / vec2(size).x, 1.0 / vec2(size).y);
+  float top = rectangleSize.y * (rectanglePos.y + 1.0);
+  float bottom = rectangleSize.y * rectanglePos.y;
+  float left = rectangleSize.x * rectanglePos.x;
+  float right = rectangleSize.x * (rectanglePos.x + 1.0);
+  float minX = min(abs(p.x - left), abs(p.x - right));
+  float minY = min(abs(p.y - top), abs(p.y - bottom));
+  return min(minX, minY);
+}
+
+float getDividerSize() {
+  vec2 rectangleSize = vec2(1.0 / vec2(size).x, 1.0 / vec2(size).y);
+  return min(rectangleSize.x, rectangleSize.y) * dividerWidth;
+}
+
+vec4 transition(vec2 p) {
+  if(progress < pause) {
+    float currentProg = progress / pause;
+    float a = 1.0;
+    if(getDelta(p) < getDividerSize()) {
+      a = 1.0 - currentProg;
+    }
+    return mix(bgcolor, getFromColor(p), a);
+  }
+  else if(progress < 1.0 - pause){
+    if(getDelta(p) < getDividerSize()) {
+      return bgcolor;
+    } else {
+      float currentProg = (progress - pause) / (1.0 - pause * 2.0);
+      vec2 q = p;
+      vec2 rectanglePos = floor(vec2(size) * q);
+      
+      float r = rand(rectanglePos) - randomness;
+      float cp = smoothstep(0.0, 1.0 - r, currentProg);
+    
+      float rectangleSize = 1.0 / vec2(size).x;
+      float delta = rectanglePos.x * rectangleSize;
+      float offset = rectangleSize / 2.0 + delta;
+      
+      p.x = (p.x - offset)/abs(cp - 0.5)*0.5 + offset;
+      vec4 a = getFromColor(p);
+      vec4 b = getToColor(p);
+      
+      float s = step(abs(vec2(size).x * (q.x - delta) - 0.5), abs(cp - 0.5));
+      return mix(bgcolor, mix(b, a, step(cp, 0.5)), s);
+    }
+  }
+  else {
+    float currentProg = (progress - 1.0 + pause) / pause;
+    float a = 1.0;
+    if(getDelta(p) < getDividerSize()) {
+      a = currentProg;
+    }
+    return mix(bgcolor, getToColor(p), a);
+  }
+}
+
+####################################################################
+
+
+// License: MIT
+// Author: dycm8009
+// ported by gre from https://gist.github.com/dycm8009/948e99b1800e81ad909a
+
+vec2 zoom(vec2 uv, float amount) {
+  return 0.5 + ((uv - 0.5) * amount);	
+}
+
+vec2 ratio2 = vec2(1.0, 1.0 / ratio);
+
+vec4 transition(vec2 uv) {
+  // TODO: some timing are hardcoded but should be one or many parameters
+  // TODO: should also be able to configure how much circles
+  // TODO: if() branching should be avoided when possible, prefer use of step() & other functions
+  vec2 r = 2.0 * ((vec2(uv.xy) - 0.5) * ratio2);
+  float pro = progress / 0.8;
+  float z = pro * 0.2;
+  float t = 0.0;
+  if (pro > 1.0) {
+    z = 0.2 + (pro - 1.0) * 5.;
+    t = clamp((progress - 0.8) / 0.07, 0.0, 1.0);
+  }
+  if (length(r) < 0.5+z) {
+    // uv = zoom(uv, 0.9 - 0.1 * pro);
+  }
+  else if (length(r) < 0.8+z*1.5) {
+    uv = zoom(uv, 1.0 - 0.15 * pro);
+    t = t * 0.5;
+  }
+  else if (length(r) < 1.2+z*2.5) {
+    uv = zoom(uv, 1.0 - 0.2 * pro);
+    t = t * 0.2;
+  }
+  else {
+    uv = zoom(uv, 1.0 - 0.25 * pro);
+  }
+  return mix(getFromColor(uv), getToColor(uv), t);
+}
+
+
+####################################################################
+
+
+
+
+// License: MIT
+// Author: Xaychru
+// ported by gre from https://gist.github.com/Xaychru/ce1d48f0ce00bb379750
+
+uniform float smoothness; // = 1.0
+
+const float PI = 3.141592653589;
+
+vec4 transition(vec2 p) {
+  vec2 rp = p*2.-1.;
+  return mix(
+    getToColor(p),
+    getFromColor(p),
+    smoothstep(0., smoothness, atan(rp.y,rp.x) - (progress-.5) * PI * 2.5)
+  );
+}
+
+
+####################################################################
+
+// License: MIT
+// Author: Xaychru
+// ported by gre from https://gist.github.com/Xaychru/130bb7b7affedbda9df5
+
+#define PI 3.14159265358979323
+#define POW2(X) X*X
+#define POW3(X) X*X*X
+uniform int endx; // = 2
+uniform int endy; // = -1
+
+float Rand(vec2 v) {
+  return fract(sin(dot(v.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+vec2 Rotate(vec2 v, float a) {
+  mat2 rm = mat2(cos(a), -sin(a),
+                 sin(a), cos(a));
+  return rm*v;
+}
+float CosInterpolation(float x) {
+  return -cos(x*PI)/2.+.5;
+}
+vec4 transition(vec2 uv) {
+  vec2 p = uv.xy / vec2(1.0).xy - .5;
+  vec2 rp = p;
+  float rpr = (progress*2.-1.);
+  float z = -(rpr*rpr*2.) + 3.;
+  float az = abs(z);
+  rp *= az;
+  rp += mix(vec2(.5, .5), vec2(float(endx) + .5, float(endy) + .5), POW2(CosInterpolation(progress)));
+  vec2 mrp = mod(rp, 1.);
+  vec2 crp = rp;
+  bool onEnd = int(floor(crp.x))==endx&&int(floor(crp.y))==endy;
+  if(!onEnd) {
+    float ang = float(int(Rand(floor(crp))*4.))*.5*PI;
+    mrp = vec2(.5) + Rotate(mrp-vec2(.5), ang);
+  }
+  if(onEnd || Rand(floor(crp))>.5) {
+    return getToColor(mrp);
+  } else {
+    return getFromColor(mrp);
+  }
+}
+
+
+
+####################################################################
+
+
+
+
+// License: MIT
+// Author: pthrasher
+// adapted by gre from https://gist.github.com/pthrasher/8e6226b215548ba12734
+
+uniform float smoothness; // = 0.03
+uniform vec2 center; // = vec2(0.5)
+uniform vec3 color; // = vec3(0.0)
+
+const float M_PI = 3.14159265358979323846;
+
+float quadraticInOut(float t) {
+  float p = 2.0 * t * t;
+  return t < 0.5 ? p : -p + (4.0 * t) - 1.0;
+}
+
+float getGradient(float r, float dist) {
+  float d = r - dist;
+  return mix(
+    smoothstep(-smoothness, 0.0, r - dist * (1.0 + smoothness)),
+    -1.0 - step(0.005, d),
+    step(-0.005, d) * step(d, 0.01)
+  );
+}
+
+float getWave(vec2 p){
+  vec2 _p = p - center; // offset from center
+  float rads = atan(_p.y, _p.x);
+  float degs = degrees(rads) + 180.0;
+  vec2 range = vec2(0.0, M_PI * 30.0);
+  vec2 domain = vec2(0.0, 360.0);
+  float ratio = (M_PI * 30.0) / 360.0;
+  degs = degs * ratio;
+  float x = progress;
+  float magnitude = mix(0.02, 0.09, smoothstep(0.0, 1.0, x));
+  float offset = mix(40.0, 30.0, smoothstep(0.0, 1.0, x));
+  float ease_degs = quadraticInOut(sin(degs));
+  float deg_wave_pos = (ease_degs * magnitude) * sin(x * offset);
+  return x + deg_wave_pos;
+}
+
+vec4 transition(vec2 p) {
+  float dist = distance(center, p);
+  float m = getGradient(getWave(p), dist);
+  vec4 cfrom = getFromColor(p);
+  vec4 cto = getToColor(p);
+  return mix(mix(cfrom, cto, m), mix(cfrom, vec4(color, 1.0), 0.75), step(m, -2.0));
+}
+
+
+####################################################################
+
+
+
+// License: MIT
+// Author: pthrasher
+// adapted by gre from https://gist.github.com/pthrasher/04fd9a7de4012cbb03f6
+
+uniform vec2 center; // = vec2(0.5)
+uniform float threshold; // = 3.0
+uniform float fadeEdge; // = 0.1
+
+float rand(vec2 co) {
+  return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+vec4 transition(vec2 p) {
+  float dist = distance(center, p) / threshold;
+  float r = progress - min(rand(vec2(p.y, 0.0)), rand(vec2(0.0, p.x)));
+  return mix(getFromColor(p), getToColor(p), mix(0.0, mix(step(dist, r), 1.0, smoothstep(1.0-fadeEdge, 1.0, progress)), smoothstep(0.0, fadeEdge, progress)));    
+}
+
+
+####################################################################
+
+// Author: @Flexi23
+// License: MIT
+
+// inspired by http://www.wolframalpha.com/input/?i=cannabis+curve
+
+vec4 transition (vec2 uv) {
+  if(progress == 0.0){
+    return getFromColor(uv);
+  }
+  vec2 leaf_uv = (uv - vec2(0.5))/10./pow(progress,3.5);
+	leaf_uv.y += 0.35;
+	float r = 0.18;
+	float o = atan(leaf_uv.y, leaf_uv.x);
+  return mix(getFromColor(uv), getToColor(uv), 1.-step(1. - length(leaf_uv)+r*(1.+sin(o))*(1.+0.9 * cos(8.*o))*(1.+0.1*cos(24.*o))*(0.9+0.05*cos(200.*o)), 1.));
+}
+
+####################################################################
+
+
+// Author: mandubian
+// License: MIT
+
+uniform float a; // = 4
+uniform float b; // = 1
+uniform float amplitude; // = 120
+uniform float smoothness; // = 0.1
+
+vec4 transition(vec2 uv) {
+  vec2 p = uv.xy / vec2(1.0).xy;
+  vec2 dir = p - vec2(.5);
+  float dist = length(dir);
+  float x = (a - b) * cos(progress) + b * cos(progress * ((a / b) - 1.) );
+  float y = (a - b) * sin(progress) - b * sin(progress * ((a / b) - 1.));
+  vec2 offset = dir * vec2(sin(progress  * dist * amplitude * x), sin(progress * dist * amplitude * y)) / smoothness;
+  return mix(getFromColor(p + offset), getToColor(p), smoothstep(0.2, 1.0, progress));
+}
+
+
+####################################################################
+
+// Author: mandubian
+// License: MIT
+uniform float amplitude; // = 1.0
+uniform float waves; // = 30.0
+uniform float colorSeparation; // = 0.3
+float PI = 3.14159265358979323846264;
+float compute(vec2 p, float progress, vec2 center) {
+vec2 o = p*sin(progress * amplitude)-center;
+// horizontal vector
+vec2 h = vec2(1., 0.);
+// butterfly polar function (don't ask me why this one :))
+float theta = acos(dot(o, h)) * waves;
+return (exp(cos(theta)) - 2.*cos(4.*theta) + pow(sin((2.*theta - PI) / 24.), 5.)) / 10.;
+}
+vec4 transition(vec2 uv) {
+  vec2 p = uv.xy / vec2(1.0).xy;
+  float inv = 1. - progress;
+  vec2 dir = p - vec2(.5);
+  float dist = length(dir);
+  float disp = compute(p, progress, vec2(0.5, 0.5)) ;
+  vec4 texTo = getToColor(p + inv*disp);
+  vec4 texFrom = vec4(
+  getFromColor(p + progress*disp*(1.0 - colorSeparation)).r,
+  getFromColor(p + progress*disp).g,
+  getFromColor(p + progress*disp*(1.0 + colorSeparation)).b,
+  1.0);
+  return texTo*progress + texFrom*inv;
+}
+
+
+####################################################################
+
+// Author: nwoeanhinnogaehr
+// License: MIT
+
+uniform float speed; // = 1.0;
+uniform float angle; // = 1.0;
+uniform float power; // = 1.5;
+
+vec4 transition(vec2 uv) {
+  vec2 p = uv.xy / vec2(1.0).xy;
+  vec2 q = p;
+  float t = pow(progress, power)*speed;
+  p = p -0.5;
+  for (int i = 0; i < 7; i++) {
+    p = vec2(sin(t)*p.x + cos(t)*p.y, sin(t)*p.y - cos(t)*p.x);
+    t += angle;
+    p = abs(mod(p, 2.0) - 1.0);
+  }
+  abs(mod(p, 1.0));
+  return mix(
+    mix(getFromColor(q), getToColor(q), progress),
+    mix(getFromColor(p), getToColor(p), progress), 1.0 - 2.0*abs(progress - 0.5));
+}

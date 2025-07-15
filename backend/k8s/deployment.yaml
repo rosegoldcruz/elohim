@@ -1,0 +1,279 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aeon-editor-agent
+  namespace: aeon
+  labels:
+    app: aeon-editor-agent
+    version: v2.0
+    component: video-processing
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: aeon-editor-agent
+  template:
+    metadata:
+      labels:
+        app: aeon-editor-agent
+        version: v2.0
+        component: video-processing
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: aeon-editor-agent
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: aeon-editor-agent
+        image: aeon-editor-agent:v2.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: FASTAPI_ENV
+          value: "production"
+        - name: CUDA_VISIBLE_DEVICES
+          value: "0"
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: "all"
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: "compute,utility,video"
+        - name: PROMETHEUS_MULTIPROC_DIR
+          value: "/tmp/prometheus"
+        - name: PYTHONPATH
+          value: "/app"
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+            memory: "8Gi"
+            cpu: "4"
+            ephemeral-storage: "20Gi"
+          requests:
+            nvidia.com/gpu: 1
+            memory: "4Gi"
+            cpu: "2"
+            ephemeral-storage: "10Gi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 12
+        volumeMounts:
+        - name: temp-storage
+          mountPath: /tmp
+        - name: cache-storage
+          mountPath: /app/cache
+        - name: prometheus-metrics
+          mountPath: /tmp/prometheus
+      volumes:
+      - name: temp-storage
+        emptyDir:
+          sizeLimit: 50Gi
+      - name: cache-storage
+        emptyDir:
+          sizeLimit: 10Gi
+      - name: prometheus-metrics
+        emptyDir:
+          sizeLimit: 1Gi
+      nodeSelector:
+        accelerator: nvidia-tesla-v100
+        node-type: gpu-enabled
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      - key: node-type
+        operator: Equal
+        value: gpu-enabled
+        effect: NoSchedule
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: accelerator
+                operator: In
+                values:
+                - nvidia-tesla-v100
+                - nvidia-tesla-t4
+                - nvidia-a100
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - aeon-editor-agent
+              topologyKey: kubernetes.io/hostname
+      terminationGracePeriodSeconds: 60
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aeon-editor-agent-service
+  namespace: aeon
+  labels:
+    app: aeon-editor-agent
+    component: video-processing
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: aeon-editor-agent
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aeon-editor-agent
+  namespace: aeon
+  labels:
+    app: aeon-editor-agent
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: aeon-editor-agent-netpol
+  namespace: aeon
+spec:
+  podSelector:
+    matchLabels:
+      app: aeon-editor-agent
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: aeon
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: aeon
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: aeon-editor-agent-pdb
+  namespace: aeon
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: aeon-editor-agent
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: aeon-editor-agent-hpa
+  namespace: aeon
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: aeon-editor-agent
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: aeon_active_jobs
+      target:
+        type: AverageValue
+        averageValue: "5"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60

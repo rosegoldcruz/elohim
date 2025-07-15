@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  aeon-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: aeon-video-agent
+    restart: unless-stopped
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - REPLICATE_API_TOKEN=${REPLICATE_API_TOKEN}
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+      - POLL_INTERVAL=5
+      - MAX_CONCURRENT_JOBS=3
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./temp:/app/temp
+      - ./output:/app/output
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # Optional: Redis for job queuing (if needed for scaling)
+  redis:
+    image: redis:7-alpine
+    container_name: aeon-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  redis_data:

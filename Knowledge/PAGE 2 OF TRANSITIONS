@@ -1,0 +1,407 @@
+PAGE 2 OF TRANSITIONS
+
+####################################################################
+
+// Author: 0gust1
+// License: MIT
+//My own first transition — based on crosshatch code (from pthrasher), using  simplex noise formula (copied and pasted)
+//-> cooler with high contrasted images (isolated dark subject on light background f.e.)
+//TODO : try to rebase it on DoomTransition (from zeh)?
+//optimizations :
+//luminance (see http://stackoverflow.com/questions/596216/formula-to-determine-brightness-of-rgb-color#answer-596241)
+// Y = (R+R+B+G+G+G)/6
+//or Y = (R+R+R+B+G+G+G+G)>>3 
+
+
+//direction of movement :  0 : up, 1, down
+uniform bool direction; // = 1 
+//luminance threshold
+uniform float l_threshold; // = 0.8 
+//does the movement takes effect above or below luminance threshold ?
+uniform bool above; // = false 
+
+
+//Random function borrowed from everywhere
+float rand(vec2 co){
+  return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+
+// Simplex noise :
+// Description : Array and textureless GLSL 2D simplex noise function.
+//      Author : Ian McEwan, Ashima Arts.
+//  Maintainer : ijm
+//     Lastmod : 20110822 (ijm)
+//     License : MIT  
+//               2011 Ashima Arts. All rights reserved.
+//               Distributed under the MIT License. See LICENSE file.
+//               https://github.com/ashima/webgl-noise
+// 
+
+vec3 mod289(vec3 x) {
+  return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec2 mod289(vec2 x) {
+  return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+vec3 permute(vec3 x) {
+  return mod289(((x*34.0)+1.0)*x);
+}
+
+float snoise(vec2 v)
+  {
+  const vec4 C = vec4(0.211324865405187,  // (3.0-sqrt(3.0))/6.0
+                      0.366025403784439,  // 0.5*(sqrt(3.0)-1.0)
+                     -0.577350269189626,  // -1.0 + 2.0 * C.x
+                      0.024390243902439); // 1.0 / 41.0
+// First corner
+  vec2 i  = floor(v + dot(v, C.yy) );
+  vec2 x0 = v -   i + dot(i, C.xx);
+
+// Other corners
+  vec2 i1;
+  //i1.x = step( x0.y, x0.x ); // x0.x > x0.y ? 1.0 : 0.0
+  //i1.y = 1.0 - i1.x;
+  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+  // x0 = x0 - 0.0 + 0.0 * C.xx ;
+  // x1 = x0 - i1 + 1.0 * C.xx ;
+  // x2 = x0 - 1.0 + 2.0 * C.xx ;
+  vec4 x12 = x0.xyxy + C.xxzz;
+  x12.xy -= i1;
+
+// Permutations
+  i = mod289(i); // Avoid truncation effects in permutation
+  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+		+ i.x + vec3(0.0, i1.x, 1.0 ));
+
+  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+  m = m*m ;
+  m = m*m ;
+
+// Gradients: 41 points uniformly over a line, mapped onto a diamond.
+// The ring size 17*17 = 289 is close to a multiple of 41 (41*7 = 287)
+
+  vec3 x = 2.0 * fract(p * C.www) - 1.0;
+  vec3 h = abs(x) - 0.5;
+  vec3 ox = floor(x + 0.5);
+  vec3 a0 = x - ox;
+
+// Normalise gradients implicitly by scaling m
+// Approximation of: m *= inversesqrt( a0*a0 + h*h );
+  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+
+// Compute final noise value at P
+  vec3 g;
+  g.x  = a0.x  * x0.x  + h.x  * x0.y;
+  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+  return 130.0 * dot(m, g);
+}
+
+// Simplex noise -- end
+
+float luminance(vec4 color){
+  //(0.299*R + 0.587*G + 0.114*B)
+  return color.r*0.299+color.g*0.587+color.b*0.114;
+}
+
+vec2 center = vec2(1.0, direction);
+
+vec4 transition(vec2 uv) {
+  vec2 p = uv.xy / vec2(1.0).xy;
+  if (progress == 0.0) {
+    return getFromColor(p);
+  } else if (progress == 1.0) {
+    return getToColor(p);
+  } else {
+    float x = progress;
+    float dist = distance(center, p)- progress*exp(snoise(vec2(p.x, 0.0)));
+    float r = x - rand(vec2(p.x, 0.1));
+    float m;
+    if(above){
+     m = dist <= r && luminance(getFromColor(p))>l_threshold ? 1.0 : (progress*progress*progress);
+    }
+    else{
+     m = dist <= r && luminance(getFromColor(p))<l_threshold ? 1.0 : (progress*progress*progress);  
+    }
+    return mix(getFromColor(p), getToColor(p), m);    
+  }
+}
+
+
+####################################################################
+
+
+// Author: Rich Harris
+// License: MIT
+
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+uniform float scale; // = 4.0
+uniform float smoothness; // = 0.01
+
+uniform float seed; // = 12.9898
+
+// http://byteblacksmith.com/improvements-to-the-canonical-one-liner-glsl-rand-for-opengl-es-2-0/
+float random(vec2 co)
+{
+    highp float a = seed;
+    highp float b = 78.233;
+    highp float c = 43758.5453;
+    highp float dt= dot(co.xy ,vec2(a,b));
+    highp float sn= mod(dt,3.14);
+    return fract(sin(sn) * c);
+}
+
+// 2D Noise based on Morgan McGuire @morgan3d
+// https://www.shadertoy.com/view/4dS3Wd
+float noise (in vec2 st) {
+    vec2 i = floor(st);
+    vec2 f = fract(st);
+
+    // Four corners in 2D of a tile
+    float a = random(i);
+    float b = random(i + vec2(1.0, 0.0));
+    float c = random(i + vec2(0.0, 1.0));
+    float d = random(i + vec2(1.0, 1.0));
+
+    // Smooth Interpolation
+
+    // Cubic Hermine Curve.  Same as SmoothStep()
+    vec2 u = f*f*(3.0-2.0*f);
+    // u = smoothstep(0.,1.,f);
+
+    // Mix 4 coorners porcentages
+    return mix(a, b, u.x) +
+            (c - a)* u.y * (1.0 - u.x) +
+            (d - b) * u.x * u.y;
+}
+
+vec4 transition (vec2 uv) {
+  vec4 from = getFromColor(uv);
+  vec4 to = getToColor(uv);
+  float n = noise(uv * scale);
+  
+  float p = mix(-smoothness, 1.0 + smoothness, progress);
+  float lower = p - smoothness;
+  float higher = p + smoothness;
+  
+  float q = smoothstep(lower, higher, n);
+  
+  return mix(
+    from,
+    to,
+    1.0 - q
+  );
+}
+
+
+####################################################################
+
+
+// Author: pschroen
+// License: MIT
+
+uniform vec2 direction; // = vec2(-1.0, 1.0)
+
+const float smoothness = 0.5;
+const vec2 center = vec2(0.5, 0.5);
+
+vec4 transition (vec2 uv) {
+  vec2 v = normalize(direction);
+  v /= abs(v.x) + abs(v.y);
+  float d = v.x * center.x + v.y * center.y;
+  float m = 1.0 - smoothstep(-smoothness, 0.0, v.x * uv.x + v.y * uv.y - (d - 0.5 + progress * (1.0 + smoothness)));
+  return mix(getFromColor((uv - 0.5) * (1.0 - m) + 0.5), getToColor((uv - 0.5) * m + 0.5), m);
+}
+
+
+####################################################################
+
+// Author: Adrian Purser
+// License: MIT
+
+uniform vec4 shadow_colour; // = vec4(0.,0.,0.,.6)
+uniform float shadow_height; // = 0.075
+uniform float bounces; // = 3.0
+
+const float PI = 3.14159265358;
+
+vec4 transition (vec2 uv) {
+  float time = progress;
+  float stime = sin(time * PI / 2.);
+  float phase = time * PI * bounces;
+  float y = (abs(cos(phase))) * (1.0 - stime);
+  float d = uv.y - y;
+  return mix(
+    mix(
+      getToColor(uv),
+      shadow_colour,
+      step(d, shadow_height) * (1. - mix(
+        ((d / shadow_height) * shadow_colour.a) + (1.0 - shadow_colour.a),
+        1.0,
+        smoothstep(0.95, 1., progress) // fade-out the shadow at the end
+      ))
+    ),
+    getFromColor(vec2(uv.x, uv.y + (1.0 - y))),
+    step(d, 0.0)
+  );
+}
+
+
+####################################################################
+
+
+// Author: Jake Nelson
+// License: MIT
+
+vec4 transition(vec2 uv) {
+  vec2 p=uv.xy/vec2(1.0).xy;
+  vec4 a=getFromColor(p);
+  vec4 b=getToColor(p);
+  return mix(a, b, step(0.0+p.x,progress));
+}
+
+
+####################################################################
+
+
+// Author: Jake Nelson
+// License: MIT
+
+vec4 transition(vec2 uv) {
+  vec2 p=uv.xy/vec2(1.0).xy;
+  vec4 a=getFromColor(p);
+  vec4 b=getToColor(p);
+  return mix(a, b, step(1.0-p.x,progress));
+}
+
+####################################################################
+
+// Author: Jake Nelson
+// License: MIT
+
+vec4 transition(vec2 uv) {
+  vec2 p=uv.xy/vec2(1.0).xy;
+  vec4 a=getFromColor(p);
+  vec4 b=getToColor(p);
+  return mix(a, b, step(1.0-p.y,progress));
+}
+
+
+####################################################################
+
+
+// Author: Jake Nelson
+// License: MIT
+
+vec4 transition(vec2 uv) {
+  vec2 p=uv.xy/vec2(1.0).xy;
+  vec4 a=getFromColor(p);
+  vec4 b=getToColor(p);
+  return mix(a, b, step(0.0+p.y,progress));
+}
+
+
+####################################################################
+
+
+// Author: paniq
+// License: MIT
+uniform float strength; // = 0.1
+
+vec4 transition(vec2 p) {
+  vec4 ca = getFromColor(p);
+  vec4 cb = getToColor(p);
+  
+  vec2 oa = (((ca.rg+ca.b)*0.5)*2.0-1.0);
+  vec2 ob = (((cb.rg+cb.b)*0.5)*2.0-1.0);
+  vec2 oc = mix(oa,ob,0.5)*strength;
+  
+  float w0 = progress;
+  float w1 = 1.0-w0;
+  return mix(getFromColor(p+oc*w0), getToColor(p-oc*w1), progress);
+}
+
+
+####################################################################
+
+// License: MIT
+// Author: P-Seebauer
+// ported by gre from https://gist.github.com/P-Seebauer/2a5fa2f77c883dd661f9
+
+uniform float power; // = 5.0
+
+vec4 transition(vec2 p) {
+  vec4 fTex = getFromColor(p);
+  vec4 tTex = getToColor(p);
+  float m = step(distance(fTex, tTex), progress);
+  return mix(
+    mix(fTex, tTex, m),
+    tTex,
+    pow(progress, power)
+  );
+}
+
+
+####################################################################
+
+// License: MIT
+// Author: fkuteken
+// ported by gre from https://gist.github.com/fkuteken/f63e3009c1143950dee9063c3b83fb88
+
+uniform vec4 bgcolor; // = vec4(0.0, 0.0, 0.0, 1.0)
+
+vec2 ratio2 = vec2(1.0, 1.0 / ratio);
+float s = pow(2.0 * abs(progress - 0.5), 3.0);
+
+vec4 transition(vec2 p) {
+  float dist = length((vec2(p) - 0.5) * ratio2);
+  return mix(
+    progress < 0.5 ? getFromColor(p) : getToColor(p), // branching is ok here as we statically depend on progress uniform (branching won't change over pixels)
+    bgcolor,
+    step(s, dist)
+  );
+}
+
+
+####################################################################
+
+
+// License: MIT
+// Author: Sergey Kosarevsky
+// ( http://www.linderdaum.com )
+// ported by gre from https://gist.github.com/corporateshark/cacfedb8cca0f5ce3f7c
+
+vec4 transition(vec2 UV)
+{
+	float Radius = 1.0;
+
+	float T = progress;
+
+	UV -= vec2( 0.5, 0.5 );
+
+	float Dist = length(UV);
+
+	if ( Dist < Radius )
+	{
+		float Percent = (Radius - Dist) / Radius;
+		float A = ( T <= 0.5 ) ? mix( 0.0, 1.0, T/0.5 ) : mix( 1.0, 0.0, (T-0.5)/0.5 );
+		float Theta = Percent * Percent * A * 8.0 * 3.14159;
+		float S = sin( Theta );
+		float C = cos( Theta );
+		UV = vec2( dot(UV, vec2(C, -S)), dot(UV, vec2(S, C)) );
+	}
+	UV += vec2( 0.5, 0.5 );
+
+	vec4 C0 = getFromColor(UV);
+	vec4 C1 = getToColor(UV);
+
+	return mix( C0, C1, T );
+}
+
+
+####################################################################

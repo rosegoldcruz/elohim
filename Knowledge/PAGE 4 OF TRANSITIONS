@@ -1,0 +1,424 @@
+PAGE 4 OF TRANSITIONS
+
+####################################################################
+
+// Author: Fabien Benetou
+// License: MIT
+
+vec4 transition (vec2 uv) {
+  float t = progress;
+  
+  if (mod(floor(uv.y*100.*progress),2.)==0.)
+    t*=2.-.5;
+  
+  return mix(
+    getFromColor(uv),
+    getToColor(uv),
+    mix(t, progress, smoothstep(0.8, 1.0, progress))
+  );
+}
+
+####################################################################
+
+// Author: Fernando Kuteken
+// License: MIT
+// Hexagonal math from: http://www.redblobgames.com/grids/hexagons/
+
+uniform int steps; // = 50;
+uniform float horizontalHexagons; //= 20;
+
+struct Hexagon {
+  float q;
+  float r;
+  float s;
+};
+
+Hexagon createHexagon(float q, float r){
+  Hexagon hex;
+  hex.q = q;
+  hex.r = r;
+  hex.s = -q - r;
+  return hex;
+}
+
+Hexagon roundHexagon(Hexagon hex){
+  
+  float q = floor(hex.q + 0.5);
+  float r = floor(hex.r + 0.5);
+  float s = floor(hex.s + 0.5);
+
+  float deltaQ = abs(q - hex.q);
+  float deltaR = abs(r - hex.r);
+  float deltaS = abs(s - hex.s);
+
+  if (deltaQ > deltaR && deltaQ > deltaS)
+    q = -r - s;
+  else if (deltaR > deltaS)
+    r = -q - s;
+  else
+    s = -q - r;
+
+  return createHexagon(q, r);
+}
+
+Hexagon hexagonFromPoint(vec2 point, float size) {
+  
+  point.y /= ratio;
+  point = (point - 0.5) / size;
+  
+  float q = (sqrt(3.0) / 3.0) * point.x + (-1.0 / 3.0) * point.y;
+  float r = 0.0 * point.x + 2.0 / 3.0 * point.y;
+
+  Hexagon hex = createHexagon(q, r);
+  return roundHexagon(hex);
+  
+}
+
+vec2 pointFromHexagon(Hexagon hex, float size) {
+  
+  float x = (sqrt(3.0) * hex.q + (sqrt(3.0) / 2.0) * hex.r) * size + 0.5;
+  float y = (0.0 * hex.q + (3.0 / 2.0) * hex.r) * size + 0.5;
+  
+  return vec2(x, y * ratio);
+}
+
+vec4 transition (vec2 uv) {
+  
+  float dist = 2.0 * min(progress, 1.0 - progress);
+  dist = steps > 0 ? ceil(dist * float(steps)) / float(steps) : dist;
+  
+  float size = (sqrt(3.0) / 3.0) * dist / horizontalHexagons;
+  
+  vec2 point = dist > 0.0 ? pointFromHexagon(hexagonFromPoint(uv, size), size) : uv;
+
+  return mix(getFromColor(point), getToColor(point), progress);
+  
+}
+
+
+####################################################################
+
+// Author: Matt DesLauriers
+// License: MIT
+
+highp float random(vec2 co)
+{
+    highp float a = 12.9898;
+    highp float b = 78.233;
+    highp float c = 43758.5453;
+    highp float dt= dot(co.xy ,vec2(a,b));
+    highp float sn= mod(dt,3.14);
+    return fract(sin(sn) * c);
+}
+float voronoi( in vec2 x ) {
+    vec2 p = floor( x );
+    vec2 f = fract( x );
+    float res = 8.0;
+    for( float j=-1.; j<=1.; j++ )
+    for( float i=-1.; i<=1.; i++ ) {
+        vec2  b = vec2( i, j );
+        vec2  r = b - f + random( p + b );
+        float d = dot( r, r );
+        res = min( res, d );
+    }
+    return sqrt( res );
+}
+
+vec2 displace(vec4 tex, vec2 texCoord, float dotDepth, float textureDepth, float strength) {
+    float b = voronoi(.003 * texCoord + 2.0);
+    float g = voronoi(0.2 * texCoord);
+    float r = voronoi(texCoord - 1.0);
+    vec4 dt = tex * 1.0;
+    vec4 dis = dt * dotDepth + 1.0 - tex * textureDepth;
+
+    dis.x = dis.x - 1.0 + textureDepth*dotDepth;
+    dis.y = dis.y - 1.0 + textureDepth*dotDepth;
+    dis.x *= strength;
+    dis.y *= strength;
+    vec2 res_uv = texCoord ;
+    res_uv.x = res_uv.x + dis.x - 0.0;
+    res_uv.y = res_uv.y + dis.y;
+    return res_uv;
+}
+
+float ease1(float t) {
+  return t == 0.0 || t == 1.0
+    ? t
+    : t < 0.5
+      ? +0.5 * pow(2.0, (20.0 * t) - 10.0)
+      : -0.5 * pow(2.0, 10.0 - (t * 20.0)) + 1.0;
+}
+float ease2(float t) {
+  return t == 1.0 ? t : 1.0 - pow(2.0, -10.0 * t);
+}
+
+
+
+vec4 transition(vec2 uv) {
+  vec2 p = uv.xy / vec2(1.0).xy;
+  vec4 color1 = getFromColor(p);
+  vec4 color2 = getToColor(p);
+  vec2 disp = displace(color1, p, 0.33, 0.7, 1.0-ease1(progress));
+  vec2 disp2 = displace(color2, p, 0.33, 0.5, ease2(progress));
+  vec4 dColor1 = getToColor(disp);
+  vec4 dColor2 = getFromColor(disp2);
+  float val = ease1(progress);
+  vec3 gray = vec3(dot(min(dColor2, dColor1).rgb, vec3(0.299, 0.587, 0.114)));
+  dColor2 = vec4(gray, 1.0);
+  dColor2 *= 2.0;
+  color1 = mix(color1, dColor2, smoothstep(0.0, 0.5, progress));
+  color2 = mix(color2, dColor1, smoothstep(1.0, 0.5, progress));
+  return mix(color1, color2, val);
+  //gl_FragColor = mix(gl_FragColor, dColor, smoothstep(0.0, 0.5, progress));
+  
+   //gl_FragColor = mix(texture2D(from, p), texture2D(to, p), progress);
+}
+
+
+####################################################################
+
+// Author: Zeh Fernando
+// License: MIT
+
+// Definitions --------
+#define DEG2RAD 0.03926990816987241548078304229099 // 1/180*PI
+
+
+// Transition parameters --------
+
+// In degrees
+uniform float rotation; // = 6
+
+// Multiplier
+uniform float scale; // = 1.2
+
+
+// The code proper --------
+
+vec4 transition(vec2 uv) {
+  // Massage parameters
+  float phase = progress < 0.5 ? progress * 2.0 : (progress - 0.5) * 2.0;
+  float angleOffset = progress < 0.5 ? mix(0.0, rotation * DEG2RAD, phase) : mix(-rotation * DEG2RAD, 0.0, phase);
+  float newScale = progress < 0.5 ? mix(1.0, scale, phase) : mix(scale, 1.0, phase);
+  
+  vec2 center = vec2(0, 0);
+
+  // Calculate the source point
+  vec2 assumedCenter = vec2(0.5, 0.5);
+  vec2 p = (uv.xy - vec2(0.5, 0.5)) / newScale * vec2(ratio, 1.0);
+
+  // This can probably be optimized (with distance())
+  float angle = atan(p.y, p.x) + angleOffset;
+  float dist = distance(center, p);
+  p.x = cos(angle) * dist / ratio + 0.5;
+  p.y = sin(angle) * dist + 0.5;
+  vec4 c = progress < 0.5 ? getFromColor(p) : getToColor(p);
+
+  // Finally, apply the color
+  return c + (progress < 0.5 ? mix(0.0, 1.0, phase) : mix(1.0, 0.0, phase));
+}
+
+
+####################################################################
+
+
+// Author: Zeh Fernando
+// License: MIT
+
+
+// Transition parameters --------
+
+// Number of total bars/columns
+uniform int bars; // = 30
+
+// Multiplier for speed ratio. 0 = no variation when going down, higher = some elements go much faster
+uniform float amplitude; // = 2
+
+// Further variations in speed. 0 = no noise, 1 = super noisy (ignore frequency)
+uniform float noise; // = 0.1
+
+// Speed variation horizontally. the bigger the value, the shorter the waves
+uniform float frequency; // = 0.5
+
+// How much the bars seem to "run" from the middle of the screen first (sticking to the sides). 0 = no drip, 1 = curved drip
+uniform float dripScale; // = 0.5
+
+
+// The code proper --------
+
+float rand(int num) {
+  return fract(mod(float(num) * 67123.313, 12.0) * sin(float(num) * 10.3) * cos(float(num)));
+}
+
+float wave(int num) {
+  float fn = float(num) * frequency * 0.1 * float(bars);
+  return cos(fn * 0.5) * cos(fn * 0.13) * sin((fn+10.0) * 0.3) / 2.0 + 0.5;
+}
+
+float drip(int num) {
+  return sin(float(num) / float(bars - 1) * 3.141592) * dripScale;
+}
+
+float pos(int num) {
+  return (noise == 0.0 ? wave(num) : mix(wave(num), rand(num), noise)) + (dripScale == 0.0 ? 0.0 : drip(num));
+}
+
+vec4 transition(vec2 uv) {
+  int bar = int(uv.x * (float(bars)));
+  float scale = 1.0 + pos(bar) * amplitude;
+  float phase = progress * scale;
+  float posY = uv.y / vec2(1.0).y;
+  vec2 p;
+  vec4 c;
+  if (phase + posY < 1.0) {
+    p = vec2(uv.x, uv.y + mix(0.0, vec2(1.0).y, phase)) / vec2(1.0).xy;
+    c = getFromColor(p);
+  } else {
+    p = uv.xy / vec2(1.0).xy;
+    c = getToColor(p);
+  }
+
+  // Finally, apply the color
+  return c;
+}
+
+
+####################################################################
+
+// Author: gre
+// License: MIT
+uniform float amplitude; // = 100.0
+uniform float speed; // = 50.0
+
+vec4 transition (vec2 uv) {
+  vec2 dir = uv - vec2(.5);
+  float dist = length(dir);
+  vec2 offset = dir * (sin(progress * dist * amplitude - progress * speed) + .5) / 30.;
+  return mix(
+    getFromColor(uv + offset),
+    getToColor(uv),
+    smoothstep(0.2, 1.0, progress)
+  );
+}
+
+
+
+####################################################################
+
+// Author: Mr Speaker
+// License: MIT
+
+uniform float speed; // = 2.0;
+
+vec4 transition(vec2 uv) {
+  
+  vec2 p = uv.xy / vec2(1.0).xy;
+  
+  float circPos = atan(p.y - 0.5, p.x - 0.5) + progress * speed;
+  float modPos = mod(circPos, 3.1415 / 4.);
+  float signed = sign(progress - modPos);
+  
+  return mix(getToColor(p), getFromColor(p), step(signed, 0.5));
+  
+}
+
+
+####################################################################
+
+// Author: Fernando Kuteken
+// License: MIT
+
+#define PI 3.141592653589
+
+uniform float startingAngle; // = 90;
+
+vec4 transition (vec2 uv) {
+  
+  float offset = startingAngle * PI / 180.0;
+  float angle = atan(uv.y - 0.5, uv.x - 0.5) + offset;
+  float normalizedAngle = (angle + PI) / (2.0 * PI);
+  
+  normalizedAngle = normalizedAngle - floor(normalizedAngle);
+
+  return mix(
+    getFromColor(uv),
+    getToColor(uv),
+    step(normalizedAngle, progress)
+    );
+}
+
+####################################################################
+
+
+// author: gre
+// License: MIT
+uniform vec3 color /* = vec3(0.9, 0.4, 0.2) */;
+vec4 transition (vec2 uv) {
+  return mix(
+    getFromColor(uv) + vec4(progress*color, 1.0),
+    getToColor(uv) + vec4((1.0-progress)*color, 1.0),
+    progress
+  );
+}
+
+
+####################################################################
+
+
+// Author: Fernando Kuteken
+// License: MIT
+
+uniform vec2 center; // = vec2(0.5, 0.5);
+uniform vec3 backColor; // = vec3(0.1, 0.1, 0.1);
+
+vec4 transition (vec2 uv) {
+  
+  float distance = length(uv - center);
+  float radius = sqrt(8.0) * abs(progress - 0.5);
+  
+  if (distance > radius) {
+    return vec4(backColor, 1.0);
+  }
+  else {
+    if (progress < 0.5) return getFromColor(uv);
+    else return getToColor(uv);
+  }
+}
+
+
+####################################################################
+
+
+
+// author: gre
+// License: MIT
+uniform float smoothness; // = 0.3
+uniform bool opening; // = true
+
+const vec2 center = vec2(0.5, 0.5);
+const float SQRT_2 = 1.414213562373;
+
+vec4 transition (vec2 uv) {
+  float x = opening ? progress : 1.-progress;
+  float m = smoothstep(-smoothness, 0.0, SQRT_2*distance(center, uv) - x*(1.+smoothness));
+  return mix(getFromColor(uv), getToColor(uv), opening ? 1.-m : m);
+}
+
+
+####################################################################
+
+
+// Author: gre
+// License: MIT
+
+// Usage: fromStep and toStep must be in [0.0, 1.0] range 
+// and all(fromStep) must be < all(toStep)
+
+uniform vec4 fromStep; // = vec4(0.0, 0.2, 0.4, 0.0)
+uniform vec4 toStep; // = vec4(0.6, 0.8, 1.0, 1.0)
+
+vec4 transition (vec2 uv) {
+  vec4 a = getFromColor(uv);
+  vec4 b = getToColor(uv);
+  return mix(a, b, smoothstep(fromStep, toStep, vec4(progress)));
+}

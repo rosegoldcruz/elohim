@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AEON Viral TikTok Editing Plan",
+  "description": "Complete editing plan for viral TikTok video generation",
+  
+  "clips": [
+    "assets/clips/scene1_hook.mp4",
+    "assets/clips/scene2_buildup.mp4", 
+    "assets/clips/scene3_reveal.mp4",
+    "assets/clips/scene4_cta.mp4"
+  ],
+  
+  "transitions": [
+    {
+      "type": "zoom_punch",
+      "duration": 0.3,
+      "beat_synced": true,
+      "intensity": 0.8
+    },
+    {
+      "type": "glitch_blast", 
+      "duration": 0.25,
+      "beat_synced": true,
+      "intensity": 0.9,
+      "glsl_code": "// Custom glitch shader\nuniform float time;\nvec4 transition(vec2 uv) {\n  vec2 offset = vec2(sin(time * 10.0) * 0.02, 0.0);\n  return mix(getFromColor(uv + offset), getToColor(uv), progress);\n}"
+    },
+    {
+      "type": "velocity_wipe",
+      "duration": 0.15,
+      "beat_synced": true,
+      "intensity": 1.0
+    }
+  ],
+  
+  "captions": [
+    {
+      "text": "STOP SCROLLING! 🛑",
+      "start_time": 0.0,
+      "end_time": 1.5,
+      "style": "bounce",
+      "position": [0.5, 0.15]
+    },
+    {
+      "text": "This AI trick will blow your mind...",
+      "start_time": 2.0,
+      "end_time": 4.5,
+      "style": "typewriter", 
+      "position": [0.5, 0.8]
+    },
+    {
+      "text": "GAME CHANGER! 🤯",
+      "start_time": 5.0,
+      "end_time": 7.0,
+      "style": "highlight",
+      "position": [0.5, 0.2]
+    },
+    {
+      "text": "Follow for more AI secrets! ➡️",
+      "start_time": 8.0,
+      "end_time": 10.0,
+      "style": "bounce",
+      "position": [0.5, 0.85]
+    }
+  ],
+  
+  "sfx": [
+    {
+      "file": "assets/sfx/whoosh_impact.mp3",
+      "start_time": 0.8,
+      "volume": 0.7
+    },
+    {
+      "file": "assets/sfx/digital_glitch.mp3", 
+      "start_time": 3.2,
+      "volume": 0.6
+    },
+    {
+      "file": "assets/sfx/success_chime.mp3",
+      "start_time": 5.5,
+      "volume": 0.8
+    },
+    {
+      "file": "assets/sfx/notification_pop.mp3",
+      "start_time": 8.5,
+      "volume": 0.5
+    }
+  ],
+  
+  "beatSync": {
+    "enabled": true,
+    "audio_file": "assets/audio/trending_beat.mp3",
+    "sensitivity": 0.75
+  },
+  
+  "asmrLayers": [
+    {
+      "type": "paper_rustle",
+      "timing": "pre_transition", 
+      "volume": 0.25
+    },
+    {
+      "type": "click",
+      "timing": "post_transition",
+      "volume": 0.3
+    },
+    {
+      "type": "swoosh", 
+      "timing": "pre_transition",
+      "volume": 0.4
+    }
+  ],
+  
+  "velocityEditing": {
+    "enabled": true,
+    "start_cut_duration": 2.0,
+    "end_cut_duration": 0.4
+  },
+  
+  "firstFrameHook": {
+    "enabled": true,
+    "freeze_duration": 0.6,
+    "text": "AI BREAKTHROUGH! 🚀"
+  }
+}

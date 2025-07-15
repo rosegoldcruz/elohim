@@ -1,0 +1,13 @@
+# Ignore development files for Next.js deployment
+
+# Ignore development files
+.env.local
+.env.example
+node_modules/
+.next/
+.git/
+
+# Ignore documentation
+README.md
+DEVELOPMENT.md
+Knowledge/
