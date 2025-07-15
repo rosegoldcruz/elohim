@@ -15,7 +15,7 @@ import { pipelineOptimizer, initializePipelineOptimization } from './pipeline-op
 import { optimizerAgent } from './OptimizerAgent';
 // Supabase removed - using Clerk for authentication
 import { env } from '@/env.mjs';
-import { getDefaultModelNames } from '@/config/videoModels';
+import { getDefaultModelNames } from '../../../shared/config/videoModels';
 
 export interface PipelineRequest {
   topic?: string;

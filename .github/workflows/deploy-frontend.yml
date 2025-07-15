@@ -28,12 +28,18 @@ jobs:
       with:
         version: 8
     
+    - name: Copy .env.example if it exists
+      run: |
+        if [ -f .env.example ]; then
+          cp .env.example .env.local
+        fi
+
     - name: Install dependencies
       run: pnpm install
-    
+
     - name: Run linting
       run: pnpm lint
-    
+
     - name: Build application
       run: pnpm build
       env:
