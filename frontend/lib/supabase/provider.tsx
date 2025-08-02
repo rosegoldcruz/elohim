@@ -20,12 +20,21 @@ export function SupabaseProvider({
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (session?.access_token !== undefined) {
-          // Refresh the page to update the UI based on auth state
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-            window.location.reload()
+        console.log('Auth state change:', event, session?.user?.email)
+
+        // Handle auth state changes without page reload
+        if (event === 'SIGNED_IN') {
+          // User just signed in - redirect to studio
+          if (typeof window !== 'undefined') {
+            window.location.href = '/studio'
+          }
+        } else if (event === 'SIGNED_OUT') {
+          // User signed out - redirect to home
+          if (typeof window !== 'undefined') {
+            window.location.href = '/'
           }
         }
+        // Remove automatic reload for TOKEN_REFRESHED to prevent loops
       }
     )
 

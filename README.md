@@ -1,132 +1,195 @@
-# AEON - AI Video Generation SaaS Platform
+# AEON AI Video Platform
 
-![AEON Platform](./docs/aeon-banner.jpg)
+## 🚀 Overview
 
-**AEON** is a production-ready AI video generation SaaS platform built with a modular 7-agent architecture. Transform any topic into professional videos with automated script generation, multi-model AI video creation, and intelligent post-processing.
+AEON is a production-ready AI video generation platform built with Next.js, FastAPI, and powered by Replicate AI. The platform features Clerk authentication, Supabase database integration, and is optimized for DigitalOcean droplet deployment.
 
-> **🌟 Cloud-Native Platform**: AEON runs entirely on cloud services with no Docker or local container dependencies. Powered by Vercel + Replicate + Supabase for maximum scalability and reliability.
+## 🎯 Features
 
-> Based on the MIT-licensed [ai-video-generator](https://github.com/davide97l/ai-video-generator) by davide97l, restructured for enterprise SaaS deployment.
+- **AI Video Generation**: Powered by Replicate API with multiple model support
+- **User Authentication**: Secure Clerk integration with modal login
+- **Database Integration**: Supabase for user data and video management
+- **Real-time Processing**: Live status updates and progress tracking
+- **Multiple Video Styles**: TikTok, YouTube, Instagram, Professional, Cinematic, Viral
+- **Production Ready**: PM2 process management, Nginx reverse proxy, SSL support
 
-## 🚀 Features
+## 🏗️ Architecture
 
-### 🤖 7-Agent Architecture
-- **ScriptWriter Agent**: GPT-4 powered scene generation from topics
-- **VisualGen Agent**: Parallel processing across 6 Replicate models (Runway, Pika, Stable, Luma, Minimax, Kling)
-- **Editor Agent**: FFmpeg-based video assembly with transitions, music, and captions
-- **Scheduler Agent**: Async task queue management and job status tracking
-- **Payments Agent**: Stripe integration for subscriptions and one-time purchases
-- **Auth Agent**: Supabase magic link authentication
-- **Dashboard Agent**: User analytics and admin insights
+### Frontend (`/frontend`)
+- **Next.js 15** with App Router
+- **Clerk Authentication** with modal login
+- **Supabase Integration** for user data
+- **Tailwind CSS** for styling
+- **TypeScript** for type safety
 
-### 💰 SaaS Features
-- **Credit-based billing** (100 credits = 60s video)
-- **Subscription tiers**: Starter ($19/mo), Pro ($49/mo), Business ($99/mo)
-- **One-time purchases**: $29.95 for instant video generation
-- **Magic link authentication** (passwordless)
-- **Real-time job tracking** and status updates
-- **Admin dashboard** with MRR, churn, and queue analytics
+### Backend (`/backend`)
+- **FastAPI** with async video generation endpoints
+- **Replicate API** integration for AI video models
+- **PM2** process management
+- **Python 3.9+** with virtual environment
 
-### 🎬 Video Generation
-- **Multi-model ensemble**: 6 AI models for maximum quality
-- **Intelligent fallback**: Automatic model switching on failures
-- **Professional post-processing**: Transitions, background music, captions
-- **Multiple formats**: 60s, 120s videos in 1080p/4K
-- **Instant delivery**: Vercel Blob storage with public download links
+## 🚀 Quick Deployment
 
-### 🌾 DocHarvester Integration
-- **Universal documentation extraction** from ANY website
-- **Auto-discovery** of documentation pages with intelligent crawling
-- **LLM-ready processing** with chunking and metadata extraction
-- **Multiple export formats**: JSON, Markdown, Text, CSV, Training data
-- **Seamless integration** within AEON platform at `/docs/docharvester`
-- **Batch processing** with retry logic and error handling
+### 1. Prepare Environment
+```bash
+# Clone repository
+git clone <your-repo-url>
+cd Elohim
 
-## 🧠 Cloud-Native AI Processing
-
-AEON processes all AI tasks through cloud APIs with automatic uploads to Vercel Blob storage and Supabase logging.
-
-### 🔧 Setup
-
-#### Required Environment Variables
-
-Configure these in your `.env.local` file:
-
-- `SUPABASE_URL` - Your Supabase project URL
-- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (not anon key)
-- `VERCEL_BLOB_READ_WRITE_TOKEN` - Vercel Blob storage token (if needed)
-
-## 🔧 Environment Setup
-
-All environment variables are configured in `.env.local`. The project includes:
-
-### ✅ Core Services
-- **Supabase**: Database, Auth, Real-time sync
-- **Stripe**: Payment processing and subscriptions
-
-### ✅ AI Services
-- **OpenAI**: GPT-4 for script generation
-- **Claude**: Anthropic's AI for content creation
-- **Replicate**: Multi-model video generation
-- **ElevenLabs**: Voice synthesis and narration
-
-### ✅ Monitoring & Analytics
-- **Dash0**: Telemetry, logging, and observability
-- **EmailJS**: Transactional email notifications
-
-### ✅ Environment Validation
-The project uses `env.mjs` with Zod validation to ensure all required environment variables are properly configured.
-
-#### Supabase Database Schema
-
-Make sure your Supabase database has the `llm_outputs` table:
-
-```sql
-CREATE TABLE llm_outputs (
-  id SERIAL PRIMARY KEY,
-  timestamp TIMESTAMPTZ NOT NULL,
-  blob_url TEXT NOT NULL,
-  content TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
+# Create production environment file
+cp env.production .env.production
+# Edit .env.production with your actual values
 ```
 
-### 🚀 How It Works
+### 2. Deploy to DigitalOcean
+```bash
+# Update deployment script with your droplet details
+nano deploy-digitalocean.sh
 
-AEON is a **cloud-native platform** that runs entirely on Vercel with Replicate API for AI video generation:
+# Run deployment
+chmod +x deploy-digitalocean.sh
+./deploy-digitalocean.sh
+```
 
-1. **Frontend**: Next.js 14 App Router deployed on Vercel
-2. **AI Processing**: Replicate API for all video generation models
-3. **Storage**: Vercel Blob for video assets
-4. **Database**: Supabase for user data and project management
-5. **Payments**: Stripe for subscriptions and credits
+### 3. Manual Deployment
+```bash
+# SSH into your droplet
+ssh root@your-droplet-ip
 
-### 🔄 Local Development
+# Clone and setup
+cd /opt
+git clone <your-repo-url> aeon-platform
+cd aeon-platform
+
+# Setup Python environment
+python3 -m venv venv
+source venv/bin/activate
+pip install -r backend/requirements.txt
+
+# Setup frontend
+cd frontend
+npm install
+npm run build
+cd ..
+
+# Start services
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup
+
+sudo systemctl enable aeon-frontend
+sudo systemctl start aeon-frontend
+```
+
+## 🔧 Environment Variables
+
+Create a `.env` file on your server with:
 
 ```bash
-# Install dependencies
-pnpm install
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
+CLERK_SECRET_KEY=sk_live_...
+CLERK_WEBHOOK_SECRET=whsec_...
 
-# Copy environment template
-cp .env.example .env.local
+# Supabase Database
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# Add your API keys to .env.local
-# Required: REPLICATE_API_TOKEN, NEXT_PUBLIC_SUPABASE_URL, STRIPE_API_KEY
+# Backend API
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 
-# Start development server
-pnpm dev
+# Replicate API
+REPLICATE_API_TOKEN=r8_...
+
+# Server Configuration
+PORT=8000
+HOST=0.0.0.0
 ```
 
-### 🎯 Cloud-Native Architecture
+## 📊 Monitoring
 
-AEON uses a modern cloud-native stack with no local containers or Docker dependencies:
-- **Vercel** for hosting and deployment
-- **Replicate** for AI model inference
-- **Supabase** for database and authentication
-- **Stripe** for payment processing
+```bash
+# Check backend status
+pm2 status
+pm2 logs aeon-api
+
+# Check frontend status
+systemctl status aeon-frontend
+journalctl -u aeon-frontend -f
+
+# Check Nginx
+systemctl status nginx
+tail -f /var/log/nginx/error.log
+```
+
+## 🔐 Security
+
+- **Clerk Authentication**: Secure user management
+- **Supabase RLS**: Row-level security for database
+- **Environment Variables**: All secrets stored securely
+- **SSL/HTTPS**: Let's Encrypt certificates
+- **Firewall**: UFW configuration
 
 ## 📚 Documentation
 
-Access comprehensive documentation at `/docs` within the platform:
-- **AEON Platform Docs**: Complete platform guides and API reference
-- **DocHarvester**: Universal documentation extraction tool
+- [DigitalOcean Deployment Guide](DEPLOYMENT_GUIDE.md)
+- [Clerk + Supabase Setup](frontend/CLERK_SETUP.md)
+- [Video Generation Guide](VIDEO_GENERATION_README.md)
+- [Modular Generation Guide](MODULAR_GENERATION_GUIDE.md)
+
+## 🛠️ Development
+
+### Local Development
+```bash
+# Backend
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python main.py
+
+# Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+### Testing
+```bash
+# Test backend
+python test_modular_generation.py http://localhost:8000
+
+# Test frontend
+npm run build
+npm start
+```
+
+## 🔧 Troubleshooting
+
+1. **API Connection Issues**: Verify `NEXT_PUBLIC_BACKEND_URL` is correct
+2. **Authentication Errors**: Check Clerk configuration
+3. **Video Generation Fails**: Verify Replicate API token
+4. **Database Issues**: Check Supabase connection
+5. **Service Issues**: Check PM2 and systemd status
+
+## 📈 Performance
+
+- **PM2 Process Management**: Automatic restarts and monitoring
+- **Nginx Reverse Proxy**: Efficient request routing
+- **Python Virtual Environment**: Isolated dependencies
+- **Node.js Production Build**: Optimized frontend delivery
+
+## 🆘 Support
+
+For issues or questions:
+1. Check the logs using the monitoring commands above
+2. Verify all environment variables are set correctly
+3. Ensure your domain DNS is pointing to the correct IP
+4. Test the application locally before deploying
+
+---
+
+**AEON Platform** - The Future of AI Video Creation 🚀
+
+Built with ❤️ for production deployment on DigitalOcean.

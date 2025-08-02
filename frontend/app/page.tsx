@@ -1,23 +1,38 @@
+'use client'
+
 import React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Play, Sparkles, Zap, Users, Star, Video, Clock, Cpu, Wand2 } from "lucide-react"
 import Link from "next/link"
-import { createClient } from '@/utils/supabase/server'
-import { cookies } from 'next/headers'
 
-export default async function HomePage() {
-  // Test Supabase connection
-  let supabaseStatus = 'disconnected';
-  try {
-    const supabase = await createClient()
-    const { data, error } = await supabase.from('users').select('count').limit(1)
-    supabaseStatus = error ? 'error' : 'connected';
-  } catch (error) {
-    console.log('Supabase connection test:', error);
-    supabaseStatus = 'error';
+// Conditional imports for Clerk
+let SignedIn: any = null
+let SignedOut: any = null
+let SignInButton: any = null
+let useUser: any = null
+let redirect: any = null
+
+try {
+  const clerk = require("@clerk/nextjs")
+  SignedIn = clerk.SignedIn
+  SignedOut = clerk.SignedOut
+  SignInButton = clerk.SignInButton
+  useUser = clerk.useUser
+  redirect = require("next/navigation").redirect
+} catch (error) {
+  console.log("Clerk not available")
+}
+
+export default function HomePage() {
+  const user = useUser ? useUser().user : null
+
+  // If user is signed in and redirect is available, redirect to dashboard
+  if (user && redirect) {
+    redirect('/dashboard')
   }
+
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Hero Section - Immersive Design */}
@@ -40,14 +55,6 @@ export default async function HomePage() {
                   <Sparkles className="w-4 h-4 mr-2 relative z-10" />
                   <span className="relative z-10 text-futuristic">NEXT-GEN AI VIDEO PLATFORM</span>
                 </Badge>
-              </div>
-              {/* Supabase Status Indicator */}
-              <div className="text-xs text-gray-400 flex items-center gap-1">
-                <div className={`w-2 h-2 rounded-full ${
-                  supabaseStatus === 'connected' ? 'bg-green-500' :
-                  supabaseStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
-                }`}></div>
-                <span>Database: {supabaseStatus}</span>
               </div>
             </div>
 
@@ -75,20 +82,57 @@ export default async function HomePage() {
             {/* Enhanced CTA Section */}
             <div className="flex flex-col lg:flex-row gap-6 justify-center items-center mb-16">
               {/* Primary CTA */}
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition duration-500 animate-pulse-neon"></div>
-                <Button
-                  asChild
-                  size="lg"
-                  className="relative btn-futuristic bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 hover:from-purple-500 hover:via-pink-500 hover:to-cyan-500 text-white font-bold px-12 py-6 text-xl rounded-2xl border-0 shadow-2xl"
-                >
-                  <Link href="/pricing" className="flex items-center gap-3">
-                    <Zap className="w-6 h-6" />
-                    Start Creating Now
-                    <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </Button>
-              </div>
+              {SignedOut && SignInButton ? (
+                <SignedOut>
+                  <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition duration-500 animate-pulse-neon"></div>
+                    <SignInButton mode="modal">
+                      <Button
+                        size="lg"
+                        className="relative btn-futuristic bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 hover:from-purple-500 hover:via-pink-500 hover:to-cyan-500 text-white font-bold px-12 py-6 text-xl rounded-2xl border-0 shadow-2xl"
+                      >
+                        <Zap className="w-6 h-6 mr-3" />
+                        Start Creating Now
+                        <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </SignInButton>
+                  </div>
+                </SignedOut>
+              ) : (
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition duration-500 animate-pulse-neon"></div>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="relative btn-futuristic bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 hover:from-purple-500 hover:via-pink-500 hover:to-cyan-500 text-white font-bold px-12 py-6 text-xl rounded-2xl border-0 shadow-2xl"
+                  >
+                    <Link href="/pricing" className="flex items-center gap-3">
+                      <Zap className="w-6 h-6" />
+                      Start Creating Now
+                      <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
+
+              {SignedIn && (
+                <SignedIn>
+                  <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition duration-500 animate-pulse-neon"></div>
+                    <Button
+                      asChild
+                      size="lg"
+                      className="relative btn-futuristic bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 hover:from-purple-500 hover:via-pink-500 hover:to-cyan-500 text-white font-bold px-12 py-6 text-xl rounded-2xl border-0 shadow-2xl"
+                    >
+                      <Link href="/dashboard" className="flex items-center gap-3">
+                        <Zap className="w-6 h-6" />
+                        Go to Dashboard
+                        <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                    </Button>
+                  </div>
+                </SignedIn>
+              )}
 
               {/* Secondary CTAs */}
               <div className="flex flex-col sm:flex-row gap-4">
@@ -98,21 +142,20 @@ export default async function HomePage() {
                   size="lg"
                   className="glass-intense hover-lift border-purple-400/30 hover:border-purple-400/60 text-white hover:bg-purple-900/20 px-8 py-4 text-lg rounded-xl"
                 >
-                  <Link href="/script" className="flex items-center gap-2">
-                    <Play className="w-5 h-5" />
-                    Try Demo
+                  <Link href="/pricing" className="flex items-center gap-2">
+                    <Star className="w-5 h-5" />
+                    View Pricing
                   </Link>
                 </Button>
-
                 <Button
                   asChild
                   variant="outline"
                   size="lg"
                   className="glass-intense hover-lift border-cyan-400/30 hover:border-cyan-400/60 text-white hover:bg-cyan-900/20 px-8 py-4 text-lg rounded-xl"
                 >
-                  <Link href="/pricing" className="flex items-center gap-2">
-                    <Star className="w-5 h-5" />
-                    View Plans
+                  <Link href="/docs" className="flex items-center gap-2">
+                    <Wand2 className="w-5 h-5" />
+                    Learn More
                   </Link>
                 </Button>
               </div>

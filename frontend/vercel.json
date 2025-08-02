@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npm run build",
-  "installCommand": "npm install --fetch-retries 5 --fetch-retry-factor 2 --fetch-retry-mintimeout 10000 --fetch-retry-maxtimeout 60000",
+  "buildCommand": "pnpm run build",
+  "installCommand": "pnpm install --fetch-retries 5 --fetch-retry-factor 2 --fetch-retry-mintimeout 10000 --fetch-retry-maxtimeout 60000",
   "framework": "nextjs",
   "functions": {
     "app/api/**/*.ts": {
@@ -14,4 +14,4 @@
     "NPM_CONFIG_FETCH_RETRY_MINTIMEOUT": "10000",
     "NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT": "60000"
   }
-}
+} 

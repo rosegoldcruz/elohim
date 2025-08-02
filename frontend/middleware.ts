@@ -1,25 +1,29 @@
-// Remove Clerk middleware
-// import { authMiddleware } from '@clerk/nextjs';
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-import { createClient } from '@/utils/supabase/middleware';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
 
-export async function middleware(req: NextRequest) {
-  const supabase = createClient(req);
+  // Public routes that don't require authentication
+  const publicRoutes = ['/', '/login', '/signup', '/privacy', '/terms', '/pricing', '/docs']
+  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route))
 
-  // Optional: Check session and handle auth
-  const { data: { session } } = await supabase.auth.getSession();
+  // Check for Clerk session token
+  const sessionToken = request.cookies.get('__session')?.value
 
-  // Add your auth logic here
-  // For now, just pass through all requests
+  // If accessing protected route without session, redirect to sign-in
+  if (!isPublicRoute && !sessionToken) {
+    return NextResponse.redirect(new URL('/sign-in', request.url))
+  }
 
-  return NextResponse.next();
+  // If accessing auth routes with session, redirect to dashboard
+  if ((pathname === '/sign-in' || pathname === '/sign-up') && sessionToken) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
-};
-
-// Remove Clerk export
-// export default authMiddleware({...});
+}

@@ -21,6 +21,19 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
+// Conditional imports for Clerk
+let useUser: any = null
+
+try {
+  const clerk = require("@clerk/nextjs")
+  useUser = clerk.useUser
+} catch (error) {
+  console.log("Clerk not available")
+}
+
+import VideoEditorUI from '@/components/VideoEditorUI'
+import { getSupabaseUserProfile, updateUserCredits } from '@/lib/auth/clerk-supabase-sync'
+
 interface DashboardData {
   user: {
     id: string
@@ -56,18 +69,34 @@ interface DashboardData {
 }
 
 export default function DashboardPage() {
+  const user = useUser ? useUser().user : null
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [supabaseProfile, setSupabaseProfile] = useState<any>(null)
 
   useEffect(() => {
-    fetchDashboardData()
-  }, [])
+    if (user) {
+      fetchDashboardData()
+      fetchSupabaseProfile()
+    }
+  }, [user])
+
+  const fetchSupabaseProfile = async () => {
+    if (!user?.id) return
+    
+    try {
+      const profile = await getSupabaseUserProfile(user.id)
+      setSupabaseProfile(profile)
+    } catch (err) {
+      console.error('Failed to fetch Supabase profile:', err)
+    }
+  }
 
   const fetchDashboardData = async () => {
     try {
-      // In a real app, get user ID from auth context
-      const userId = 'current-user-id' // This would come from auth
+      // In a real app, get user ID from Clerk user
+      const userId = user?.id || 'current-user-id'
       
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/dashboard/user/${userId}`)
       const result = await response.json()
@@ -139,17 +168,10 @@ export default function DashboardPage() {
     )
   }
 
-  if (!data) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <Card className="bg-white/10 backdrop-blur-lg border-white/20">
-          <CardContent className="p-8 text-center">
-            <p className="text-white">No data available</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  // Use Supabase profile data if available, fallback to dashboard data
+  const userCredits = supabaseProfile?.credits || data?.credits.current_balance || 0
+  const userEmail = user?.emailAddresses?.[0]?.emailAddress || data?.user.email || 'User'
+  const userName = user?.firstName || user?.emailAddresses?.[0]?.emailAddress || 'User'
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
@@ -157,8 +179,24 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Dashboard</h1>
-          <p className="text-gray-300">Welcome back, {data.user.email}</p>
+          <p className="text-gray-300">Welcome back, {userName}</p>
         </div>
+
+        {/* Video Editor Section */}
+        <Card className="mb-8 bg-white/10 backdrop-blur-lg border-white/20">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Video className="w-6 h-6 text-purple-400" />
+              AI Video Generator
+            </CardTitle>
+            <CardDescription className="text-gray-300">
+              Create viral videos with our advanced AI system
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <VideoEditorUI />
+          </CardContent>
+        </Card>
 
         {/* Stats Overview */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -171,7 +209,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-white mb-1">
-                {data.credits.current_balance.toLocaleString()}
+                {userCredits.toLocaleString()}
               </div>
               <p className="text-gray-400 text-sm">Available credits</p>
             </CardContent>
@@ -186,7 +224,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-white mb-1">
-                {data.videos.total}
+                {data?.videos.total || '0'}
               </div>
               <p className="text-gray-400 text-sm">Total created</p>
             </CardContent>
@@ -201,7 +239,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-white mb-1">
-                {Math.round(data.usage_stats.success_rate * 100)}%
+                {data ? Math.round(data.usage_stats.success_rate * 100) : '0'}%
               </div>
               <p className="text-gray-400 text-sm">Generation success</p>
             </CardContent>
@@ -216,10 +254,10 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white mb-1 capitalize">
-                {data.user.subscription_tier}
+                {supabaseProfile?.subscription_tier || data?.user.subscription_tier || 'Free'}
               </div>
-              <Badge className={`${data.user.subscription_status === 'active' ? 'bg-green-500' : 'bg-gray-500'} text-white border-0`}>
-                {data.user.subscription_status}
+              <Badge className={`${(supabaseProfile?.subscription_status || data?.user.subscription_status) === 'active' ? 'bg-green-500' : 'bg-gray-500'} text-white border-0`}>
+                {supabaseProfile?.subscription_status || data?.user.subscription_status || 'active'}
               </Badge>
             </CardContent>
           </Card>
@@ -255,26 +293,26 @@ export default function DashboardPage() {
                     <span className="text-gray-300">Completed</span>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-white font-medium">{data.videos.completed}</span>
+                      <span className="text-white font-medium">{data?.videos.completed || 0}</span>
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Processing</span>
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 text-blue-500" />
-                      <span className="text-white font-medium">{data.videos.processing}</span>
+                      <span className="text-white font-medium">{data?.videos.processing || 0}</span>
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Failed</span>
                     <div className="flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 text-red-500" />
-                      <span className="text-white font-medium">{data.videos.failed}</span>
+                      <span className="text-white font-medium">{data?.videos.failed || 0}</span>
                     </div>
                   </div>
                   <div className="pt-4">
                     <div className="text-sm text-gray-300 mb-2">Success Rate</div>
-                    <Progress value={data.usage_stats.success_rate * 100} className="h-2" />
+                    <Progress value={data ? data.usage_stats.success_rate * 100 : 0} className="h-2" />
                   </div>
                 </CardContent>
               </Card>
@@ -289,7 +327,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {data.videos.recent.length > 0 ? (
+                    {data?.videos.recent && data.videos.recent.length > 0 ? (
                       data.videos.recent.map((video, index) => (
                         <div key={index} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
                           <div className="flex items-center gap-3">
@@ -319,7 +357,7 @@ export default function DashboardPage() {
                         <Video className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                         <p className="text-gray-400 mb-4">No videos yet</p>
                         <Button asChild>
-                          <Link href="/instant">Create Your First Video</Link>
+                          <Link href="/dashboard">Create Your First Video</Link>
                         </Button>
                       </div>
                     )}
@@ -339,20 +377,20 @@ export default function DashboardPage() {
                 <CardContent className="space-y-4">
                   <div className="text-center">
                     <div className="text-4xl font-bold text-white mb-2">
-                      {data.credits.current_balance.toLocaleString()}
+                      {userCredits.toLocaleString()}
                     </div>
                     <p className="text-gray-400">Available Credits</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4 pt-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-green-400">
-                        {data.credits.total_earned.toLocaleString()}
+                        {data?.credits.total_earned.toLocaleString() || '0'}
                       </div>
                       <p className="text-gray-400 text-sm">Total Earned</p>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-purple-400">
-                        {data.credits.total_spent.toLocaleString()}
+                        {data?.credits.total_spent.toLocaleString() || '0'}
                       </div>
                       <p className="text-gray-400 text-sm">Total Spent</p>
                     </div>
@@ -369,7 +407,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {data.credits.recent_transactions.length > 0 ? (
+                    {data?.credits.recent_transactions && data.credits.recent_transactions.length > 0 ? (
                       data.credits.recent_transactions.map((transaction, index) => (
                         <div key={index} className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                           <div>
@@ -403,7 +441,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {data.orders.recent.length > 0 ? (
+                  {data?.orders.recent && data.orders.recent.length > 0 ? (
                     data.orders.recent.map((order, index) => (
                       <div key={index} className="flex justify-between items-center p-4 bg-white/5 rounded-lg">
                         <div>
@@ -439,19 +477,19 @@ export default function DashboardPage() {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Videos This Month</span>
-                    <span className="text-white font-bold">{data.usage_stats.videos_this_month}</span>
+                    <span className="text-white font-bold">{data?.usage_stats.videos_this_month || 0}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Total Duration</span>
-                    <span className="text-white font-bold">{data.usage_stats.total_video_duration}s</span>
+                    <span className="text-white font-bold">{data?.usage_stats.total_video_duration || 0}s</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Avg Processing Time</span>
-                    <span className="text-white font-bold">{data.usage_stats.avg_processing_time}min</span>
+                    <span className="text-white font-bold">{data?.usage_stats.avg_processing_time || 0}min</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-300">Success Rate</span>
-                    <span className="text-white font-bold">{Math.round(data.usage_stats.success_rate * 100)}%</span>
+                    <span className="text-white font-bold">{data ? Math.round(data.usage_stats.success_rate * 100) : 0}%</span>
                   </div>
                 </CardContent>
               </Card>
@@ -462,7 +500,7 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Button asChild className="w-full">
-                    <Link href="/instant">
+                    <Link href="/dashboard">
                       <Play className="w-4 h-4 mr-2" />
                       Generate New Video
                     </Link>

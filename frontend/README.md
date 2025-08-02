@@ -29,7 +29,7 @@ cp .env.example .env.local
 3. **Required environment variables:**
 ```env
 # App Configuration
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=https://smart4technology.com
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -61,7 +61,7 @@ BLOB_READ_WRITE_TOKEN=vercel_blob_your-token
 pnpm dev
 ```
 
-Visit `http://localhost:3000`
+Visit `https://smart4technology.com` (production) or `http://localhost:3000` (development)
 
 ### Building for Production
 

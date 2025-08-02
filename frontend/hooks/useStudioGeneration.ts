@@ -241,7 +241,7 @@ export function useStudioGeneration(user_id: string) {
       }));
       return false;
     }
-  }, [user_id, fetchProjects]);
+  }, [user_id]); // Remove fetchProjects from dependencies to prevent loops
 
   /**
    * Reset generation state

@@ -45,10 +45,14 @@ export default function StudioPage({}: StudioPageProps) {
     reset,
     progressPercentage
   } = useStudioGeneration(user?.id);
-  // Get current user
+  // Get current user - run only once on mount
   useEffect(() => {
+    let mounted = true;
+
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!mounted) return;
+
       if (!user) {
         router.push('/auth/login');
         return;
@@ -57,14 +61,18 @@ export default function StudioPage({}: StudioPageProps) {
     };
 
     getUser();
-  }, [router, supabase.auth]);
+
+    return () => {
+      mounted = false;
+    };
+  }, []); // Remove dependencies to prevent loops
 
   // Fetch projects when user is available
   useEffect(() => {
     if (user?.id) {
       fetchProjects();
     }
-  }, [user?.id, fetchProjects]);
+  }, [user?.id]); // Remove fetchProjects from dependencies to prevent loops
 
   // Handle new project creation
   const handleCreateProject = async () => {

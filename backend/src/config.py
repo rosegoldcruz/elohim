@@ -13,10 +13,10 @@ class Config:
         # Supabase Configuration
         self.SUPABASE_URL = self._get_required_env("SUPABASE_URL")
         self.SUPABASE_SERVICE_ROLE_KEY = self._get_required_env("SUPABASE_SERVICE_ROLE_KEY")
-        self.SUPABASE_JWT_SECRET = self._get_required_env("SUPABASE_JWT_SECRET")
-        
-        # Storage Configuration
-        self.BLOB_READ_WRITE_TOKEN = self._get_required_env("BLOB_READ_WRITE_TOKEN")
+        self.SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")  # Optional
+
+        # Storage Configuration (Optional - can use local storage)
+        self.BLOB_READ_WRITE_TOKEN = os.getenv("BLOB_READ_WRITE_TOKEN")
         
         # AI Services (Optional)
         self.OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
