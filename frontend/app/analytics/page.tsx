@@ -1,165 +1,126 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { DollarSign, Eye, Target, BarChart3 } from "lucide-react"
-
-const revenueData = [
-  { month: "Jan", revenue: 125000, videos: 45, conversion: 3.2 },
-  { month: "Feb", revenue: 180000, videos: 62, conversion: 3.8 },
-  { month: "Mar", revenue: 245000, videos: 78, conversion: 4.1 },
-  { month: "Apr", revenue: 320000, videos: 95, conversion: 4.5 },
-  { month: "May", revenue: 425000, videos: 118, conversion: 4.8 },
-  { month: "Jun", revenue: 580000, videos: 142, conversion: 5.2 },
-]
-
-const topPerformers = [
-  { title: "Skincare Routine Revolution", revenue: 45000, views: 2.1, ctr: 8.5, platform: "TikTok" },
-  { title: "Tech Gadget Unboxing", revenue: 38000, views: 1.8, ctr: 7.2, platform: "YouTube" },
-  { title: "Fashion Haul Spectacular", revenue: 32000, views: 1.5, ctr: 6.8, platform: "Instagram" },
-  { title: "Fitness Transformation", revenue: 28000, views: 1.2, ctr: 6.1, platform: "TikTok" },
-]
+import { motion } from "framer-motion";
+import { BarChart3, TrendingUp, Users, Video, Eye, Heart, Share2 } from "lucide-react";
 
 export default function AnalyticsPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-400 mb-4">
-          Revenue Analytics
-        </h1>
-        <p className="text-xl text-neutral-400 max-w-3xl mx-auto">
-          Track video performance, conversion attribution, and ROI calculations in real-time
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a23] via-[#1a1a3a] to-[#2a2a4a]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-bold text-white mb-4">Analytics Dashboard</h1>
+          <p className="text-gray-300">Track your video performance and audience insights</p>
+        </motion.div>
 
-      {/* Key Metrics */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <div className="group relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <Card className="relative bg-white/5 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <DollarSign className="h-8 w-8 text-green-400" />
-                <Badge className="bg-green-500/20 text-green-400">+23%</Badge>
-              </div>
-              <div className="text-3xl font-bold text-green-400 mb-1">$580K</div>
-              <p className="text-neutral-400">Monthly Revenue</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="group relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <Card className="relative bg-white/5 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Eye className="h-8 w-8 text-blue-400" />
-                <Badge className="bg-blue-500/20 text-blue-400">+18%</Badge>
-              </div>
-              <div className="text-3xl font-bold text-blue-400 mb-1">8.2M</div>
-              <p className="text-neutral-400">Total Views</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="group relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <Card className="relative bg-white/5 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <Target className="h-8 w-8 text-purple-400" />
-                <Badge className="bg-purple-500/20 text-purple-400">+12%</Badge>
-              </div>
-              <div className="text-3xl font-bold text-purple-400 mb-1">5.2%</div>
-              <p className="text-neutral-400">Conversion Rate</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="group relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <Card className="relative bg-white/5 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <BarChart3 className="h-8 w-8 text-yellow-400" />
-                <Badge className="bg-yellow-500/20 text-yellow-400">+31%</Badge>
-              </div>
-              <div className="text-3xl font-bold text-yellow-400 mb-1">142</div>
-              <p className="text-neutral-400">Videos Created</p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Revenue Chart */}
-      <div className="relative mb-12">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-900/30 via-emerald-900/30 to-teal-900/30 rounded-3xl blur-2xl"></div>
-        <Card className="relative bg-white/5 border-white/10 backdrop-blur-md rounded-3xl">
-          <CardHeader>
-            <CardTitle className="text-2xl">Revenue Growth Trajectory</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80 flex items-end justify-between gap-4">
-              {revenueData.map((data, index) => (
-                <div key={data.month} className="flex-1 flex flex-col items-center">
-                  <div
-                    className="w-full bg-gradient-to-t from-green-600 to-emerald-400 rounded-t-lg relative group cursor-pointer"
-                    style={{ height: `${(data.revenue / 600000) * 100}%` }}
-                  >
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                      ${data.revenue.toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="mt-2 text-sm text-neutral-400">{data.month}</div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[
+            { title: "Total Views", value: "124.5K", icon: Eye, change: "+12.3%" },
+            { title: "Videos Created", value: "1,247", icon: Video, change: "+8.7%" },
+            { title: "Active Users", value: "89.2K", icon: Users, change: "+15.2%" },
+            { title: "Engagement Rate", value: "4.8%", icon: Heart, change: "+2.1%" }
+          ].map((stat, index) => (
+            <motion.div
+              key={stat.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="glass-effect rounded-2xl p-6"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm">{stat.title}</p>
+                  <p className="text-2xl font-bold text-white">{stat.value}</p>
+                  <p className="text-green-400 text-sm flex items-center">
+                    <TrendingUp className="w-4 h-4 mr-1" />
+                    {stat.change}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                <div className="w-12 h-12 bg-gradient-to-r from-fuchsia-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <stat.icon className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
 
-      {/* Top Performers */}
-      <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/30 via-indigo-900/30 to-blue-900/30 rounded-3xl blur-2xl"></div>
-        <Card className="relative bg-white/5 border-white/10 backdrop-blur-md rounded-3xl">
-          <CardHeader>
-            <CardTitle className="text-2xl">Top Performing Videos</CardTitle>
-          </CardHeader>
-          <CardContent>
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="glass-effect rounded-2xl p-8"
+          >
+            <h2 className="text-xl font-semibold text-white mb-6">Views Over Time</h2>
+            <div className="h-64 bg-white/5 rounded-xl flex items-center justify-center">
+              <div className="text-center">
+                <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-400">Chart visualization will appear here</p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="glass-effect rounded-2xl p-8"
+          >
+            <h2 className="text-xl font-semibold text-white mb-6">Top Performing Videos</h2>
             <div className="space-y-4">
-              {topPerformers.map((video, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all duration-300"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white font-bold">
-                      #{index + 1}
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg flex items-center justify-center">
+                      <Video className="w-5 h-5 text-gray-400" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">{video.title}</h3>
-                      <p className="text-sm text-neutral-400">{video.platform}</p>
+                      <p className="text-white font-medium">Video Title {i}</p>
+                      <p className="text-sm text-gray-400">{Math.floor(Math.random() * 50) + 10}K views</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-6 text-sm">
-                    <div className="text-center">
-                      <div className="font-semibold text-green-400">${video.revenue.toLocaleString()}</div>
-                      <div className="text-neutral-500">Revenue</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-semibold text-blue-400">{video.views}M</div>
-                      <div className="text-neutral-500">Views</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-semibold text-purple-400">{video.ctr}%</div>
-                      <div className="text-neutral-500">CTR</div>
-                    </div>
+                  <div className="flex items-center space-x-2 text-sm text-gray-400">
+                    <Eye className="w-4 h-4" />
+                    <span>{Math.floor(Math.random() * 1000) + 100}</span>
                   </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </motion.div>
+        </div>
+
+        {/* Engagement Metrics */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="glass-effect rounded-2xl p-8"
+        >
+          <h2 className="text-xl font-semibold text-white mb-6">Engagement Metrics</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { title: "Likes", value: "45.2K", percentage: 78 },
+              { title: "Shares", value: "12.8K", percentage: 65 },
+              { title: "Comments", value: "8.9K", percentage: 45 }
+            ].map((metric, index) => (
+              <div key={metric.title} className="text-center">
+                <p className="text-gray-400 text-sm mb-2">{metric.title}</p>
+                <p className="text-2xl font-bold text-white mb-2">{metric.value}</p>
+                <div className="w-full bg-white/10 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-fuchsia-500 to-purple-600 h-2 rounded-full transition-all duration-1000"
+                    style={{ width: `${metric.percentage}%` }}
+                  ></div>
+                </div>
+                <p className="text-sm text-gray-400 mt-1">{metric.percentage}%</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </div>
-  )
+  );
 }

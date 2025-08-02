@@ -1,354 +1,153 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Loader2, Play, Sparkles, Clock, Film, Wand2, ArrowRight } from 'lucide-react'
-import { toast } from 'sonner'
-import Link from 'next/link'
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { PenTool, Sparkles, Copy, Download, Play } from "lucide-react";
 
-interface SceneData {
-  scenes: string[]
-  total_scenes: number
-  estimated_duration_per_scene: number
-}
-
-// Mock scene generation function for demo purposes
-function generateMockScenes(topic: string, style: string, sceneCount: number): string[] {
-  const scenes: string[] = []
-  const stylePrefix = style ? `${style} style: ` : ''
-
-  // Generate scenes based on the topic
-  for (let i = 1; i <= sceneCount; i++) {
-    let scene = ''
-
-    if (i === 1) {
-      scene = `${stylePrefix}Opening shot establishing the world of ${topic}. Wide cinematic angle with dramatic lighting, setting the mood and atmosphere for the story to unfold.`
-    } else if (i === sceneCount) {
-      scene = `${stylePrefix}Climactic finale of ${topic}. Close-up shots with intense lighting, bringing the narrative to a powerful and memorable conclusion.`
-    } else if (i === 2) {
-      scene = `${stylePrefix}Introduction of key elements in ${topic}. Medium shots with warm lighting, building character development and story foundation.`
-    } else if (i === sceneCount - 1) {
-      scene = `${stylePrefix}Rising action and tension in ${topic}. Dynamic camera movements with contrasting lighting, building toward the climactic moment.`
-    } else {
-      const midSceneDescriptions = [
-        'Character development and world-building',
-        'Conflict introduction and tension building',
-        'Plot advancement with visual storytelling',
-        'Emotional depth and narrative progression',
-        'Action sequence with dynamic cinematography',
-        'Dialogue-driven character interaction',
-        'Environmental storytelling and atmosphere'
-      ]
-      const randomDesc = midSceneDescriptions[Math.floor(Math.random() * midSceneDescriptions.length)]
-      scene = `${stylePrefix}${randomDesc} in ${topic}. Varied camera angles with professional lighting, maintaining visual interest and story momentum.`
-    }
-
-    scenes.push(scene)
-  }
-
-  return scenes
-}
-
-export default function ScriptGeneratorPage() {
-  const [formData, setFormData] = useState({
-    topic: '',
-    style: '',
-    duration: 60,
-    scene_count: 6,
-  })
-  const [isLoading, setIsLoading] = useState(false)
-  const [sceneData, setSceneData] = useState<SceneData | null>(null)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!formData.topic.trim()) {
-      toast.error('Please enter a video topic')
-      return
-    }
-
-    setIsLoading(true)
-
-    try {
-      // For demo purposes, we'll use a mock API response
-      // To connect to the real AEON backend, uncomment the code below and comment out the mock section:
-
-      /* Real API call (requires backend setup with Supabase and OpenAI):
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/scriptwriter/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: `${formData.topic}${formData.style ? ` in ${formData.style} style` : ''}`,
-          duration: formData.duration,
-          scene_count: formData.scene_count,
-        }),
-      })
-      const result = await response.json()
-      */
-
-      // Mock API response for demo:
-      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate API delay
-      const mockScenes = generateMockScenes(formData.topic, formData.style, formData.scene_count)
-      const result = {
-        success: true,
-        scenes: mockScenes,
-        total_scenes: mockScenes.length,
-        estimated_duration_per_scene: formData.duration / formData.scene_count,
-      }
-
-      setSceneData({
-        scenes: result.scenes,
-        total_scenes: result.total_scenes,
-        estimated_duration_per_scene: result.estimated_duration_per_scene,
-      })
-
-      toast.success(`Generated ${result.total_scenes} cinematic scenes!`)
-    } catch (error) {
-      console.error('Script generation error:', error)
-      toast.error('Something went wrong. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const resetForm = () => {
-    setSceneData(null)
-    setFormData({
-      topic: '',
-      style: '',
-      duration: 60,
-      scene_count: 6,
-    })
-  }
-
+export default function ScriptPage() {
   return (
-    <div className="min-h-screen bg-black">
-      {/* Hero Section */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <Badge className="mb-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-            <Film className="w-4 h-4 mr-2" />
-            AI Script Generator
-          </Badge>
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-            Generate
-            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-              {' '}Cinematic Scripts
-            </span>
-          </h1>
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
-            Transform your ideas into professional scene-by-scene scripts.
-            Perfect for video creators, filmmakers, and content producers.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a23] via-[#1a1a3a] to-[#2a2a4a]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-bold text-white mb-4">Script Generator</h1>
+          <p className="text-gray-300">Create compelling scripts with AI-powered writing assistance</p>
+        </motion.div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-          {/* Script Generator Form */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-cyan-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-50 group-hover:opacity-75"></div>
-            <Card className="relative bg-white/10 backdrop-blur-lg border border-purple-400/30 hover:border-purple-400/50 transition-all duration-300 rounded-3xl">
-            <CardHeader>
-              <CardTitle className="text-2xl text-white flex items-center gap-2">
-                <Wand2 className="w-6 h-6" />
-                Create Your Script
-              </CardTitle>
-              <CardDescription className="text-gray-300">
-                Describe your video concept and let AI generate professional scenes
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Script Input */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="glass-effect rounded-2xl p-8">
+              <h2 className="text-2xl font-semibold text-white mb-6">Generate Script</h2>
+              
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Video Topic *
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Topic or Theme
                   </label>
-                  <Textarea
-                    placeholder="e.g., A day in the life of a space explorer discovering a new planet"
-                    value={formData.topic}
-                    onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 min-h-[100px]"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Visual Style (Optional)
-                  </label>
-                  <Input
+                  <input
                     type="text"
-                    placeholder="e.g., Blade Runner, Pixar animation, documentary style"
-                    value={formData.style}
-                    onChange={(e) => setFormData({ ...formData, style: e.target.value })}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                    placeholder="e.g., How to make the perfect coffee"
+                    className="w-full p-4 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-2">
-                      Duration (seconds)
-                    </label>
-                    <Input
-                      type="number"
-                      min="30"
-                      max="300"
-                      value={formData.duration}
-                      onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 60 })}
-                      className="bg-white/10 border-white/20 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-2">
-                      Number of Scenes
-                    </label>
-                    <Input
-                      type="number"
-                      min="3"
-                      max="12"
-                      value={formData.scene_count}
-                      onChange={(e) => setFormData({ ...formData, scene_count: parseInt(e.target.value) || 6 })}
-                      className="bg-white/10 border-white/20 text-white"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Style
+                  </label>
+                  <select 
+                    className="w-full p-4 bg-white/5 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50"
+                    aria-label="Select script style"
+                  >
+                    <option value="educational">Educational</option>
+                    <option value="entertaining">Entertaining</option>
+                    <option value="professional">Professional</option>
+                    <option value="casual">Casual</option>
+                    <option value="dramatic">Dramatic</option>
+                  </select>
                 </div>
 
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 rounded-xl blur-lg group-hover:blur-xl transition-all duration-300 opacity-75 group-hover:opacity-100"></div>
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="relative w-full bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 hover:from-purple-600 hover:via-pink-600 hover:to-cyan-600 text-white font-semibold py-6 text-lg border-0"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Generating Script...
-                      </>
-                    ) : (
-                      <>
-                        Generate Script
-                        <Sparkles className="w-5 h-5 ml-2" />
-                      </>
-                    )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Duration (seconds)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="30"
+                    className="w-full p-4 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Additional Details
+                  </label>
+                  <textarea
+                    placeholder="Any specific requirements or context..."
+                    rows={4}
+                    className="w-full p-4 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 resize-none"
+                  />
+                </div>
+
+                <Button className="w-full bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-600 hover:to-purple-700 text-white py-4 text-lg">
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Generate Script
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Generated Script */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <div className="glass-effect rounded-2xl p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-semibold text-white">Generated Script</h2>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy
+                  </Button>
+                  <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
                   </Button>
                 </div>
-              </form>
-            </CardContent>
-          </Card>
-          </div>
+              </div>
 
-          {/* Features & Benefits */}
-          <div className="space-y-6">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-50 group-hover:opacity-75"></div>
-              <Card className="relative bg-black/50 backdrop-blur-lg border border-purple-400/30 hover:border-purple-400/50 transition-all duration-300 rounded-2xl">
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-white mb-2">🎬 Professional Scripts</div>
-                    <div className="text-purple-200 font-semibold">AI-Generated Scene Breakdowns</div>
-                    <div className="text-sm text-gray-300 mt-2">
-                      Get detailed, cinematic scene descriptions ready for video production
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-50 group-hover:opacity-75"></div>
-              <Card className="relative bg-black/50 backdrop-blur-lg border border-cyan-400/30 hover:border-cyan-400/50 transition-all duration-300 rounded-2xl">
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-white mb-2">⚡ Instant Results</div>
-                    <div className="text-cyan-200 font-semibold">Seconds, Not Hours</div>
-                    <div className="text-sm text-gray-300 mt-2">
-                      Generate professional scripts in under 30 seconds
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-purple-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500 opacity-50 group-hover:opacity-75"></div>
-              <Card className="relative bg-black/50 backdrop-blur-lg border border-pink-400/30 hover:border-pink-400/50 transition-all duration-300 rounded-2xl">
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-white mb-2">🎯 Perfect for Video</div>
-                    <div className="text-pink-200 font-semibold">AI Video Generation Ready</div>
-                    <div className="text-sm text-gray-300 mt-2">
-                      Scripts optimized for AI video generation platforms
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-
-        {/* Generated Scenes Display */}
-        {sceneData && (
-          <div className="mt-12">
-            <Card className="bg-white/5 backdrop-blur-lg border-white/10">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-2xl text-white flex items-center gap-2">
-                      <Film className="w-6 h-6" />
-                      Generated Script
-                    </CardTitle>
-                    <CardDescription className="text-gray-300">
-                      {sceneData.total_scenes} scenes • ~{sceneData.estimated_duration_per_scene.toFixed(1)}s per scene
-                    </CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={resetForm}
-                      variant="outline"
-                      className="border-white/20 text-white hover:bg-white/10"
-                    >
-                      Generate New
-                    </Button>
-                    <Button
-                      asChild
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                    >
-                      <Link href="/app/generate">
-                        Create Video
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
+              <div className="bg-white/5 rounded-xl p-6 min-h-[400px]">
                 <div className="space-y-4">
-                  {sceneData.scenes.map((scene, index) => (
-                    <Card key={index} className="bg-white/5 border-white/10">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <Badge className="bg-purple-500/20 text-purple-200 border-purple-400/30 shrink-0">
-                            Scene {index + 1}
-                          </Badge>
-                          <p className="text-gray-200 leading-relaxed">{scene}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-fuchsia-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-gray-300">SCENE 1</span>
+                  </div>
+                  <p className="text-white leading-relaxed">
+                    [Opening shot of a cozy coffee shop] Welcome to the ultimate guide on how to make the perfect cup of coffee. Today, we're going to show you the secrets that baristas don't want you to know.
+                  </p>
+                  
+                  <div className="flex items-center space-x-2 mt-6">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-gray-300">SCENE 2</span>
+                  </div>
+                  <p className="text-white leading-relaxed">
+                    [Close-up of coffee beans] First, you'll need high-quality coffee beans. Look for beans that are freshly roasted and have a rich, aromatic smell. The type of bean you choose will dramatically affect your final result.
+                  </p>
+
+                  <div className="flex items-center space-x-2 mt-6">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-gray-300">SCENE 3</span>
+                  </div>
+                  <p className="text-white leading-relaxed">
+                    [Demonstration of grinding] Grinding your beans fresh is crucial. Use a burr grinder for the most consistent results. The grind size should match your brewing method - fine for espresso, medium for drip coffee.
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+              </div>
+
+              <div className="mt-6 flex space-x-4">
+                <Button className="bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-600 hover:to-purple-700 text-white">
+                  <Play className="w-4 h-4 mr-2" />
+                  Generate Video
+                </Button>
+                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                  Regenerate Script
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </div>
-  )
+  );
 }

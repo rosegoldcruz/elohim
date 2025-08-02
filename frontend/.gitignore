@@ -8,18 +8,20 @@ out/
 # Production
 build/
 
-# Environment Variables - LOCKED DOWN
+# Environment Variables - LOCKED DOWN - ZERO TOLERANCE
 *.env*
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-env.production
-env.example
-env.template
-env.sample
-env.mjs
+.env*
+env*
+**/env*
+**/.env*
+**/env.*
+**/.env.*
+*env*
+env*
+**/env*
+**/*env*
+lib/env*
+**/lib/env*
 
 # Vercel
 .vercel

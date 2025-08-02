@@ -1,257 +1,215 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Target, Zap, Users, TrendingUp, Play, Download, BarChart3, Sparkles } from "lucide-react"
-import { toast } from "sonner"
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, Target, BarChart3, Users, Calendar, DollarSign, Share2, Play } from "lucide-react";
+
+const campaigns = [
+  {
+    name: "Summer Product Launch",
+    status: "Active",
+    budget: "$5,000",
+    views: "124.5K",
+    engagement: "4.8%",
+    platform: "TikTok",
+    color: "from-green-500 to-emerald-500"
+  },
+  {
+    name: "Brand Awareness",
+    status: "Paused",
+    budget: "$3,200",
+    views: "89.2K",
+    engagement: "3.2%",
+    platform: "Instagram",
+    color: "from-blue-500 to-indigo-500"
+  },
+  {
+    name: "Holiday Special",
+    status: "Scheduled",
+    budget: "$7,500",
+    views: "0",
+    engagement: "0%",
+    platform: "YouTube",
+    color: "from-purple-500 to-pink-500"
+  }
+];
 
 export default function MarketingPage() {
-  const [productUrl, setProductUrl] = useState("")
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [campaigns, setCampaigns] = useState<any[]>([])
-
-  const handleGenerateCampaign = () => {
-    if (!productUrl) {
-      toast.error("Please enter a product URL")
-      return
-    }
-    setIsGenerating(true)
-    toast.info("TrendHunter → ScriptWriter → ScenePlanner → VideoGenerator pipeline started...")
-
-    setTimeout(() => {
-      const newCampaigns = Array.from({ length: 12 }, (_, i) => ({
-        id: i + 1,
-        title: `Campaign Variant ${i + 1}`,
-        platform: ["TikTok", "Instagram", "YouTube"][i % 3],
-        ctr: (2.5 + Math.random() * 3).toFixed(1),
-        conversions: Math.floor(150 + Math.random() * 300),
-        revenue: Math.floor(2500 + Math.random() * 5000),
-        thumbnail: `/placeholder.svg?height=200&width=300&query=product+ad+variant+${i + 1}`,
-        status: Math.random() > 0.2 ? "completed" : "generating",
-      }))
-      setCampaigns(newCampaigns)
-      setIsGenerating(false)
-      toast.success("50+ video variations generated! Revenue tracking active.")
-    }, 4000)
-  }
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-yellow-400 mb-4">
-          AI Marketing Suite
-        </h1>
-        <p className="text-xl text-neutral-400 max-w-3xl mx-auto">
-          Transform any product into winning video campaigns. Generate 50+ variations, track conversions, and scale to
-          $10M revenue.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a23] via-[#1a1a3a] to-[#2a2a4a]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-bold text-white mb-4">Marketing Dashboard</h1>
+          <p className="text-gray-300">Manage your video campaigns and track performance</p>
+        </motion.div>
 
-      {/* Quick Tools Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <div className="group relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-indigo-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <Card className="relative bg-white/5 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1">
-            <CardContent className="p-6 text-center">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center mx-auto mb-4">
-                <Target className="h-6 w-6 text-white" />
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          {[
+            { title: "Active Campaigns", value: "12", icon: Target, change: "+3" },
+            { title: "Total Views", value: "2.1M", icon: Users, change: "+15.2%" },
+            { title: "Engagement Rate", value: "4.8%", icon: TrendingUp, change: "+0.8%" },
+            { title: "Total Spend", value: "$24.5K", icon: DollarSign, change: "+12.3%" }
+          ].map((stat, index) => (
+            <motion.div
+              key={stat.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="glass-effect rounded-2xl p-6"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm">{stat.title}</p>
+                  <p className="text-2xl font-bold text-white">{stat.value}</p>
+                  <p className="text-green-400 text-sm">{stat.change}</p>
+                </div>
+                <div className="w-12 h-12 bg-gradient-to-r from-fuchsia-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <stat.icon className="w-6 h-6 text-white" />
+                </div>
               </div>
-              <h3 className="font-semibold mb-2">AI Video Ads</h3>
-              <p className="text-sm text-neutral-400">Product URL → winning ads</p>
-            </CardContent>
-          </Card>
+            </motion.div>
+          ))}
         </div>
 
-        <div className="group relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <Card className="relative bg-white/5 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1">
-            <CardContent className="p-6 text-center">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center mx-auto mb-4">
-                <Users className="h-6 w-6 text-white" />
+        {/* Campaign Management */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Active Campaigns */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="lg:col-span-2"
+          >
+            <div className="glass-effect rounded-2xl p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-semibold text-white">Active Campaigns</h2>
+                <Button className="bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-600 hover:to-purple-700 text-white">
+                  <Play className="w-4 h-4 mr-2" />
+                  New Campaign
+                </Button>
               </div>
-              <h3 className="font-semibold mb-2">Avatar Marketing</h3>
-              <p className="text-sm text-neutral-400">Branded spokesperson videos</p>
-            </CardContent>
-          </Card>
-        </div>
 
-        <div className="group relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <Card className="relative bg-white/5 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1">
-            <CardContent className="p-6 text-center">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="font-semibold mb-2">Product Showcase</h3>
-              <p className="text-sm text-neutral-400">Image → demonstrations</p>
-            </CardContent>
-          </Card>
-        </div>
+              <div className="space-y-4">
+                {campaigns.map((campaign, index) => (
+                  <div key={campaign.name} className="bg-white/5 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-12 h-12 bg-gradient-to-r ${campaign.color} rounded-xl flex items-center justify-center`}>
+                          <Share2 className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold">{campaign.name}</h3>
+                          <p className="text-gray-400 text-sm">{campaign.platform}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          campaign.status === 'Active' ? 'bg-green-500/20 text-green-400' :
+                          campaign.status === 'Paused' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-blue-500/20 text-blue-400'
+                        }`}>
+                          {campaign.status}
+                        </span>
+                      </div>
+                    </div>
 
-        <div className="group relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 to-rose-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-          <Card className="relative bg-white/5 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1">
-            <CardContent className="p-6 text-center">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="h-6 w-6 text-white" />
+                    <div className="grid grid-cols-4 gap-4 text-center">
+                      <div>
+                        <p className="text-gray-400 text-sm">Budget</p>
+                        <p className="text-white font-semibold">{campaign.budget}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-sm">Views</p>
+                        <p className="text-white font-semibold">{campaign.views}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-sm">Engagement</p>
+                        <p className="text-white font-semibold">{campaign.engagement}</p>
+                      </div>
+                      <div>
+                        <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+                          <BarChart3 className="w-4 h-4 mr-2" />
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <h3 className="font-semibold mb-2">Batch Campaigns</h3>
-              <p className="text-sm text-neutral-400">50+ A/B test variations</p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </div>
+          </motion.div>
 
-      {/* Campaign Generator */}
-      <div className="relative mb-12">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/30 via-indigo-900/30 to-blue-900/30 rounded-3xl blur-2xl"></div>
-        <Card className="relative bg-white/5 border-white/10 backdrop-blur-md rounded-3xl">
-          <CardContent className="p-8">
-            <h2 className="text-3xl font-bold mb-6 text-center">Generate Revenue Campaign</h2>
-            <div className="grid md:grid-cols-12 gap-4 items-end">
-              <div className="md:col-span-5">
-                <label className="block text-sm font-medium mb-2">Product URL</label>
-                <Input
-                  value={productUrl}
-                  onChange={(e) => setProductUrl(e.target.value)}
-                  placeholder="https://yourstore.com/product"
-                  className="bg-white/10 border-white/20 rounded-xl h-12"
-                />
+          {/* Quick Actions */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="space-y-6"
+          >
+            {/* Performance Overview */}
+            <div className="glass-effect rounded-2xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Performance Overview</h3>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-400">Views</span>
+                    <span className="text-white">2.1M</span>
+                  </div>
+                  <div className="w-full bg-white/10 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-fuchsia-500 to-purple-600 h-2 rounded-full w-75%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-400">Engagement</span>
+                    <span className="text-white">4.8%</span>
+                  </div>
+                  <div className="w-full bg-white/10 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full w-48%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-400">Conversions</span>
+                    <span className="text-white">2.3%</span>
+                  </div>
+                  <div className="w-full bg-white/10 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full w-23%"></div>
+                  </div>
+                </div>
               </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-2">Campaign Type</label>
-                <Select>
-                  <SelectTrigger className="bg-white/10 border-white/20 rounded-xl h-12">
-                    <SelectValue placeholder="Ad Campaign" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ads">Video Ads</SelectItem>
-                    <SelectItem value="showcase">Product Showcase</SelectItem>
-                    <SelectItem value="testimonial">Testimonials</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-2">Target Platform</label>
-                <Select>
-                  <SelectTrigger className="bg-white/10 border-white/20 rounded-xl h-12">
-                    <SelectValue placeholder="All Platforms" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Platforms</SelectItem>
-                    <SelectItem value="tiktok">TikTok</SelectItem>
-                    <SelectItem value="instagram">Instagram</SelectItem>
-                    <SelectItem value="youtube">YouTube</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="md:col-span-3">
-                <Button
-                  onClick={handleGenerateCampaign}
-                  disabled={isGenerating}
-                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl text-lg font-semibold"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Zap className="mr-2 h-5 w-5 animate-spin" />
-                      Generating 50+ Variants...
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="mr-2 h-5 w-5" />
-                      Generate Campaign
-                    </>
-                  )}
+            </div>
+
+            {/* Quick Actions */}
+            <div className="glass-effect rounded-2xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
+              <div className="space-y-3">
+                <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10 justify-start">
+                  <Target className="w-4 h-4 mr-2" />
+                  Create Campaign
+                </Button>
+                <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10 justify-start">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  View Analytics
+                </Button>
+                <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10 justify-start">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Schedule Post
+                </Button>
+                <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10 justify-start">
+                  <Users className="w-4 h-4 mr-2" />
+                  Audience Insights
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Campaign Results */}
-      {campaigns.length > 0 && (
-        <div>
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Campaign Variations</h2>
-            <div className="flex gap-4">
-              <Badge variant="secondary" className="bg-green-500/20 text-green-400 px-4 py-2">
-                {campaigns.filter((c) => c.status === "completed").length} Completed
-              </Badge>
-              <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 px-4 py-2">
-                ${campaigns.reduce((sum, c) => sum + c.revenue, 0).toLocaleString()} Revenue Tracked
-              </Badge>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {campaigns.map((campaign) => (
-              <div key={campaign.id} className="group relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-indigo-600/10 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
-                <Card className="relative bg-white/5 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden rounded-2xl">
-                  <div className="aspect-video relative overflow-hidden">
-                    <img
-                      src={campaign.thumbnail || "/placeholder.svg"}
-                      alt={campaign.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <Button size="sm" className="bg-white/20 backdrop-blur-sm border-white/30">
-                        <Play className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <Badge
-                      className={`absolute top-2 right-2 ${campaign.status === "completed" ? "bg-green-500" : "bg-blue-500"}`}
-                    >
-                      {campaign.status}
-                    </Badge>
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold mb-2">{campaign.title}</h3>
-                    <div className="flex justify-between text-sm text-neutral-400 mb-3">
-                      <span>{campaign.platform}</span>
-                      <span>{campaign.ctr}% CTR</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="bg-white/5 rounded-lg p-2 text-center">
-                        <div className="font-semibold text-green-400">{campaign.conversions}</div>
-                        <div className="text-neutral-500">Conversions</div>
-                      </div>
-                      <div className="bg-white/5 rounded-lg p-2 text-center">
-                        <div className="font-semibold text-yellow-400">${campaign.revenue}</div>
-                        <div className="text-neutral-500">Revenue</div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mt-3">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 border-white/20 hover:bg-white/10 rounded-lg"
-                      >
-                        <Download className="h-3 w-3 mr-1" />
-                        Export
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 border-white/20 hover:bg-white/10 rounded-lg"
-                      >
-                        <BarChart3 className="h-3 w-3 mr-1" />
-                        Analytics
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
-          </div>
+          </motion.div>
         </div>
-      )}
+      </div>
     </div>
-  )
+  );
 }
