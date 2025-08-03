@@ -21,31 +21,31 @@ const features = [
     icon: Zap,
     title: "Lightning Fast",
     description: "Generate professional videos in under 5 minutes with our optimized AI pipeline.",
-    color: "from-yellow-500 to-orange-500"
+    color: "from-yellow-500 to-amber-500"
   },
   {
     icon: Palette,
     title: "Advanced Editing",
     description: "Professional-grade editing tools with AI-powered suggestions and automation.",
-    color: "from-pink-500 to-purple-500"
+    color: "from-cyan-500 to-blue-500"
   },
   {
     icon: Music,
     title: "Audio Generation",
     description: "Create custom music, sound effects, and voiceovers with AI technology.",
-    color: "from-green-500 to-teal-500"
+    color: "from-green-500 to-emerald-500"
   },
   {
     icon: Sparkles,
     title: "AI-Powered",
     description: "Cutting-edge AI models for stunning visual effects and intelligent editing.",
-    color: "from-blue-500 to-indigo-500"
+    color: "from-blue-500 to-cyan-500"
   },
   {
     icon: Clock,
     title: "Real-time Preview",
     description: "See your changes instantly with our real-time rendering technology.",
-    color: "from-purple-500 to-pink-500"
+    color: "from-yellow-500 to-orange-500"
   },
   {
     icon: Shield,
@@ -64,7 +64,7 @@ const tools = [
 
 export function Features() {
   return (
-    <section className="py-24 bg-gradient-to-b from-transparent to-[#a100ff]/20">
+    <section className="py-24 aeon-section-bg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
@@ -75,9 +75,9 @@ export function Features() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="text-white">Powerful Features</span>
+            <span className="text-gray-100">Powerful Features</span>
             <br />
-            <span className="text-fuchsia-400">for Creators</span>
+            <span className="aeon-text-gradient">for Professionals</span>
           </h2>
           <p className="text-xl text-white/90 max-w-3xl mx-auto">
             Everything you need to create stunning videos with AI-powered tools and professional editing capabilities.
@@ -153,10 +153,10 @@ export function Features() {
               Join thousands of creators who are already using AEON Video to bring their ideas to life.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-[#ff007f] hover:bg-gray-100 px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg">
+              <button type="button" className="aeon-button-primary px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg">
                 Start Free Trial
               </button>
-              <button className="border border-white/30 text-white hover:bg-white/20 px-8 py-4 rounded-xl font-semibold transition-all duration-300">
+              <button type="button" className="aeon-button-secondary px-8 py-4 rounded-xl font-semibold transition-all duration-300">
                 View Examples
               </button>
             </div>

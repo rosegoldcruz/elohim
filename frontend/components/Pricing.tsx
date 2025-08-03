@@ -10,43 +10,48 @@ import { SignInButton } from "@clerk/nextjs";
 const plans = [
   {
     name: "Starter",
-    price: "$29",
+    price: "$19.99",
     period: "/month",
-    description: "Perfect for creators getting started",
+    description: "Perfect for individual creators",
     features: [
-      "5 videos per month",
-      "HD quality exports",
-      "Basic AI templates",
-      "Email support",
-      "720p resolution"
+      "100 credits/month",
+      "HD video exports",
+      "5 AI models access",
+      "Standard support",
+      "1080p resolution",
+      "Basic templates"
     ],
     popular: false,
-    gradient: "from-gray-500 to-gray-600"
+    gradient: "from-gray-700 to-gray-800",
+    borderColor: "border-gray-600"
   },
   {
     name: "Pro",
-    price: "$99",
+    price: "$49.99",
     period: "/month",
-    description: "For professional creators and teams",
+    description: "For professional creators and small teams",
     features: [
-      "Unlimited videos",
-      "4K quality exports",
-      "Advanced AI models",
+      "1,000 credits/month",
+      "4K video exports",
+      "All 6 AI models",
       "Priority support",
       "Custom branding",
+      "Advanced templates",
       "Team collaboration",
       "Analytics dashboard"
     ],
     popular: true,
-    gradient: "from-fuchsia-500 to-purple-600"
+    gradient: "from-yellow-500 to-amber-600",
+    borderColor: "border-yellow-500"
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    period: "",
-    description: "For large organizations and agencies",
+    name: "Studio",
+    price: "$99.99",
+    period: "/month",
+    description: "For agencies and large organizations",
     features: [
-      "Everything in Pro",
+      "3,000 credits/month",
+      "8K video exports",
       "Custom AI training",
       "Dedicated support",
       "API access",

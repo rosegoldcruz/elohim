@@ -4,48 +4,58 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    /* AEON Professional Dark Theme - Financial/Tech Focused */
+    --background: 220 13% 9%;          /* Deep charcoal background */
+    --foreground: 220 9% 95%;          /* Clean white text */
+    --card: 220 13% 11%;               /* Slightly lighter cards */
+    --card-foreground: 220 9% 95%;     /* White card text */
+    --popover: 220 13% 11%;            /* Dark popovers */
+    --popover-foreground: 220 9% 95%;  /* White popover text */
+    --primary: 47 96% 53%;             /* Gold accent - premium feel */
+    --primary-foreground: 220 13% 9%;  /* Dark text on gold */
+    --secondary: 220 13% 15%;          /* Dark secondary */
+    --secondary-foreground: 220 9% 85%; /* Light secondary text */
+    --muted: 220 13% 15%;              /* Muted backgrounds */
+    --muted-foreground: 220 9% 65%;    /* Muted text */
+    --accent: 195 100% 50%;            /* Cyan accent for highlights */
+    --accent-foreground: 220 13% 9%;   /* Dark text on cyan */
+    --destructive: 0 84% 60%;          /* Red for errors */
+    --destructive-foreground: 220 9% 95%; /* White on red */
+    --border: 220 13% 18%;             /* Subtle borders */
+    --input: 220 13% 15%;              /* Input backgrounds */
+    --ring: 47 96% 53%;                /* Gold focus rings */
+    --radius: 0.75rem;                 /* Slightly more rounded */
+
+    /* Custom AEON colors */
+    --aeon-gold: 47 96% 53%;           /* Primary gold */
+    --aeon-gold-dark: 45 86% 45%;      /* Darker gold */
+    --aeon-cyan: 195 100% 50%;         /* Accent cyan */
+    --aeon-cyan-dark: 195 100% 40%;    /* Darker cyan */
+    --aeon-gray: 220 13% 15%;          /* UI gray */
+    --aeon-gray-light: 220 13% 25%;    /* Lighter UI gray */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    /* Dark mode is now the default - same values */
+    --background: 220 13% 9%;
+    --foreground: 220 9% 95%;
+    --card: 220 13% 11%;
+    --card-foreground: 220 9% 95%;
+    --popover: 220 13% 11%;
+    --popover-foreground: 220 9% 95%;
+    --primary: 47 96% 53%;
+    --primary-foreground: 220 13% 9%;
+    --secondary: 220 13% 15%;
+    --secondary-foreground: 220 9% 85%;
+    --muted: 220 13% 15%;
+    --muted-foreground: 220 9% 65%;
+    --accent: 195 100% 50%;
+    --accent-foreground: 220 13% 9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 220 9% 95%;
+    --border: 220 13% 18%;
+    --input: 220 13% 15%;
+    --ring: 47 96% 53%;
   }
 }
 
@@ -59,25 +69,82 @@
 }
 
 @layer components {
+  /* AEON Professional Component Styles */
   .gradient-text {
-    @apply bg-gradient-to-r from-fuchsia-500 to-purple-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 bg-clip-text text-transparent;
   }
-  
+
+  .gradient-text-cyan {
+    @apply bg-gradient-to-r from-cyan-400 via-cyan-500 to-blue-500 bg-clip-text text-transparent;
+  }
+
   .gradient-border {
-    @apply border border-transparent bg-gradient-to-r from-fuchsia-500 to-purple-600 bg-clip-border;
+    @apply border border-transparent bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-border;
   }
-  
+
   .glass-effect {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+    @apply bg-gray-900/40 backdrop-blur-xl border border-gray-700/50 shadow-2xl;
   }
-  
+
   .hover-glow {
-    @apply transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25;
+    @apply transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/20;
+  }
+
+  .hover-glow-cyan {
+    @apply transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/20;
+  }
+
+  .aeon-card {
+    @apply bg-gray-900/60 backdrop-blur-sm border border-gray-700/30 rounded-xl shadow-xl hover:border-yellow-500/30 transition-all duration-300;
+  }
+
+  .aeon-button-primary {
+    @apply bg-gradient-to-r from-yellow-400 to-amber-500 text-gray-900 font-semibold px-6 py-3 rounded-lg hover:from-yellow-300 hover:to-amber-400 transition-all duration-200 shadow-lg hover:shadow-yellow-500/25;
+  }
+
+  .aeon-button-secondary {
+    @apply bg-gray-800 text-gray-100 border border-gray-600 font-medium px-6 py-3 rounded-lg hover:bg-gray-700 hover:border-gray-500 transition-all duration-200;
+  }
+
+  .aeon-input {
+    @apply bg-gray-900/50 border border-gray-700 text-gray-100 rounded-lg px-4 py-3 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all duration-200;
+  }
+
+  .aeon-hero-bg {
+    @apply bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900;
+  }
+
+  .aeon-section-bg {
+    @apply bg-gray-900/95;
+  }
+
+  .aeon-accent-line {
+    @apply h-px bg-gradient-to-r from-transparent via-yellow-500 to-transparent;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+    /* Fallback for older browsers */
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* AEON Utility Classes */
+  .aeon-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .aeon-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+
+  .aeon-flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .aeon-text-gradient {
+    @apply bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent;
   }
 }

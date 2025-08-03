@@ -7,7 +7,7 @@ import { Footer } from "@/components/Footer";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#ff007f] to-[#a100ff]">
+    <div className="min-h-screen aeon-hero-bg">
       <Hero />
       <Features />
       <Pricing />
