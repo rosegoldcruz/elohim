@@ -1,7 +1,9 @@
 {
-  "buildCommand": "pnpm run build",
-  "installCommand": "pnpm install --fetch-retries 5 --fetch-retry-factor 2 --fetch-retry-mintimeout 10000 --fetch-retry-maxtimeout 60000",
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install",
   "framework": "nextjs",
+  "outputDirectory": ".next",
+  "rootDirectory": "frontend",
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 300
@@ -14,4 +16,4 @@
     "NPM_CONFIG_FETCH_RETRY_MINTIMEOUT": "10000",
     "NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT": "60000"
   }
-} 
+}
