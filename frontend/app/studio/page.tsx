@@ -13,7 +13,7 @@ import { Video, Upload, Play, Settings, Download } from "lucide-react";
 
 export default function StudioPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a23] via-[#1a1a3a] to-[#2a2a4a]">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div
@@ -43,7 +43,7 @@ export default function StudioPage() {
               </div>
               
               <div className="flex flex-wrap gap-4">
-                <Button className="bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-600 hover:to-purple-700">
+                <Button className="aeon-button-primary">
                   <Play className="w-4 h-4 mr-2" />
                   Preview
                 </Button>
@@ -69,7 +69,7 @@ export default function StudioPage() {
             {/* Upload Section */}
             <div className="glass-effect rounded-2xl p-6">
               <h3 className="text-lg font-semibold text-white mb-4">Upload Media</h3>
-              <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-fuchsia-500/50 transition-colors cursor-pointer">
+              <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-yellow-500/50 transition-colors cursor-pointer">
                 <Upload className="w-8 h-8 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-300 mb-2">Drop files here or click to upload</p>
                 <p className="text-sm text-gray-400">Supports MP4, MOV, AVI up to 500MB</p>
@@ -102,7 +102,7 @@ export default function StudioPage() {
                 {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
-                    className="aspect-video bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg cursor-pointer hover:ring-2 hover:ring-fuchsia-500/50 transition-all"
+                    className="aspect-video bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg cursor-pointer hover:ring-2 hover:ring-yellow-500/50 transition-all"
                   />
                 ))}
               </div>

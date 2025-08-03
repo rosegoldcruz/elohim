@@ -43,7 +43,7 @@ const nextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           
           // CORS Headers (Secure Configuration)
-          { key: 'Access-Control-Allow-Origin', value: 'https://smart4technology.com' },
+          { key: 'Access-Control-Allow-Origin', value: '*' },
           { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
           { key: 'Access-Control-Allow-Headers', value: 'Authorization, Content-Type, X-Requested-With' },
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
@@ -53,11 +53,7 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      {
-        source: '/app/:path*',
-        destination: '/studio/:path*',
-        permanent: true,
-      },
+      // Remove the problematic redirect that was causing homepage to redirect to studio
     ]
   },
 }

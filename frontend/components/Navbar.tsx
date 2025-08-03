@@ -46,8 +46,8 @@ export function Navbar() {
               whileHover={{ scale: 1.05 }}
               className="flex items-center space-x-2"
             >
-              <div className="w-8 h-8 bg-gradient-to-r from-fuchsia-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Video className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center">
+                <Video className="w-5 h-5 text-gray-900" />
               </div>
               <span className="text-xl font-bold gradient-text">AEON</span>
             </motion.div>
@@ -67,7 +67,7 @@ export function Navbar() {
                       variant={isActive ? "default" : "ghost"}
                       className={`relative px-4 py-2 rounded-xl transition-all duration-200 ${
                         isActive
-                          ? "bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white shadow-lg"
+                          ? "bg-gradient-to-r from-yellow-500 to-amber-600 text-gray-900 shadow-lg"
                           : "text-gray-300 hover:text-white hover:bg-white/10"
                       }`}
                     >
@@ -109,7 +109,7 @@ export function Navbar() {
                   </Button>
                 </SignInButton>
                 <SignInButton mode="modal">
-                  <Button className="bg-gradient-to-r from-fuchsia-500 to-purple-600 hover:from-fuchsia-600 hover:to-purple-700 text-white">
+                  <Button className="aeon-button-primary">
                     Get Started
                   </Button>
                 </SignInButton>

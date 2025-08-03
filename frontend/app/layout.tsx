@@ -4,7 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "next-themes";
 import { SupabaseProvider } from "@/lib/supabase/provider";
 import "./globals.css";
-import { Navbar } from "@/components/Navbar";
+import { ConditionalNavbar } from "@/components/ConditionalNavbar";
 import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -32,10 +32,8 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <div className="min-h-screen bg-gradient-to-br from-[#0a0a23] via-[#1a1a3a] to-[#2a2a4a]">
-                <Navbar />
-                <main className="pt-16">
-                  {children}
-                </main>
+                <ConditionalNavbar />
+                {children}
               </div>
               <Toaster />
             </ThemeProvider>

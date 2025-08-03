@@ -16,9 +16,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/sign-in', request.url))
   }
 
-  // If accessing auth routes with session, redirect to dashboard
+  // If accessing auth routes with session, redirect to studio
   if ((pathname === '/sign-in' || pathname === '/sign-up') && sessionToken) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/studio', request.url))
   }
 
   return NextResponse.next()

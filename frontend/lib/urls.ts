@@ -45,8 +45,8 @@ export const getAuthUrls = () => {
 // Environment-specific configurations
 export const URL_CONFIG = {
   production: {
-    app: 'https://smart4technology.com',
-    api: 'https://smart4technology.com/api',
+    app: process.env.NEXT_PUBLIC_APP_URL || 'https://localhost:3000',
+    api: `${process.env.NEXT_PUBLIC_APP_URL || 'https://localhost:3000'}/api`,
   },
   development: {
     app: 'http://localhost:3000',

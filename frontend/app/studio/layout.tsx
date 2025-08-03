@@ -1,19 +1,42 @@
-import { requireAuth } from '@/lib/auth'
+'use client'
+
+import { useUser } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { StudioNav } from '@/components/studio-nav'
 
-export default async function StudioLayout({
+export default function StudioLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  await requireAuth()
+  const { isSignedIn, isLoaded } = useUser()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.push('/sign-in')
+    }
+  }, [isLoaded, isSignedIn, router])
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    )
+  }
+
+  if (!isSignedIn) {
+    return null
+  }
 
   return (
-    <div className="min-h-screen bg-black">
+    <>
       <StudioNav />
-      <main className="container mx-auto px-4 py-8">
+      <main className="pt-16">
         {children}
       </main>
-    </div>
+    </>
   )
 }
