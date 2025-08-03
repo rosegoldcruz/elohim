@@ -1,7 +1,7 @@
 import OpenAI from 'openai'
 import Anthropic from '@anthropic-ai/sdk'
 import Replicate from 'replicate'
-import { env } from '../env.mjs'
+import { env } from '@/env'
 
 // OpenAI Configuration
 export const openai = new OpenAI({
@@ -67,7 +67,7 @@ export class ElevenLabsClient {
   }
 }
 
-export const elevenlabs = new ElevenLabsClient(env.ELEVENLABS_API_KEY)
+export const elevenlabs = new ElevenLabsClient(env.ELEVENLABS_API_KEY!)
 
 // AI Model Configurations for Video Generation
 export const VIDEO_MODELS = {

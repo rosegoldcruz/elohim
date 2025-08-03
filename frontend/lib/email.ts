@@ -1,9 +1,7 @@
-import { env } from '../env.mjs'
-
-// EmailJS Configuration
+// EmailJS Configuration (placeholder)
 export const EMAIL_CONFIG = {
-  serviceId: env.EMAILJS_SERVICE_ID,
-  templateId: env.EMAILJS_TEMPLATE_ID,
+  serviceId: undefined,
+  templateId: undefined,
   publicKey: 'YOUR_EMAILJS_PUBLIC_KEY', // You'll need to add this to your env
 }
 
@@ -18,7 +16,7 @@ export const EMAIL_TEMPLATES = {
 // Helper function to send email via EmailJS
 export async function sendEmail(
   templateParams: Record<string, any>,
-  templateId: string = EMAIL_CONFIG.templateId
+  templateId?: string
 ) {
   try {
     // This would typically use the EmailJS SDK

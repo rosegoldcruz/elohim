@@ -1,4 +1,4 @@
-import { env } from '../env.mjs'
+import { env } from '@/env'
 
 // Application Configuration
 export const APP_CONFIG = {
@@ -7,20 +7,13 @@ export const APP_CONFIG = {
   version: '1.0.0',
   url: env.NEXT_PUBLIC_APP_URL,
   environment: env.APP_ENV,
-  port: env.PORT,
-} as const
-
-// Database Configuration
-export const DATABASE_CONFIG = {
-  url: env.DATABASE_URL,
-  postgresUrl: env.POSTGRES_URL,
 } as const
 
 // Supabase Configuration
 export const SUPABASE_CONFIG = {
-  url: env.SUPABASE_URL,
+  url: env.NEXT_PUBLIC_SUPABASE_URL,
   anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY,
+  serviceRoleKey: env.SERVICE_ROLE_KEY,
   jwtSecret: env.SUPABASE_JWT_SECRET,
 } as const
 
@@ -36,7 +29,7 @@ export const AUTH_CONFIG = {
 export const PAYMENT_CONFIG = {
   stripe: {
     secretKey: env.STRIPE_SECRET_KEY,
-    publishableKey: env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_API,
+    publishableKey: env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     webhookSecret: env.STRIPE_WEBHOOK_SECRET,
     plans: {
       starter: {
@@ -74,30 +67,22 @@ export const AI_CONFIG = {
   },
 } as const
 
-// Email Configuration
+// Email Configuration (placeholder)
 export const EMAIL_CONFIG = {
   emailjs: {
-    serviceId: env.EMAILJS_SERVICE_ID,
-    templateId: env.EMAILJS_TEMPLATE_ID,
+    serviceId: undefined,
+    templateId: undefined,
   },
 } as const
 
-// Telemetry Configuration
+// Telemetry Configuration (placeholder)
 export const TELEMETRY_CONFIG = {
   dash0: {
-    authToken: env.DASH0_AUTH_TOKEN,
-    endpoint: env.OTEL_EXPORTER_OTLP_ENDPOINT,
-    logDrainEndpoint: env.DASH0_LOG_DRAIN_ENDPOINT,
-    dataset: env.DASH0_DATASET,
-    compression: env.OTEL_EXPORTER_OTLP_COMPRESSION,
-  },
-  elohim: {
-    authToken: env.elohim_DASH0_AUTH_TOKEN,
-    endpoint: env.elohim_OTEL_EXPORTER_OTLP_ENDPOINT,
-    logDrainEndpoint: env.elohim_DASH0_LOG_DRAIN_ENDPOINT,
-    dataset: env.elohim_DASH0_DATASET,
-    compression: env.elohim_OTEL_EXPORTER_OTLP_COMPRESSION,
-    headers: env.elohim_OTEL_EXPORTER_OTLP_HEADERS,
+    authToken: undefined,
+    endpoint: undefined,
+    logDrainEndpoint: undefined,
+    dataset: undefined,
+    compression: undefined,
   },
 } as const
 
@@ -168,7 +153,6 @@ export const FEATURES = {
 // Export all configurations
 export const CONFIG = {
   app: APP_CONFIG,
-  database: DATABASE_CONFIG,
   supabase: SUPABASE_CONFIG,
   auth: AUTH_CONFIG,
   payment: PAYMENT_CONFIG,

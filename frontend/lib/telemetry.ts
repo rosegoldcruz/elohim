@@ -1,15 +1,13 @@
-import { env } from '../env.mjs'
-
-// Dash0 Telemetry Configuration
+// Dash0 Telemetry Configuration (placeholder)
 export class TelemetryLogger {
-  private authToken: string
-  private endpoint: string
-  private dataset: string
+  private authToken?: string
+  private endpoint?: string
+  private dataset?: string
 
   constructor() {
-    this.authToken = env.DASH0_AUTH_TOKEN
-    this.endpoint = env.OTEL_EXPORTER_OTLP_ENDPOINT
-    this.dataset = env.DASH0_DATASET
+    this.authToken = undefined
+    this.endpoint = undefined
+    this.dataset = undefined
   }
 
   async logEvent(event: {
@@ -28,11 +26,11 @@ export class TelemetryLogger {
         userId: event.userId,
         projectId: event.projectId,
         service: 'aeon-platform',
-        environment: env.APP_ENV,
+        environment: 'production',
       }
 
-      // Send to Dash0
-      const response = await fetch(`${env.DASH0_LOG_DRAIN_ENDPOINT}`, {
+      // Send to Dash0 (placeholder - disabled for build)
+      const response = await fetch(`https://placeholder.dash0.com`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,9 +113,9 @@ export class ElohimTelemetryLogger extends TelemetryLogger {
 
   constructor() {
     super()
-    this.elohimAuthToken = env.elohim_DASH0_AUTH_TOKEN
-    this.elohimEndpoint = env.elohim_OTEL_EXPORTER_OTLP_ENDPOINT
-    this.elohimDataset = env.elohim_DASH0_DATASET
+    this.elohimAuthToken = 'placeholder'
+    this.elohimEndpoint = 'https://placeholder.com'
+    this.elohimDataset = 'placeholder'
   }
 
   async logElohimEvent(event: {
@@ -136,11 +134,11 @@ export class ElohimTelemetryLogger extends TelemetryLogger {
         userId: event.userId,
         projectId: event.projectId,
         service: 'elohim-aeon',
-        environment: env.APP_ENV,
+        environment: 'production',
       }
 
-      // Send to Elohim-specific Dash0 endpoint
-      const response = await fetch(`${env.elohim_DASH0_LOG_DRAIN_ENDPOINT}`, {
+      // Send to Elohim-specific Dash0 endpoint (placeholder - disabled for build)
+      const response = await fetch(`https://placeholder.elohim.dash0.com`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
