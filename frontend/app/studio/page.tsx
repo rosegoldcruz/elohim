@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * AEON Studio - Main Studio Page
  * Complete CapCut-like video editing experience with AI generation

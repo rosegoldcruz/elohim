@@ -1,3 +1,5 @@
+'use client'
+
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Folder, Plus, Search, Filter, Video, Calendar, Clock } from "lucide-react";

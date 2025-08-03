@@ -3,7 +3,6 @@
   "installCommand": "pnpm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
-  "rootDirectory": "frontend",
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 300

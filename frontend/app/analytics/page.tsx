@@ -1,3 +1,5 @@
+'use client'
+
 import { motion } from "framer-motion";
 import { BarChart3, TrendingUp, Users, Video, Eye, Heart, Share2 } from "lucide-react";
 

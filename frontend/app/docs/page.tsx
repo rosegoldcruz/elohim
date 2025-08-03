@@ -1,3 +1,5 @@
+'use client'
+
 import { motion } from "framer-motion";
 import { BookOpen, FileText, Video, Code, Settings, Users } from "lucide-react";
 

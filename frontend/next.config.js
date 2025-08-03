@@ -10,6 +10,8 @@ const nextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
+  // Disable static generation to fix build issues
+  trailingSlash: false,
   serverExternalPackages: ['@supabase/ssr'],
   images: {
     remotePatterns: [

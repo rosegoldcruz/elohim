@@ -25,8 +25,27 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const { signIn, isLoaded: signInLoaded } = useSignIn();
-  const { signUp, isLoaded: signUpLoaded } = useSignUp();
+  // Check if Clerk is available
+  const hasValidClerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
+
+  // Use Clerk hooks only if available
+  let signIn = null;
+  let signUp = null;
+  let signInLoaded = true;
+  let signUpLoaded = true;
+
+  try {
+    if (hasValidClerkKey) {
+      const clerkSignIn = useSignIn();
+      const clerkSignUp = useSignUp();
+      signIn = clerkSignIn.signIn;
+      signUp = clerkSignUp.signUp;
+      signInLoaded = clerkSignIn.isLoaded;
+      signUpLoaded = clerkSignUp.isLoaded;
+    }
+  } catch (error) {
+    console.warn('Clerk not available, using fallback auth');
+  }
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
