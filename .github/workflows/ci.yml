@@ -7,57 +7,68 @@ on:
     branches: [ "main" ]
   merge_group:
 
-# You can leverage Vercel Remote Caching with Turbo to speed up your builds
-# @link https://turborepo.org/docs/core-concepts/remote-caching#remote-caching-on-vercel-builds
-# env:
-#  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-#  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
-
 jobs:
-  build-lint:
+  frontend-build:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16.1
-        env:
-          POSTGRES_USER: default
-          POSTGRES_PASSWORD: default
-          POSTGRES_DB: verceldb
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    strategy:
+      matrix:
+        node-version: [20.x]
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Copy env
-        shell: bash
-        run: cp .env.example .env.local
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
 
-      - name: Setup bun
-        uses: oven-sh/setup-bun@v1
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 10.0.0
 
-      - name: Install lib
-        run: bun i
+    - name: Get pnpm store directory
+      shell: bash
+      run: |
+        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - name: Build
-        run: bun run build
-        env:
-          # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: postgres
-          # The default PostgreSQL port
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: default
-          POSTGRES_PASSWORD: default
-          POSTGRES_DB: verceldb
-          POSTGRES_URL: postgres://default:default@localhost:5432/verceldb
+    - name: Setup pnpm cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
 
+    - name: Create .env.local from example
+      run: |
+        if [ -f .env.example ]; then
+          cp .env.example .env.local
+        else
+          touch .env.local
+        fi
 
-      - name: lint and type-check
-        run: bun run build lint format typecheck
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile --network-timeout 300000 --fetch-retries 5
+
+    - name: Run ESLint
+      run: pnpm run lint
+
+    - name: Build application
+      run: pnpm run build
+      env:
+        NODE_ENV: production
+
+    - name: Check build output
+      run: |
+        if [ ! -d ".next" ]; then
+          echo "❌ Build failed - .next directory not found"
+          exit 1
+        fi
+        echo "✅ Build completed successfully"
