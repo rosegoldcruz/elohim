@@ -6,7 +6,7 @@
 
 import Replicate from "replicate";
 import { videoModels, getModelByName, validateModelConfig, type VideoModel } from "@/config/videoModels";
-import { env } from "@/env.mjs";
+import { env } from "../../env.mjs";
 
 // Initialize Replicate client
 const replicate = new Replicate({
