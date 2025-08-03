@@ -1,4 +1,4 @@
-import { env } from '../env.mjs'
+import { env } from '@/env.mjs'
 
 // Dash0 Telemetry Configuration
 export class TelemetryLogger {

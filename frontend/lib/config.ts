@@ -1,4 +1,4 @@
-import { env } from '../env.mjs'
+import { env } from '@/env.mjs'
 
 // Application Configuration
 export const APP_CONFIG = {
