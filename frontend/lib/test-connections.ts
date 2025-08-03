@@ -2,7 +2,7 @@
 import { stripe } from './stripe'
 import { openai, claude, replicate, elevenlabs } from './ai-services'
 import { telemetry, elohimTelemetry } from './telemetry'
-import { env } from '@/env.mjs'
+import { env } from '@/env'
 
 // Test all service connections
 export async function testConnections() {
