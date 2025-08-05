@@ -10,279 +10,293 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Globe, Download, CheckCircle2, XCircle, FileText } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Globe, Download, CheckCircle2, XCircle, FileText, Code, Zap, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 // Interfaces
-interface CrawlResult {
+interface HarvestResult {
   url: string;
   title: string;
   content: string;
+  markdown: string;
+  code_blocks: string[];
+  api_endpoints: string[];
   links: string[];
-  wordCount: number;
+  images: string[];
+  metadata: {
+    word_count: number;
+    last_modified?: string;
+    description?: string;
+    keywords?: string[];
+  };
   status: 'success' | 'failed';
   error?: string;
-  filename?: string;
 }
 
-interface CrawlOptions {
-  maxDepth: number;
-  maxPages: number;
-  respectRobots: boolean;
-  onProgress?: (progress: { discovered: number; processed: number; current: string }) => void;
-  onLog?: (message: string) => void;
+interface HarvestRequest {
+  base_url?: string;
+  urls?: string[];
+  max_depth?: number;
+  max_pages?: number;
+  use_js?: boolean;
+  wait_for_selector?: string;
+  scroll_to_bottom?: boolean;
+  click_selectors?: string[];
+  extract_code_blocks?: boolean;
+  extract_api_endpoints?: boolean;
+  custom_selectors?: {
+    content?: string[];
+    exclude?: string[];
+  };
 }
 
-interface CrawlJob {
+interface HarvestJob {
   id: string;
   url: string;
   status: 'idle' | 'running' | 'completed' | 'failed';
-  progress: { discovered: number; processed: number; current: string };
-  results: CrawlResult[];
+  results: HarvestResult[];
   logs: string[];
+  summary?: {
+    total_pages: number;
+    successful: number;
+    failed: number;
+    total_words: number;
+    total_code_blocks: number;
+    total_api_endpoints: number;
+  };
 }
 
-// WebCrawler class adapted for browser environment
-class WebCrawler {
-  private visited = new Set<string>();
-  private discovered = new Set<string>();
-  private queue: string[] = [];
-  private results: CrawlResult[] = [];
-  private baseUrl: string = '';
-  private baseDomain: string = '';
+export default function DocHarvesterPage() {
+  const [url, setUrl] = useState('');
+  const [manualUrls, setManualUrls] = useState('');
+  const [currentJob, setCurrentJob] = useState<HarvestJob | null>(null);
+  const [advancedOptions, setAdvancedOptions] = useState({
+    max_depth: 3,
+    max_pages: 50,
+    use_js: true,
+    scroll_to_bottom: true,
+    extract_code_blocks: true,
+    extract_api_endpoints: true,
+    wait_for_selector: '',
+    click_selectors: '',
+    custom_content_selectors: '',
+    custom_exclude_selectors: ''
+  });
+  const { toast } = useToast();
 
-  async crawl(startUrl: string, options: CrawlOptions): Promise<CrawlResult[]> {
-    this.reset();
-    this.baseUrl = new URL(startUrl).origin;
-    this.baseDomain = new URL(startUrl).hostname;
+  const addLog = useCallback((message: string) => {
+    setCurrentJob(prev => prev ? {
+      ...prev,
+      logs: [...prev.logs, `${new Date().toLocaleTimeString()}: ${message}`]
+    } : null);
+  }, []);
 
-    this.queue.push(startUrl);
-    this.discovered.add(startUrl);
-
-    options.onLog?.(`Starting crawl from: ${startUrl}`);
-    options.onLog?.(`Domain: ${this.baseDomain}`);
-
-    let depth = 0;
-    while (this.queue.length > 0 && depth < options.maxDepth && this.results.length < options.maxPages) {
-      const currentBatch = [...this.queue];
-      this.queue = [];
-
-      options.onLog?.(`Processing depth ${depth + 1} with ${currentBatch.length} URLs`);
-
-      for (const url of currentBatch) {
-        if (this.visited.has(url) || this.results.length >= options.maxPages) continue;
-
-        options.onProgress?.({
-          discovered: this.discovered.size,
-          processed: this.visited.size,
-          current: url
-        });
-
-        try {
-          const result = await this.crawlPage(url, options);
-          this.results.push(result);
-          this.visited.add(url);
-
-          // Add discovered links to queue for next depth
-          for (const link of result.links) {
-            if (!this.discovered.has(link) && this.isValidDocLink(link)) {
-              this.queue.push(link);
-              this.discovered.add(link);
-            }
-          }
-
-          options.onLog?.(`✓ ${result.title} (${result.wordCount} words, ${result.links.length} links found)`);
-        } catch (error) {
-          options.onLog?.(`✗ Failed: ${url} - ${error}`);
-          this.results.push({
-            url,
-            title: 'Failed to load',
-            content: '',
-            links: [],
-            wordCount: 0,
-            status: 'failed',
-            error: String(error)
-          });
-          this.visited.add(url);
-        }
-
-        // Delay to avoid overwhelming server
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-
-      depth++;
+  const startHarvest = async () => {
+    if (!url.trim() && !manualUrls.trim()) {
+      toast({ title: 'Error', description: 'Please provide a URL or manual URLs.', variant: 'destructive' });
+      return;
     }
 
-    options.onLog?.(`Crawl completed: ${this.results.length} pages processed, ${this.discovered.size} total discovered`);
-    return this.results;
-  }
-
-  private async crawlPage(url: string, options: CrawlOptions): Promise<CrawlResult> {
-    // Use fetch with proper headers to avoid being blocked
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; DocHarvester/1.0)'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const html = await response.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-
-    // Extract title with better fallbacks
-    let title = doc.querySelector('title')?.textContent?.trim() || '';
-    if (!title) {
-      title = doc.querySelector('h1')?.textContent?.trim() || '';
-    }
-    if (!title) {
-      const pathParts = new URL(url).pathname.split('/');
-      title = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2] || 'Untitled';
-    }
-
-    // Clean title for filename
-    const filename = this.sanitizeFilename(title);
-
-    // Extract content with better selectors
-    const content = this.extractContent(doc);
-
-    // Extract all valid links
-    const links = this.extractLinks(doc, url);
-
-    return {
-      url,
-      title: title.trim(),
-      content,
-      links,
-      wordCount: content.split(/\s+/).filter(w => w.length > 0).length,
-      status: 'success',
-      filename
+    const newJob: HarvestJob = {
+      id: Date.now().toString(),
+      url: url || 'Manual URLs',
+      status: 'running',
+      results: [],
+      logs: []
     };
-  }
 
-  private extractContent(doc: Document): string {
-    // Remove unwanted elements
-    const unwanted = doc.querySelectorAll('script, style, nav, header, footer, .nav, .navbar, .sidebar, .menu, .advertisement, .ads');
-    unwanted.forEach(el => el.remove());
+    setCurrentJob(newJob);
+    addLog(`🚀 Starting ADVANCED DocHarvester with Puppeteer...`);
+    addLog(`🔥 JavaScript rendering: ${advancedOptions.use_js ? 'ENABLED' : 'DISABLED'}`);
+    addLog(`📜 Auto-scrolling: ${advancedOptions.scroll_to_bottom ? 'ENABLED' : 'DISABLED'}`);
+    addLog(`💻 Code extraction: ${advancedOptions.extract_code_blocks ? 'ENABLED' : 'DISABLED'}`);
 
-    // Try multiple content selectors in order of preference
-    const contentSelectors = [
-      'main', '[role="main"]', '.main-content', '#main-content',
-      '.content', '#content', '.documentation', '.docs',
-      'article', '.article', '.post', '.entry-content',
-      '.markdown-body', '.wiki-content', '.page-content'
-    ];
-
-    for (const selector of contentSelectors) {
-      const element = doc.querySelector(selector);
-      if (element && element.textContent && element.textContent.trim().length > 100) {
-        return this.cleanText(element.textContent);
-      }
-    }
-
-    // Fallback: try to get meaningful content from body
-    const body = doc.body;
-    if (body) {
-      return this.cleanText(body.textContent || '');
-    }
-
-    return '';
-  }
-
-  private extractLinks(doc: Document, baseUrl: string): string[] {
-    const links: string[] = [];
-    const anchors = doc.querySelectorAll('a[href]');
-
-    for (const anchor of anchors) {
-      const href = anchor.getAttribute('href');
-      if (!href) continue;
-
-      // Skip hash fragments, mailto, tel, etc.
-      if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) continue;
-
-      try {
-        const absoluteUrl = new URL(href, baseUrl).href;
-        const urlObj = new URL(absoluteUrl);
-
-        // Only include links from the same domain
-        if (urlObj.hostname === this.baseDomain) {
-          // Remove hash fragments from the URL
-          urlObj.hash = '';
-          links.push(urlObj.href);
-        }
-      } catch (error) {
-        // Invalid URL, skip
-      }
-    }
-
-    return [...new Set(links)]; // Remove duplicates
-  }
-
-  private isValidDocLink(url: string): boolean {
     try {
-      const urlObj = new URL(url);
+      const request: HarvestRequest = {
+        max_depth: advancedOptions.max_depth,
+        max_pages: advancedOptions.max_pages,
+        use_js: advancedOptions.use_js,
+        scroll_to_bottom: advancedOptions.scroll_to_bottom,
+        extract_code_blocks: advancedOptions.extract_code_blocks,
+        extract_api_endpoints: advancedOptions.extract_api_endpoints,
+      };
 
-      // Skip non-HTTP protocols
-      if (!['http:', 'https:'].includes(urlObj.protocol)) return false;
+      // Add optional fields
+      if (url.trim()) {
+        request.base_url = url.trim();
+        addLog(`🎯 Auto-discovery mode: ${url}`);
+      } else if (manualUrls.trim()) {
+        request.urls = manualUrls.split('\n').map(u => u.trim()).filter(u => u);
+        addLog(`📝 Manual URLs mode: ${request.urls.length} URLs`);
+      }
 
-      // Skip different domains
-      if (urlObj.hostname !== this.baseDomain) return false;
+      if (advancedOptions.wait_for_selector) {
+        request.wait_for_selector = advancedOptions.wait_for_selector;
+        addLog(`⏳ Waiting for selector: ${advancedOptions.wait_for_selector}`);
+      }
 
-      // Skip common non-doc file types
-      const skipExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.svg', '.css', '.js', '.zip', '.tar', '.gz', '.ico', '.woff', '.woff2', '.ttf', '.eot'];
-      if (skipExtensions.some(ext => urlObj.pathname.toLowerCase().endsWith(ext))) return false;
+      if (advancedOptions.click_selectors) {
+        request.click_selectors = advancedOptions.click_selectors.split(',').map(s => s.trim());
+        addLog(`🖱️ Will click selectors: ${request.click_selectors.join(', ')}`);
+      }
 
-      // Skip common non-content paths
-      const skipPaths = ['/api/', '/admin/', '/login', '/logout', '/register', '/search', '/contact'];
-      if (skipPaths.some(path => urlObj.pathname.toLowerCase().includes(path))) return false;
+      if (advancedOptions.custom_content_selectors || advancedOptions.custom_exclude_selectors) {
+        request.custom_selectors = {};
+        if (advancedOptions.custom_content_selectors) {
+          request.custom_selectors.content = advancedOptions.custom_content_selectors.split(',').map(s => s.trim());
+        }
+        if (advancedOptions.custom_exclude_selectors) {
+          request.custom_selectors.exclude = advancedOptions.custom_exclude_selectors.split(',').map(s => s.trim());
+        }
+      }
 
-      return true;
-    } catch {
-      return false;
+      addLog(`🔧 Launching headless browser...`);
+
+      const response = await fetch('/api/harvester', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setCurrentJob(prev => prev ? {
+          ...prev,
+          status: 'completed',
+          results: data.results,
+          summary: data.summary
+        } : null);
+
+        addLog(`✅ SUCCESS: Harvested ${data.summary.total_pages} pages!`);
+        addLog(`📊 Stats: ${data.summary.successful} successful, ${data.summary.failed} failed`);
+        addLog(`📝 Content: ${data.summary.total_words} words, ${data.summary.total_code_blocks} code blocks`);
+        addLog(`🔗 Found ${data.summary.total_api_endpoints} API endpoints`);
+
+        toast({
+          title: 'Success!',
+          description: `Harvested ${data.summary.total_pages} pages with ${data.summary.total_words} words`
+        });
+      } else {
+        throw new Error(data.error || 'Unknown error');
+      }
+
+    } catch (error) {
+      addLog(`❌ FAILED: ${error}`);
+      setCurrentJob(prev => prev ? {
+        ...prev,
+        status: 'failed'
+      } : null);
+      toast({ title: 'Error', description: String(error), variant: 'destructive' });
     }
-  }
+  };
 
-  private cleanText(text: string): string {
-    return text
-      .replace(/\s+/g, ' ') // Replace multiple whitespace with single space
-      .replace(/\n\s*\n/g, '\n\n') // Clean up line breaks
-      .trim();
-  }
+  const downloadFile = (result: HarvestResult, format: 'txt' | 'md' | 'json') => {
+    let content = '';
+    let filename = '';
+    let mimeType = '';
 
-  private sanitizeFilename(title: string): string {
-    return title
-      .replace(/[^a-zA-Z0-9\s-_]/g, '') // Remove special chars
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .toLowerCase()
-      .substring(0, 50) // Limit length
-      || 'untitled';
-  }
+    const sanitizedTitle = result.title.replace(/[^a-zA-Z0-9\s-_]/g, '').replace(/\s+/g, '-').toLowerCase().substring(0, 50) || 'untitled';
 
-  private reset() {
-    this.visited.clear();
-    this.discovered.clear();
-    this.queue = [];
-    this.results = [];
-    this.baseUrl = '';
-    this.baseDomain = '';
-  }
-}
+    switch (format) {
+      case 'txt':
+        content = result.content;
+        filename = `${sanitizedTitle}.txt`;
+        mimeType = 'text/plain';
+        break;
+      case 'md':
+        content = result.markdown || result.content;
+        filename = `${sanitizedTitle}.md`;
+        mimeType = 'text/markdown';
+        break;
+      case 'json':
+        content = JSON.stringify(result, null, 2);
+        filename = `${sanitizedTitle}.json`;
+        mimeType = 'application/json';
+        break;
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadAllResults = (format: 'txt' | 'md' | 'json') => {
+    if (!currentJob?.results?.length) return;
+
+    const results = currentJob.results.filter(r => r.status === 'success');
+    if (!results.length) {
+      toast({ title: 'No Results', description: 'No successful results to download.', variant: 'destructive' });
+      return;
+    }
+
+    let content = '';
+    let filename = '';
+    let mimeType = '';
+
+    const timestamp = new Date().toISOString().split('T')[0];
+    const domain = new URL(currentJob.url).hostname.replace(/[^a-zA-Z0-9]/g, '-');
+
+    switch (format) {
+      case 'txt':
+        content = results.map(r => `=== ${r.title} ===\nURL: ${r.url}\n\n${r.content}\n\n`).join('\n');
+        filename = `docharvester-${domain}-${timestamp}.txt`;
+        mimeType = 'text/plain';
+        break;
+      case 'md':
+        content = results.map(r => `# ${r.title}\n\n**URL:** ${r.url}\n\n${r.markdown || r.content}\n\n---\n\n`).join('\n');
+        filename = `docharvester-${domain}-${timestamp}.md`;
+        mimeType = 'text/markdown';
+        break;
+      case 'json':
+        content = JSON.stringify({
+          harvested_at: new Date().toISOString(),
+          source: currentJob.url,
+          summary: currentJob.summary,
+          results
+        }, null, 2);
+        filename = `docharvester-${domain}-${timestamp}.json`;
+        mimeType = 'application/json';
+        break;
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({ title: 'Downloaded!', description: `${results.length} files downloaded as ${format.toUpperCase()}` });
+  };
 
 // FileTable Component
 interface FileTableProps {
-  results: CrawlResult[];
-  onDownload: (result: CrawlResult) => void;
+  results: HarvestResult[];
+  onDownload: (result: HarvestResult, format: 'txt' | 'md' | 'json') => void;
 }
 
 const FileTable: React.FC<FileTableProps> = ({ results, onDownload }) => {
   if (!results.length) {
     return (
       <div className="text-center py-8 text-gray-400">
-        <FileText className="w-12 h-12 mx-auto mb-4 text-purple-400" />
-        <p>No files available yet. Start a crawl to see results here.</p>
+        <FileText className="w-12 h-12 mx-auto mb-4 text-[#FFD700]" />
+        <p>No files available yet. Start harvesting to see results here.</p>
       </div>
     );
   }
@@ -296,8 +310,9 @@ const FileTable: React.FC<FileTableProps> = ({ results, onDownload }) => {
             <TableHead className="text-gray-300">Title</TableHead>
             <TableHead className="text-gray-300">URL</TableHead>
             <TableHead className="text-gray-300">Words</TableHead>
-            <TableHead className="text-gray-300">Links</TableHead>
-            <TableHead className="text-gray-300">Action</TableHead>
+            <TableHead className="text-gray-300">Code</TableHead>
+            <TableHead className="text-gray-300">APIs</TableHead>
+            <TableHead className="text-gray-300">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -323,21 +338,47 @@ const FileTable: React.FC<FileTableProps> = ({ results, onDownload }) => {
                 {result.url}
               </TableCell>
               <TableCell className="text-gray-300">
-                {result.wordCount.toLocaleString()}
+                {result.metadata.word_count.toLocaleString()}
               </TableCell>
               <TableCell className="text-gray-300">
-                {result.links.length}
+                <Badge variant="outline" className="text-[#00FFFF] border-[#00FFFF]/30">
+                  <Code className="w-3 h-3 mr-1" />
+                  {result.code_blocks.length}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-gray-300">
+                <Badge variant="outline" className="text-[#FFD700] border-[#FFD700]/30">
+                  <Zap className="w-3 h-3 mr-1" />
+                  {result.api_endpoints.length}
+                </Badge>
               </TableCell>
               <TableCell>
-                <Button
-                  size="sm"
-                  onClick={() => onDownload(result)}
-                  disabled={result.status !== 'success'}
-                  className="bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white border-0"
-                >
-                  <Download className="w-3 h-3 mr-1" />
-                  Download
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    onClick={() => onDownload(result, 'txt')}
+                    disabled={result.status !== 'success'}
+                    className="bg-gradient-to-r from-[#FFD700] to-[#00FFFF] hover:from-[#00FFFF] hover:to-[#FFD700] text-black border-0 text-xs px-2"
+                  >
+                    TXT
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => onDownload(result, 'md')}
+                    disabled={result.status !== 'success'}
+                    className="bg-gradient-to-r from-[#00FFFF] to-[#FFD700] hover:from-[#FFD700] hover:to-[#00FFFF] text-black border-0 text-xs px-2"
+                  >
+                    MD
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => onDownload(result, 'json')}
+                    disabled={result.status !== 'success'}
+                    className="bg-gradient-to-r from-gray-600 to-gray-500 hover:from-gray-500 hover:to-gray-400 text-white border-0 text-xs px-2"
+                  >
+                    JSON
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
@@ -347,280 +388,308 @@ const FileTable: React.FC<FileTableProps> = ({ results, onDownload }) => {
   );
 };
 
-export default function DocHarvesterPage() {
-  const [url, setUrl] = useState('');
-  const [currentJob, setCurrentJob] = useState<CrawlJob | null>(null);
-  const [crawler] = useState(() => new WebCrawler());
-  const { toast } = useToast();
-
-  const addLog = useCallback((message: string) => {
-    setCurrentJob(prev => prev ? {
-      ...prev,
-      logs: [...prev.logs, `${new Date().toLocaleTimeString()}: ${message}`]
-    } : null);
-  }, []);
-
-  const updateProgress = useCallback((progress: { discovered: number; processed: number; current: string }) => {
-    setCurrentJob(prev => prev ? {
-      ...prev,
-      progress
-    } : null);
-  }, []);
-
-  const startCrawl = async () => {
-    if (!url.trim()) {
-      toast({ title: 'Error', description: 'Please enter a valid URL', variant: 'destructive' });
-      return;
-    }
-
-    const newJob: CrawlJob = {
-      id: Date.now().toString(),
-      url: url.trim(),
-      status: 'running',
-      progress: { discovered: 0, processed: 0, current: '' },
-      results: [],
-      logs: []
-    };
-
-    setCurrentJob(newJob);
-    addLog(`Starting crawl: ${newJob.url}`);
-
-    try {
-      const options: CrawlOptions = {
-        maxDepth: 3,
-        maxPages: 50,
-        respectRobots: true,
-        onProgress: updateProgress,
-        onLog: addLog
-      };
-
-      const results = await crawler.crawl(newJob.url, options);
-
-      setCurrentJob(prev => prev ? {
-        ...prev,
-        status: 'completed',
-        results
-      } : null);
-
-      addLog(`SUCCESS: Crawl completed! ${results.length} pages processed`);
-      toast({ title: 'Success', description: `Crawl completed! ${results.length} pages processed.` });
-    } catch (error) {
-      addLog(`FAILED: Crawl failed - ${error}`);
-      setCurrentJob(prev => prev ? {
-        ...prev,
-        status: 'failed'
-      } : null);
-      toast({ title: 'Error', description: 'Crawl failed. Check logs for details.', variant: 'destructive' });
-    }
-  };
-
-  const downloadFile = (result: CrawlResult) => {
-    const filename = result.filename || 'untitled';
-    const content = `# ${result.title}\n\n**URL:** ${result.url}\n\n${result.content}`;
-
-    const blob = new Blob([content], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${filename}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    toast({ title: 'Success', description: `Downloaded ${filename}.md` });
-  };
-
-  const downloadSummaryJSON = () => {
-    if (!currentJob?.results.length) return;
-
-    const summary = {
-      crawl_summary: {
-        total_pages: currentJob.results.length,
-        successful_pages: currentJob.results.filter(r => r.status === 'success').length,
-        failed_pages: currentJob.results.filter(r => r.status === 'failed').length,
-        total_words: currentJob.results.reduce((sum, r) => sum + r.wordCount, 0),
-        start_url: currentJob.url,
-        timestamp: new Date().toISOString()
-      },
-      generated_files: currentJob.results
-        .filter(r => r.status === 'success')
-        .map(r => ({
-          filename: `${r.filename}.md`,
-          title: r.title,
-          url: r.url,
-          word_count: r.wordCount,
-          links_found: r.links.length
-        })),
-      failed_urls: currentJob.results
-        .filter(r => r.status === 'failed')
-        .map(r => ({
-          url: r.url,
-          error: r.error
-        }))
-    };
-
-    const blob = new Blob([JSON.stringify(summary, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'crawl-summary.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    toast({ title: 'Success', description: 'Downloaded crawl-summary.json' });
-  };
-
-  const successCount = currentJob?.results.filter(r => r.status === 'success').length || 0;
-  const failedCount = currentJob?.results.filter(r => r.status === 'failed').length || 0;
-  const totalWords = currentJob?.results.reduce((sum, r) => sum + r.wordCount, 0) || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a23] via-[#1a1a3a] to-[#2a2a4a]">
       <div className="container mx-auto p-6 space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-            🌾 DocHarvester
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-[#FFD700] to-[#00FFFF] bg-clip-text text-transparent">
+            🌾 DocHarvester Pro
           </h1>
-          <p className="text-purple-200">Real website crawling with individual file downloads</p>
+          <p className="text-gray-300">Advanced documentation extraction with Puppeteer - JavaScript rendering, scrolling, clicking & more!</p>
         </div>
 
-        <Card className="bg-gradient-to-br from-purple-800/40 to-purple-700/20 border-purple-500/30">
+        {/* Main Input Card */}
+        <Card className="glass-effect border-white/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-white">
-              <Globe className="w-5 h-5 text-purple-400" />
-              Start Website Crawl
+              <Zap className="w-5 h-5 text-[#FFD700]" />
+              Advanced Web Harvesting
             </CardTitle>
-            <CardDescription className="text-purple-200">
-              Enter a documentation website URL. Each page will be available for individual download.
+            <CardDescription className="text-gray-300">
+              Powered by headless Chrome with full JavaScript support, auto-scrolling, and smart content extraction
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="url" className="text-purple-200">Documentation Website URL</Label>
-              <Input
-                id="url"
-                placeholder="https://docs.soliditylang.org"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                disabled={currentJob?.status === 'running'}
-                className="bg-purple-900/50 border-purple-500/50 text-white placeholder:text-purple-300"
-              />
-            </div>
+            <Tabs defaultValue="auto" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-white/5">
+                <TabsTrigger value="auto" className="data-[state=active]:bg-[#FFD700] data-[state=active]:text-black">
+                  Auto Discovery
+                </TabsTrigger>
+                <TabsTrigger value="manual" className="data-[state=active]:bg-[#00FFFF] data-[state=active]:text-black">
+                  Manual URLs
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="auto" className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="url" className="text-gray-300">Documentation Website URL</Label>
+                  <Input
+                    id="url"
+                    placeholder="https://docs.stripe.com"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    disabled={currentJob?.status === 'running'}
+                    className="bg-white/5 border-white/20 text-white placeholder:text-gray-400"
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="manual" className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="manual-urls" className="text-gray-300">Manual URLs (one per line)</Label>
+                  <Textarea
+                    id="manual-urls"
+                    placeholder="https://docs.stripe.com/api&#10;https://docs.stripe.com/payments&#10;https://docs.stripe.com/webhooks"
+                    value={manualUrls}
+                    onChange={(e) => setManualUrls(e.target.value)}
+                    disabled={currentJob?.status === 'running'}
+                    className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 min-h-[100px]"
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            {/* Advanced Options */}
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2 text-gray-300">
+                  <Settings className="w-4 h-4" />
+                  Advanced Options
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-400">Max Depth</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={advancedOptions.max_depth}
+                      onChange={(e) => setAdvancedOptions(prev => ({ ...prev, max_depth: parseInt(e.target.value) || 3 }))}
+                      className="bg-white/5 border-white/20 text-white text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-400">Max Pages</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="500"
+                      value={advancedOptions.max_pages}
+                      onChange={(e) => setAdvancedOptions(prev => ({ ...prev, max_pages: parseInt(e.target.value) || 50 }))}
+                      className="bg-white/5 border-white/20 text-white text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="use-js"
+                      checked={advancedOptions.use_js}
+                      onCheckedChange={(checked) => setAdvancedOptions(prev => ({ ...prev, use_js: !!checked }))}
+                    />
+                    <Label htmlFor="use-js" className="text-xs text-gray-300">JavaScript Rendering</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="scroll"
+                      checked={advancedOptions.scroll_to_bottom}
+                      onCheckedChange={(checked) => setAdvancedOptions(prev => ({ ...prev, scroll_to_bottom: !!checked }))}
+                    />
+                    <Label htmlFor="scroll" className="text-xs text-gray-300">Auto Scroll</Label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="code-blocks"
+                      checked={advancedOptions.extract_code_blocks}
+                      onCheckedChange={(checked) => setAdvancedOptions(prev => ({ ...prev, extract_code_blocks: !!checked }))}
+                    />
+                    <Label htmlFor="code-blocks" className="text-xs text-gray-300">Extract Code Blocks</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="api-endpoints"
+                      checked={advancedOptions.extract_api_endpoints}
+                      onCheckedChange={(checked) => setAdvancedOptions(prev => ({ ...prev, extract_api_endpoints: !!checked }))}
+                    />
+                    <Label htmlFor="api-endpoints" className="text-xs text-gray-300">Extract API Endpoints</Label>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs text-gray-400">Wait for Selector (optional)</Label>
+                  <Input
+                    placeholder=".content, #main, [data-loaded]"
+                    value={advancedOptions.wait_for_selector}
+                    onChange={(e) => setAdvancedOptions(prev => ({ ...prev, wait_for_selector: e.target.value }))}
+                    className="bg-white/5 border-white/20 text-white text-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs text-gray-400">Click Selectors (comma-separated)</Label>
+                  <Input
+                    placeholder="button.load-more, .expand-all"
+                    value={advancedOptions.click_selectors}
+                    onChange={(e) => setAdvancedOptions(prev => ({ ...prev, click_selectors: e.target.value }))}
+                    className="bg-white/5 border-white/20 text-white text-sm"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             <Button
-              onClick={startCrawl}
-              disabled={!url.trim() || currentJob?.status === 'running'}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white border-0"
+              onClick={startHarvest}
+              disabled={(!url.trim() && !manualUrls.trim()) || currentJob?.status === 'running'}
+              className="w-full bg-gradient-to-r from-[#FFD700] to-[#00FFFF] hover:from-[#00FFFF] hover:to-[#FFD700] text-black font-semibold border-0"
             >
-              <Globe className="w-4 h-4 mr-2" />
-              {currentJob?.status === 'running' ? 'Crawling...' : 'Start Crawl'}
+              {currentJob?.status === 'running' ? (
+                <>
+                  <Zap className="w-4 h-4 mr-2 animate-spin" />
+                  Harvesting...
+                </>
+              ) : (
+                <>
+                  <Zap className="w-4 h-4 mr-2" />
+                  Start Advanced Harvest
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
 
+        {/* Results and Status */}
         {currentJob && (
-          <Card className="bg-gradient-to-br from-purple-800/40 to-purple-700/20 border-purple-500/30">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between text-white">
-                <span>Live Progress</span>
-                <Badge variant={currentJob.status === 'completed' ? 'default' : 'secondary'}>
-                  {currentJob.status}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm text-purple-200">
-                  <span>Current: {currentJob.progress.current || 'Starting...'}</span>
-                  <span>{currentJob.progress.processed}/{currentJob.progress.discovered}</span>
-                </div>
-                <Progress value={(currentJob.progress.processed / Math.max(currentJob.progress.discovered, 1)) * 100} className="bg-purple-900/50" />
-              </div>
-              <div className="grid grid-cols-4 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-purple-400">{currentJob.progress.discovered}</div>
-                  <div className="text-sm text-purple-200">Links Found</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-green-400">{successCount}</div>
-                  <div className="text-sm text-purple-200">Success</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-red-400">{failedCount}</div>
-                  <div className="text-sm text-purple-200">Failed</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">{totalWords.toLocaleString()}</div>
-                  <div className="text-sm text-purple-200">Words</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <Tabs defaultValue="files" className="space-y-4">
-          <TabsList className="bg-purple-900/50 border-purple-500/30">
-            <TabsTrigger value="files" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Files</TabsTrigger>
-            <TabsTrigger value="logs" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Logs</TabsTrigger>
-            <TabsTrigger value="export" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Export</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="files">
-            <Card className="bg-gradient-to-br from-purple-800/40 to-purple-700/20 border-purple-500/30">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Status Card */}
+            <Card className="glass-effect border-white/20">
               <CardHeader>
-                <CardTitle className="text-white">Downloaded Files</CardTitle>
-                <CardDescription className="text-purple-200">
-                  Click "Download" to get individual .md files named after page titles
-                </CardDescription>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <Globe className="w-5 h-5 text-[#00FFFF]" />
+                  Harvest Status
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <FileTable
-                  results={currentJob?.results || []}
-                  onDownload={downloadFile}
-                />
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Badge
+                    className={`${
+                      currentJob.status === 'running' ? 'bg-[#FFD700]/20 text-[#FFD700] border-[#FFD700]/30' :
+                      currentJob.status === 'completed' ? 'bg-green-600/20 text-green-400 border-green-500/30' :
+                      currentJob.status === 'failed' ? 'bg-red-600/20 text-red-400 border-red-500/30' :
+                      'bg-gray-600/20 text-gray-400 border-gray-500/30'
+                    }`}
+                  >
+                    {currentJob.status === 'running' && <Zap className="w-3 h-3 mr-1 animate-spin" />}
+                    {currentJob.status === 'completed' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                    {currentJob.status === 'failed' && <XCircle className="w-3 h-3 mr-1" />}
+                    {currentJob.status.toUpperCase()}
+                  </Badge>
+                  <span className="text-gray-300 text-sm">{currentJob.url}</span>
+                </div>
+
+                {currentJob.summary && (
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-1">
+                      <div className="text-gray-400">Pages Harvested</div>
+                      <div className="text-white font-semibold">{currentJob.summary.total_pages}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-gray-400">Success Rate</div>
+                      <div className="text-green-400 font-semibold">
+                        {Math.round((currentJob.summary.successful / currentJob.summary.total_pages) * 100)}%
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-gray-400">Total Words</div>
+                      <div className="text-[#FFD700] font-semibold">{currentJob.summary.total_words.toLocaleString()}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-gray-400">Code Blocks</div>
+                      <div className="text-[#00FFFF] font-semibold">{currentJob.summary.total_code_blocks}</div>
+                    </div>
+                  </div>
+                )}
+
+                {currentJob.status === 'completed' && currentJob.results.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => downloadAllResults('txt')}
+                      className="bg-gradient-to-r from-[#FFD700] to-[#00FFFF] hover:from-[#00FFFF] hover:to-[#FFD700] text-black border-0"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      All TXT
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => downloadAllResults('md')}
+                      className="bg-gradient-to-r from-[#00FFFF] to-[#FFD700] hover:from-[#FFD700] hover:to-[#00FFFF] text-black border-0"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      All MD
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => downloadAllResults('json')}
+                      className="bg-gradient-to-r from-gray-600 to-gray-500 hover:from-gray-500 hover:to-gray-400 text-white border-0"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      All JSON
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="logs">
-            <Card className="bg-gradient-to-br from-purple-800/40 to-purple-700/20 border-purple-500/30">
+            {/* Logs Card */}
+            <Card className="glass-effect border-white/20">
               <CardHeader>
-                <CardTitle className="text-white">Live Logs</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-white">
+                  <FileText className="w-5 h-5 text-[#FFD700]" />
+                  Live Logs
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-96">
-                  <div className="space-y-1 font-mono text-sm">
-                    {currentJob?.logs.map((log, index) => (
-                      <div key={index} className="text-purple-200">{log}</div>
-                    ))}
-                  </div>
+                <ScrollArea className="h-64 w-full rounded-md border border-white/10 bg-black/20 p-4">
+                  {currentJob.logs.length > 0 ? (
+                    <div className="space-y-1">
+                      {currentJob.logs.map((log, index) => (
+                        <div key={index} className="text-xs text-gray-300 font-mono">
+                          {log}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 text-sm">No logs yet...</div>
+                  )}
                 </ScrollArea>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="export">
-            <Card className="bg-gradient-to-br from-purple-800/40 to-purple-700/20 border-purple-500/30">
-              <CardHeader>
-                <CardTitle className="text-white">Export Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Button
-                  onClick={downloadSummaryJSON}
-                  disabled={!currentJob?.results.length}
-                  className="w-full h-16 flex-col bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white border-0"
-                >
-                  <Download className="w-5 h-5 mb-1" />
-                  Download Summary JSON
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        {/* Results Table */}
+        {currentJob?.results && currentJob.results.length > 0 && (
+          <Card className="glass-effect border-white/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <FileText className="w-5 h-5 text-[#00FFFF]" />
+                Harvested Files ({currentJob.results.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FileTable results={currentJob.results} onDownload={downloadFile} />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
-}
+
 

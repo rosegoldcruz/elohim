@@ -16,12 +16,6 @@ export default function DocsLayout({
 
   const navigation = [
     {
-      name: 'AEON Docs',
-      href: '/docs/aeon',
-      icon: BookOpen,
-      description: 'Platform documentation and guides'
-    },
-    {
       name: 'DocHarvester',
       href: '/docs/harvester',
       icon: Wrench,

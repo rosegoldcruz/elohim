@@ -74,7 +74,7 @@ export default function DocsPage() {
             <input
               type="text"
               placeholder="Search documentation..."
-              className="w-full p-4 pl-12 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50"
+              className="w-full p-4 pl-12 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FFD700]/50"
             />
             <BookOpen className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           </div>
@@ -91,7 +91,7 @@ export default function DocsPage() {
               className="glass-effect rounded-2xl p-8"
             >
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-gradient-to-r from-fuchsia-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#FFD700] to-[#00FFFF] rounded-xl flex items-center justify-center mr-4">
                   <section.icon className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -106,7 +106,7 @@ export default function DocsPage() {
                     key={article}
                     className="flex items-center p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer group"
                   >
-                    <FileText className="w-4 h-4 text-gray-400 mr-3 group-hover:text-fuchsia-400 transition-colors" />
+                    <FileText className="w-4 h-4 text-gray-400 mr-3 group-hover:text-[#FFD700] transition-colors" />
                     <span className="text-gray-300 group-hover:text-white transition-colors">{article}</span>
                   </div>
                 ))}
@@ -126,17 +126,17 @@ export default function DocsPage() {
             <h2 className="text-2xl font-semibold text-white mb-6">Quick Links</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center p-6 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
-                <Users className="w-8 h-8 text-fuchsia-400 mx-auto mb-3" />
+                <Users className="w-8 h-8 text-[#FFD700] mx-auto mb-3" />
                 <h3 className="text-white font-medium mb-2">Community</h3>
                 <p className="text-gray-400 text-sm">Join our community for support</p>
               </div>
               <div className="text-center p-6 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
-                <Video className="w-8 h-8 text-purple-400 mx-auto mb-3" />
+                <Video className="w-8 h-8 text-[#00FFFF] mx-auto mb-3" />
                 <h3 className="text-white font-medium mb-2">Tutorials</h3>
                 <p className="text-gray-400 text-sm">Step-by-step video tutorials</p>
               </div>
               <div className="text-center p-6 bg-white/5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer">
-                <Code className="w-8 h-8 text-blue-400 mx-auto mb-3" />
+                <Code className="w-8 h-8 text-[#00FFFF] mx-auto mb-3" />
                 <h3 className="text-white font-medium mb-2">API Docs</h3>
                 <p className="text-gray-400 text-sm">Technical API documentation</p>
               </div>
