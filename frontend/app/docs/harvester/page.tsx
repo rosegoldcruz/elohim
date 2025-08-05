@@ -691,5 +691,5 @@ const FileTable: React.FC<FileTableProps> = ({ results, onDownload }) => {
       </div>
     </div>
   );
-
+}
 
