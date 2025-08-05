@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import puppeteer, { Browser, Page } from 'puppeteer';
+
+// Dynamic import for Puppeteer to handle Vercel deployment
+let puppeteer: any = null;
+try {
+  puppeteer = require('puppeteer');
+} catch (error) {
+  console.log('Puppeteer not available, falling back to fetch-based harvesting');
+}
 
 interface HarvestRequest {
   base_url?: string;
@@ -38,26 +45,33 @@ interface HarvestResult {
 }
 
 class AdvancedDocHarvester {
-  private browser: Browser | null = null;
+  private browser: any = null;
   private visited = new Set<string>();
   private discovered = new Set<string>();
   private results: HarvestResult[] = [];
+  private usePuppeteer = false;
 
   async initialize() {
-    if (!this.browser) {
-      this.browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-gpu'
-        ]
-      });
+    if (puppeteer && !this.browser) {
+      try {
+        this.browser = await puppeteer.launch({
+          headless: true,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu'
+          ]
+        });
+        this.usePuppeteer = true;
+      } catch (error) {
+        console.log('Failed to launch Puppeteer, falling back to fetch:', error);
+        this.usePuppeteer = false;
+      }
     }
   }
 
@@ -121,6 +135,14 @@ class AdvancedDocHarvester {
     if (this.visited.has(url)) return null;
     this.visited.add(url);
 
+    if (this.usePuppeteer && this.browser) {
+      return this.harvestPageWithPuppeteer(url, request);
+    } else {
+      return this.harvestPageWithFetch(url, request);
+    }
+  }
+
+  private async harvestPageWithPuppeteer(url: string, request: HarvestRequest): Promise<HarvestResult | null> {
     const page = await this.browser!.newPage();
     
     try {
@@ -288,6 +310,125 @@ class AdvancedDocHarvester {
     } finally {
       await page.close();
     }
+  }
+
+  private async harvestPageWithFetch(url: string, request: HarvestRequest): Promise<HarvestResult | null> {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const html = await response.text();
+
+      // Simple HTML parsing without DOM
+      const title = this.extractTitle(html);
+      const content = this.extractContent(html);
+      const links = this.extractLinks(html, url);
+      const codeBlocks = request.extract_code_blocks ? this.extractCodeBlocks(html) : [];
+      const apiEndpoints = request.extract_api_endpoints ? this.extractApiEndpoints(html) : [];
+
+      const harvestResult: HarvestResult = {
+        url,
+        title,
+        content,
+        markdown: content, // Simple fallback
+        code_blocks: codeBlocks,
+        api_endpoints: apiEndpoints,
+        links,
+        images: [],
+        metadata: {
+          word_count: content.split(/\s+/).length,
+          description: '',
+          keywords: []
+        },
+        status: 'success'
+      };
+
+      this.results.push(harvestResult);
+      return harvestResult;
+
+    } catch (error) {
+      const errorResult: HarvestResult = {
+        url,
+        title: 'Failed to load',
+        content: '',
+        markdown: '',
+        code_blocks: [],
+        api_endpoints: [],
+        links: [],
+        images: [],
+        metadata: { word_count: 0 },
+        status: 'failed',
+        error: String(error)
+      };
+
+      this.results.push(errorResult);
+      return errorResult;
+    }
+  }
+
+  private extractTitle(html: string): string {
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    if (titleMatch) return titleMatch[1].trim();
+
+    const h1Match = html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+    if (h1Match) return h1Match[1].replace(/<[^>]*>/g, '').trim();
+
+    return 'Untitled';
+  }
+
+  private extractContent(html: string): string {
+    // Remove scripts, styles, and other unwanted elements
+    let content = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')
+      .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '')
+      .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '');
+
+    // Extract text content
+    content = content.replace(/<[^>]*>/g, ' ');
+    content = content.replace(/\s+/g, ' ').trim();
+
+    return content;
+  }
+
+  private extractLinks(html: string, baseUrl: string): string[] {
+    const linkMatches = html.match(/<a[^>]+href=["']([^"']+)["'][^>]*>/gi) || [];
+    const links: string[] = [];
+
+    for (const match of linkMatches) {
+      const hrefMatch = match.match(/href=["']([^"']+)["']/i);
+      if (hrefMatch) {
+        try {
+          const absoluteUrl = new URL(hrefMatch[1], baseUrl).href;
+          links.push(absoluteUrl);
+        } catch (e) {
+          // Invalid URL, skip
+        }
+      }
+    }
+
+    return [...new Set(links)];
+  }
+
+  private extractCodeBlocks(html: string): string[] {
+    const codeMatches = html.match(/<(?:pre|code)[^>]*>([^<]+)<\/(?:pre|code)>/gi) || [];
+    return codeMatches
+      .map(match => match.replace(/<[^>]*>/g, '').trim())
+      .filter(code => code.length > 10);
+  }
+
+  private extractApiEndpoints(html: string): string[] {
+    const content = html.replace(/<[^>]*>/g, ' ');
+    const endpoints = content.match(/(?:GET|POST|PUT|DELETE|PATCH)\s+\/[^\s]+|\/api[^\s]*/gi) || [];
+    return [...new Set(endpoints)];
   }
 
   private async autoScroll(page: Page) {
