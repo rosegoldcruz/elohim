@@ -3,7 +3,7 @@
  * Generates original music using Replicate's MusicGen, Riffusion, and Bark models
  */
 
-import { env } from '../../env.mjs';
+import { env } from '@/env';
 
 export interface MusicGenerationRequest {
   prompt: string;
