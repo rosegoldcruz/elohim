@@ -14,7 +14,7 @@ import { StorageManager } from '../storage-manager';
 import { pipelineOptimizer, initializePipelineOptimization } from './pipeline-optimizer';
 import { optimizerAgent } from './OptimizerAgent';
 // Supabase removed - using Clerk for authentication
-import { env } from '@/env.mjs';
+import { env } from '../../env.mjs';
 import { getDefaultModelNames } from '@/config/videoModels';
 
 export interface PipelineRequest {

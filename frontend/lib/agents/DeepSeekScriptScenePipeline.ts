@@ -6,7 +6,7 @@
 
 import { OpenAI } from "openai";
 import { z } from "zod";
-import { env } from "@/env";
+import { env } from "../../env.mjs";
 import { StorageManager } from "@/lib/storage-manager";
 
 // Enhanced script schema for TikTok viral content

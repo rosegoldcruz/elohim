@@ -3,7 +3,7 @@
  * Generates actual videos using Replicate, Minimax, and Kling APIs
  */
 
-import { env } from '@/env.mjs';
+import { env } from '../../env.mjs';
 import { PlannedScene } from './ScenePlannerAgent';
 
 export interface VideoGenerationRequest {
