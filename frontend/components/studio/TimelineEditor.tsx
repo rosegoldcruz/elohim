@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { 
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
   Scissors, Copy, Trash2, Plus, Minus, ZoomIn, ZoomOut,
@@ -60,16 +60,25 @@ interface TimelineEditorProps {
   onSeek: (time: number) => void;
 }
 
-export function TimelineEditor({
-  project,
-  onProjectUpdate,
-  onPreview,
-  duration,
-  currentTime,
-  isPlaying,
-  onPlayPause,
-  onSeek
-}: TimelineEditorProps) {
+export type TimelineHandle = {
+  addVideoClip: (name: string, url: string, startTime?: number, duration?: number) => void;
+  addAudioClip: (name: string, url: string, startTime?: number, duration?: number) => void;
+  replaceClipByUrl: (oldUrl: string, newUrl: string) => void;
+};
+
+export const TimelineEditor = forwardRef<TimelineHandle, TimelineEditorProps>(function TimelineEditor(
+  {
+    project,
+    onProjectUpdate,
+    onPreview,
+    duration,
+    currentTime,
+    isPlaying,
+    onPlayPause,
+    onSeek
+  }: TimelineEditorProps,
+  ref
+) {
   const [tracks, setTracks] = useState<TimelineTrack[]>([
     {
       id: 'video-main',
@@ -242,6 +251,43 @@ export function TimelineEditor({
       }))
     );
   }, [currentTime]);
+
+  useImperativeHandle(ref, () => ({
+    addVideoClip: (name: string, url: string, startTime: number = 0, durationSec: number = 5) => {
+      setTracks(prev => prev.map(t => t.id === 'video-main' ? {
+        ...t,
+        clips: [...t.clips, {
+          id: `clip_${Date.now()}`,
+          name,
+          type: 'video',
+          startTime,
+          duration: durationSec,
+          url,
+          properties: { volume: 1, opacity: 1, speed: 1 }
+        }]
+      } : t));
+    },
+    addAudioClip: (name: string, url: string, startTime: number = 0, durationSec: number = 5) => {
+      setTracks(prev => prev.map(t => t.id === 'audio-music' ? {
+        ...t,
+        clips: [...t.clips, {
+          id: `clip_${Date.now()}`,
+          name,
+          type: 'audio',
+          startTime,
+          duration: durationSec,
+          url,
+          properties: { volume: 1 }
+        }]
+      } : t));
+    },
+    replaceClipByUrl: (oldUrl: string, newUrl: string) => {
+      setTracks(prev => prev.map(t => ({
+        ...t,
+        clips: t.clips.map(c => c.url === oldUrl ? { ...c, url: newUrl } : c)
+      })));
+    }
+  }), []);
 
   // Render timeline ruler
   const renderRuler = () => {

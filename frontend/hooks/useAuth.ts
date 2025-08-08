@@ -38,5 +38,10 @@ export function useAuth() {
     await supabase.auth.signOut();
   };
 
-  return { user, isLoading, signOut };
+  const getToken = async (): Promise<string | null> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || null;
+  };
+
+  return { user, isLoading, signOut, getToken };
 }
