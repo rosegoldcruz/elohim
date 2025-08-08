@@ -28,6 +28,8 @@ from api.video import router as video_router
 from api.jobs import router as jobs_router
 from api.editor import router as editor_router
 from api.marketing import router as marketing_router
+from api.audio import router as audio_router
+from api.vision import router as vision_router
 
 # Import utilities
 from utils.auth import verify_clerk_jwt
@@ -131,6 +133,8 @@ app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(jobs_router, tags=["Jobs"])
 app.include_router(editor_router, tags=["Editor"])
 app.include_router(marketing_router, tags=["Marketing"])
+app.include_router(audio_router, tags=["Audio"])
+app.include_router(vision_router, tags=["Vision"])
 app.include_router(generate_router, prefix="/api/generate", tags=["Video Generation"])
 app.include_router(modular_router, prefix="/api/modular", tags=["Modular Generation"])
 app.include_router(status_router, prefix="/api/status", tags=["Status & Monitoring"])
