@@ -30,6 +30,16 @@ export interface JobStatus {
   meta?: Record<string, any>;
 }
 
+export interface RenderTimelineRequest {
+  timeline: Record<string, any>;
+  settings?: Record<string, any>;
+}
+
+export interface RenderTimelineResponse {
+  job_id: string;
+  status: string;
+}
+
 class APIError extends Error {
   constructor(
     message: string,
@@ -114,6 +124,13 @@ class APIClient {
 
   getDownloadUrl(jobId: string): string {
     return `${this.baseURL}/download/${jobId}`;
+  }
+
+  async renderTimeline(payload: RenderTimelineRequest, token: string): Promise<RenderTimelineResponse> {
+    return this.authenticatedRequest<RenderTimelineResponse>(`/editor/render`, token, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   }
 }
 
