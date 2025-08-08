@@ -119,6 +119,37 @@ export default function AEONViralStudio() {
     input.click();
   };
 
+  const voiceToVideo = async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'audio/*';
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      setBusy(true);
+      try {
+        const token = await getToken();
+        if (!token) throw new Error('Not authenticated');
+        // STT
+        const form = new FormData();
+        form.append('file', file);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/audio/stt`, {
+          method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: form
+        });
+        if (!res.ok) throw new Error(`STT failed`);
+        const { text } = await res.json();
+        // Create job from transcript
+        const job = await apiClient.createJob({ text, video_length: 60, scene_duration: 5, style: 'tiktok' }, token);
+        alert(`Created job from voice: ${job.job_id}`);
+      } catch (e: any) {
+        alert(e?.message || 'Voice-to-Video failed');
+      } finally {
+        setBusy(false);
+      }
+    };
+    input.click();
+  };
+
   const renderVideo = async () => {
     // For now reuse /editor/render in the Studio page
     alert('Use Render button in Studio header to render current timeline.');
@@ -153,6 +184,7 @@ export default function AEONViralStudio() {
         <Button disabled={busy} onClick={tts}>TTS</Button>
         <Button disabled={busy} onClick={music}>Music</Button>
         <Button disabled={busy} onClick={upscale}>Upscale</Button>
+        <Button disabled={busy} onClick={voiceToVideo}>Voice→Video</Button>
         <Button variant="outline" onClick={renderVideo}>Presets / Export</Button>
         <Button variant="outline" onClick={assist}>AI Assist</Button>
       </div>

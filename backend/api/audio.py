@@ -7,7 +7,7 @@ import os
 import tempfile
 import logging
 from typing import Dict, Any
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
 
 from utils.auth import verify_clerk_jwt
@@ -97,3 +97,38 @@ async def music(payload: MusicRequest, current_user: Dict[str, Any] = Depends(ve
         final = os.path.abspath(os.path.join(os.getcwd(), f"music_{current_user.get('user_id')}_{os.path.basename(local)}"))
         os.replace(local, final)
         return { 'path': final }
+
+
+class STTResponse(BaseModel):
+    text: str
+
+
+@router.post('/audio/stt')
+async def stt(file: UploadFile = File(...), current_user: Dict[str, Any] = Depends(verify_clerk_jwt)) -> STTResponse:
+    try:
+        client = ReplicateClient()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Replicate not configured: {e}")
+
+    version = os.getenv('REPLICATE_STT_VERSION', '')
+    if not version:
+        raise HTTPException(status_code=500, detail='STT model not configured (REPLICATE_STT_VERSION)')
+
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        temp_path = os.path.join(tmp, file.filename or 'audio.wav')
+        content = await file.read()
+        with open(temp_path, 'wb') as f:
+            f.write(content)
+        # Some models require URL; for simplicity, assume local file streams allowed
+        result = client.run(version=version, inputs={'audio': open(temp_path, 'rb')})
+
+    output = result.get('output')
+    if isinstance(output, str):
+        text = output
+    elif isinstance(output, dict) and 'text' in output:
+        text = output['text']
+    else:
+        raise HTTPException(status_code=500, detail='No STT output')
+
+    return STTResponse(text=text)
