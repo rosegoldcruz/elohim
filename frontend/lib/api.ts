@@ -40,6 +40,19 @@ export interface RenderTimelineResponse {
   status: string;
 }
 
+export interface ProductBatchResponse {
+  jobs: string[];
+  scraped: { title: string; images: string[]; bullets: string[]; description: string; url: string };
+}
+
+export interface TalkingHeadRequest {
+  image_url: string;
+  audio_url: string;
+  style?: string;
+}
+
+export interface MediaUploadResponse { url: string }
+
 class APIError extends Error {
   constructor(
     message: string,
@@ -131,6 +144,44 @@ class APIClient {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+  }
+
+  async productBatch(url: string, variants: number, token: string): Promise<ProductBatchResponse> {
+    const params = new URLSearchParams({ url, variants: String(variants) });
+    return this.authenticatedRequest<ProductBatchResponse>(`/marketing/product-batch?${params.toString()}`, token, { method: 'POST' });
+  }
+
+  async talkingHead(payload: TalkingHeadRequest, token: string): Promise<{ path: string; url?: string }> {
+    return this.authenticatedRequest(`/vision/talking-head`, token, { method: 'POST', body: JSON.stringify(payload) });
+  }
+
+  async tts(text: string, voice: string | undefined, language: string | undefined, token: string): Promise<{ url?: string; path?: string }> {
+    return this.authenticatedRequest(`/audio/tts`, token, { method: 'POST', body: JSON.stringify({ text, voice, language }) });
+  }
+
+  async music(prompt: string, duration: number | undefined, token: string): Promise<{ url?: string; path?: string }> {
+    return this.authenticatedRequest(`/audio/music`, token, { method: 'POST', body: JSON.stringify({ prompt, duration }) });
+  }
+
+  async upscale(file: File, scale: number, token: string): Promise<{ url?: string; path?: string }> {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('scale', String(scale));
+    const res = await fetch(`${this.baseURL}/vision/upscale?scale=${scale}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: form,
+    });
+    if (!res.ok) throw new APIError(`HTTP ${res.status}`, res.status);
+    return res.json();
+  }
+
+  async mediaUpload(file: File): Promise<MediaUploadResponse> {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(`${this.baseURL}/media/upload`, { method: 'POST', body: form });
+    if (!res.ok) throw new APIError(`HTTP ${res.status}`, res.status);
+    return res.json();
   }
 }
 
