@@ -27,6 +27,7 @@ from api.auth import router as auth_router
 from api.video import router as video_router
 from api.jobs import router as jobs_router
 from api.editor import router as editor_router
+from api.marketing import router as marketing_router
 
 # Import utilities
 from utils.auth import verify_clerk_jwt
@@ -129,6 +130,7 @@ async def metrics():
 app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(jobs_router, tags=["Jobs"])
 app.include_router(editor_router, tags=["Editor"])
+app.include_router(marketing_router, tags=["Marketing"])
 app.include_router(generate_router, prefix="/api/generate", tags=["Video Generation"])
 app.include_router(modular_router, prefix="/api/modular", tags=["Modular Generation"])
 app.include_router(status_router, prefix="/api/status", tags=["Status & Monitoring"])
