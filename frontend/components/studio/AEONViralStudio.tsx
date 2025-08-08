@@ -124,6 +124,27 @@ export default function AEONViralStudio() {
     alert('Use Render button in Studio header to render current timeline.');
   };
 
+  const assist = async () => {
+    const message = prompt('Tell the AI assistant what to improve (e.g., "Make this scene funnier")');
+    if (!message) return;
+    setBusy(true);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error('Not authenticated');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/assistant/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ message, timeline: {} })
+      });
+      const data = await res.json();
+      alert(`${data.reply}\n\nSuggested ops: ${JSON.stringify(data.operations, null, 2)}`);
+    } catch (e: any) {
+      alert(e?.message || 'Assistant failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
@@ -133,6 +154,7 @@ export default function AEONViralStudio() {
         <Button disabled={busy} onClick={music}>Music</Button>
         <Button disabled={busy} onClick={upscale}>Upscale</Button>
         <Button variant="outline" onClick={renderVideo}>Presets / Export</Button>
+        <Button variant="outline" onClick={assist}>AI Assist</Button>
       </div>
 
       <TimelineEditor

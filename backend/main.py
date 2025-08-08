@@ -31,6 +31,7 @@ from api.marketing import router as marketing_router
 from api.audio import router as audio_router
 from api.vision import router as vision_router
 from api.media import router as media_router
+from api.assistant import router as assistant_router
 
 # Import utilities
 from utils.auth import verify_clerk_jwt
@@ -137,6 +138,7 @@ app.include_router(marketing_router, tags=["Marketing"])
 app.include_router(audio_router, tags=["Audio"])
 app.include_router(vision_router, tags=["Vision"])
 app.include_router(media_router, tags=["Media"])
+app.include_router(assistant_router, tags=["Assistant"])
 app.include_router(generate_router, prefix="/api/generate", tags=["Video Generation"])
 app.include_router(modular_router, prefix="/api/modular", tags=["Modular Generation"])
 app.include_router(status_router, prefix="/api/status", tags=["Status & Monitoring"])
