@@ -21,13 +21,16 @@ postgrest==0.13.2
 storage3==0.5.4
 python-magic==0.4.27
 
-# Video Processing (NO NUMPY, NO LIBROSA, NO OTHER ML LIBS)
+# Video Processing
 moviepy==1.0.3
 pydub==0.25.1
 opencv-python==4.8.1.78
 Pillow==10.1.0
+numpy==1.26.4
+librosa==0.10.1
+soundfile==0.12.1
 
-# AI Video Generation (Replicate.com ONLY)
+# AI Video Generation (Replicate.com OPTIONAL)
 replicate==0.22.0
 
 # HTTP & API
